@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://84.46.251.167:8203';
+const API_BASE_URL = 'http://10.193.130.100:8000';
 
 class ApiService {
   constructor() {
@@ -62,3 +62,4 @@ class ApiService {
 }
 
 export default new ApiService();
+

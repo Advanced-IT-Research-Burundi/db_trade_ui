@@ -39,7 +39,7 @@ const MainLayout = ({ children }) => {
       <div className="main-wrapper">
         <Header onSidebarToggle={toggleSidebar} />
         
-        <main className="main-content p-3">
+        <main className="main-content">
           {children}
         </main>
       </div>

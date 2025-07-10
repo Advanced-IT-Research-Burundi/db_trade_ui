@@ -1,310 +1,275 @@
-import React, { useRef } from 'react';
+import React, { useRef, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { Badge } from 'primereact/badge';
 import { Button } from 'primereact/button';
-import { Menu } from 'primereact/menu';
 import { Avatar } from 'primereact/avatar';
 
 const Header = ({ onSidebarToggle, pageTitle = 'Tableau de bord' }) => {
   const { user, logout } = useAuth();
   const userMenuRef = useRef(null);
   const notificationMenuRef = useRef(null);
+  const [isUserMenuOpen, setIsUserMenuOpen] = React.useState(false);
+  const [isNotificationMenuOpen, setIsNotificationMenuOpen] = React.useState(false);
 
-  console.log('User:', user);
-  const userMenuItems = [
-    {
-      label: user?.name || 'BURUNDI UBWIZA',
-      icon: 'pi pi-user',
-      className: 'font-bold text-primary',
-      disabled: true
-    },
-    {
-      separator: true
-    },
-    {
-      label: 'Mon Profil',
-      icon: 'pi pi-user',
-      command: () => {
-        window.location.href = '/profile';
+  // Fermer les menus si on clique à l'extérieur
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target)) {
+        setIsUserMenuOpen(false);
       }
-    },
-    {
-      label: 'Paramètres',
-      icon: 'pi pi-cog',
-      command: () => {
-        window.location.href = '/settings';
+      if (notificationMenuRef.current && !notificationMenuRef.current.contains(event.target)) {
+        setIsNotificationMenuOpen(false);
       }
-    },
-    {
-      separator: true
-    },
-    {
-      label: 'Déconnexion',
-      icon: 'pi pi-sign-out',
-      className: 'text-danger',
-      command: logout
-    }
-  ];
+    };
 
-  const notificationItems = [
-    {
-      label: 'Notifications récentes',
-      className: 'font-bold text-primary',
-      disabled: true
-    },
-    {
-      separator: true
-    },
-    {
-      label: 'Nouvelle commande reçue',
-      icon: 'pi pi-shopping-cart text-success',
-      template: (item) => (
-        <div className="d-flex justify-content-between align-items-center px-3 py-2">
-          <div className="d-flex align-items-center">
-            <i className={item.icon}></i>
-            <span className="ms-2">{item.label}</span>
-          </div>
-          <small className="text-muted">5 min</small>
-        </div>
-      )
-    },
-    {
-      label: 'Stock faible pour le produit X',
-      icon: 'pi pi-exclamation-triangle text-warning',
-      template: (item) => (
-        <div className="d-flex justify-content-between align-items-center px-3 py-2">
-          <div className="d-flex align-items-center">
-            <i className={item.icon}></i>
-            <span className="ms-2">{item.label}</span>
-          </div>
-          <small className="text-muted">15 min</small>
-        </div>
-      )
-    },
-    {
-      label: 'Paiement en attente',
-      icon: 'pi pi-clock text-info',
-      template: (item) => (
-        <div className="d-flex justify-content-between align-items-center px-3 py-2">
-          <div className="d-flex align-items-center">
-            <i className={item.icon}></i>
-            <span className="ms-2">{item.label}</span>
-          </div>
-          <small className="text-muted">1h</small>
-        </div>
-      )
-    },
-    {
-      separator: true
-    },
-    {
-      label: 'Voir toutes les notifications',
-      icon: 'pi pi-eye',
-      className: 'text-center text-primary fw-bold',
-      command: () => {
-        window.location.href = '/notifications';
-      }
-    }
-  ];
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
-  const toggleUserMenu = (event) => {
-    userMenuRef.current.toggle(event);
+  const toggleUserMenu = () => {
+    setIsUserMenuOpen(!isUserMenuOpen);
+    setIsNotificationMenuOpen(false);
   };
 
-  const toggleNotificationMenu = (event) => {
-    notificationMenuRef.current.toggle(event);
+  const toggleNotificationMenu = () => {
+    setIsNotificationMenuOpen(!isNotificationMenuOpen);
+    setIsUserMenuOpen(false);
+  };
+
+  const handleProfileClick = () => {
+    window.location.href = '/profile';
+    setIsUserMenuOpen(false);
+  };
+
+  const handleSettingsClick = () => {
+    window.location.href = '/settings';
+    setIsUserMenuOpen(false);
+  };
+
+  const handleMessagesClick = () => {
+    window.location.href = '/messages';
+    setIsUserMenuOpen(false);
+  };
+
+  const handleLogout = () => {
+    logout();
+    setIsUserMenuOpen(false);
   };
 
   return (
-    <>
-      <nav 
-        className="navbar navbar-expand-lg navbar-light bg-white shadow-sm sticky-top"
-        style={{
-          height: '60px',
-          borderBottom: '1px solid #e9ecef',
-          zIndex: 998
-        }}
-      >
-        <div className="container-fluid px-3">
-          {/* Section gauche */}
-          <div className="d-flex align-items-center">
-            <Button
-              icon="pi pi-bars"
-              className="p-button-text p-button-rounded me-3"
-              onClick={onSidebarToggle}
-              style={{ 
-                color: '#6c757d',
-                border: 'none',
-                fontSize: '1.1rem',
-                width: '40px',
-                height: '40px'
-              }}
-              tooltip="Basculer le menu"
-              tooltipOptions={{ position: 'bottom' }}
-            />
-            <div className="d-flex align-items-center">
-              <h5 className="mb-0 fw-normal" style={{ color: '#495057', fontSize: '1.1rem' }}>
-                {pageTitle}
-              </h5>
-            </div>
-          </div>
-
-          {/* Section droite */}
-          <div className="d-flex align-items-center">
-            {/* Panier */}
-            <div className="position-relative me-3">
-              <Button
-                icon="pi pi-shopping-cart"
-                className="p-button-text p-button-rounded position-relative p-4"
-                style={{ 
-                  color: '#6c757d',
-                  border: 'none',
-                  width: '40px',
-                  height: '40px',
-                  fontSize: '1.1rem'
-                }}
-                tooltip="Panier"
-                tooltipOptions={{ position: 'bottom' }}
-              />
-              <Badge 
-                value="0" 
-                severity="danger" 
-                className="cart-badge"
-                style={{ 
-                  position: 'absolute',
-                  top: '6px',
-                  right: '6px',
-                  minWidth: '16px',
-                  height: '16px',
-                  fontSize: '0.65rem',
-                  borderRadius: '50%',
-                  backgroundColor: '#dc3545',
-                  color: 'white'
-                }}
-              />
-            </div>
-
-            {/* Notifications */}
-            <div className="position-relative me-3">
-              <Button
-                icon="pi pi-bell"
-                className="p-button-text p-button-rounded p-4"
-                style={{ 
-                  color: '#6c757d',
-                  border: 'none',
-                  width: '40px',
-                  height: '40px',
-                  fontSize: '1.1rem'
-                }}
-                tooltip="Notifications"
-                tooltipOptions={{ position: 'bottom' }}
-                onClick={toggleNotificationMenu}
-              />
-              <Badge 
-                value="3" 
-                severity="warning"
-                className="notification-badge"
-                style={{ 
-                  position: 'absolute',
-                  top: '6px',
-                  right: '6px',
-                  minWidth: '16px',
-                  height: '16px',
-                  fontSize: '0.65rem',
-                  borderRadius: '50%',
-                  backgroundColor: '#ffc107',
-                  color: 'white'
-                }}
-              />
-              <Menu 
-                model={notificationItems} 
-                popup 
-                ref={notificationMenuRef}
-                className="notification-menu"
-                style={{ width: '350px' }}
-              />
-            </div>
-
-            {/* Menu utilisateur */}
-            <div className="d-flex align-items-center user-menu-container">
-              <div className="me-2" style={{ cursor: 'pointer' }} onClick={toggleUserMenu}>
-                <div className="d-flex align-items-center">
-                  <Avatar
-                    icon="pi pi-user"
-                    shape="circle"
-                    size="normal"
-                    className="me-2"
-                    style={{ 
-                      backgroundColor: '#007bff',
-                      color: 'white',
-                      width: '32px',
-                      height: '32px'
-                    }}
-                  />
-                  
-                  <div className="d-none d-md-block me-2">
-                    <div className="fw-medium" style={{ color: '#495057', fontSize: '0.9rem' }}>
-                      BURUNDI UBWIZA
-                    </div>
-                    <small className="text-muted" style={{ fontSize: '0.75rem' }}>
-                      ubwizaburundi@gmail.com
-                    </small>
-                  </div>
-                  <i className="pi pi-angle-down" style={{ color: '#6c757d', fontSize: '0.8rem' }}></i>
-                </div>
-              </div>
-              <Menu 
-                model={userMenuItems} 
-                popup 
-                ref={userMenuRef}
-                className="user-menu"
-                style={{ width: '200px' }}
-              />
-            </div>
+    <nav className="navbar navbar-expand-lg navbar-light bg-white shadow-sm sticky-top border-bottom">
+      <div className="container-fluid px-4">
+        {/* Section gauche */}
+        <div className="d-flex align-items-center">
+          <Button
+            icon="pi pi-bars"
+            className="p-button-text p-button-rounded me-3"
+            onClick={onSidebarToggle}
+            tooltip="Basculer le menu"
+            tooltipOptions={{ position: 'bottom' }}
+          />
+          <div>
+            <h5 className="mb-0 fw-normal text-dark">
+              {pageTitle}
+            </h5>
           </div>
         </div>
-      </nav>
 
-      <style jsx>{`
-        .cart-badge {
-          animation: none;
-        }
-        
-        .notification-badge {
-          animation: pulse 2s infinite;
-        }
-        
+        {/* Section droite */}
+        <div className="d-flex align-items-center">
+          {/* Panier */}
+          <div className="position-relative me-3">
+            <Button
+              icon="pi pi-shopping-cart"
+              className="p-button-text p-button-rounded"
+              tooltip="Panier"
+              tooltipOptions={{ position: 'bottom' }}
+            />
+            <Badge 
+              value="0" 
+              severity="danger" 
+              className="position-absolute top-0 start-100 translate-middle"
+              style={{ fontSize: '0.65rem' }}
+            />
+          </div>
+
+          {/* Notifications */}
+          <div className="position-relative me-3" ref={notificationMenuRef}>
+            <Button
+              icon="pi pi-bell"
+              className="p-button-text p-button-rounded"
+              tooltip="Notifications"
+              tooltipOptions={{ position: 'bottom' }}
+              onClick={toggleNotificationMenu}
+            />
+            <Badge 
+              value="3" 
+              severity="warning"
+              className="position-absolute top-0 start-100 translate-middle"
+              style={{ fontSize: '0.65rem', animation: 'pulse 2s infinite' }}
+            />
+            
+            {/* Dropdown Notifications */}
+            {isNotificationMenuOpen && (
+              <div className="dropdown-menu show position-absolute end-0 mt-2 shadow-lg border-0" style={{ width: '350px', zIndex: 1050 }}>
+                <div className="px-3 py-2 border-bottom">
+                  <h6 className="mb-0 fw-bold text-primary">Notifications récentes</h6>
+                </div>
+                <div className="notification-item px-3 py-2 border-bottom hover-bg-light">
+                  <div className="d-flex justify-content-between align-items-start">
+                    <div className="d-flex align-items-start">
+                      <i className="pi pi-shopping-cart text-success me-2 mt-1"></i>
+                      <span className="small">Nouvelle commande reçue</span>
+                    </div>
+                    <small className="text-muted">5 min</small>
+                  </div>
+                </div>
+                <div className="notification-item px-3 py-2 border-bottom hover-bg-light">
+                  <div className="d-flex justify-content-between align-items-start">
+                    <div className="d-flex align-items-start">
+                      <i className="pi pi-exclamation-triangle text-warning me-2 mt-1"></i>
+                      <span className="small">Stock faible pour le produit X</span>
+                    </div>
+                    <small className="text-muted">15 min</small>
+                  </div>
+                </div>
+                <div className="notification-item px-3 py-2 border-bottom hover-bg-light">
+                  <div className="d-flex justify-content-between align-items-start">
+                    <div className="d-flex align-items-start">
+                      <i className="pi pi-clock text-info me-2 mt-1"></i>
+                      <span className="small">Paiement en attente</span>
+                    </div>
+                    <small className="text-muted">1h</small>
+                  </div>
+                </div>
+                <div className="px-3 py-2 text-center">
+                  <a href="/notifications" className="text-primary fw-bold text-decoration-none small">
+                    Voir toutes les notifications
+                  </a>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Menu utilisateur */}
+          <div className="position-relative" ref={userMenuRef}>
+            <div 
+              className="d-flex align-items-center p-2 rounded hover-bg-light"
+              style={{ cursor: 'pointer' }}
+              onClick={toggleUserMenu}
+            >
+              <Avatar
+                icon="pi pi-user"
+                shape="circle"
+                size="normal"
+                className="me-2"
+                style={{ 
+                  backgroundColor: 'var(--primary-blue)',
+                  color: 'white',
+                  width: '32px',
+                  height: '32px'
+                }}
+              />
+              
+              <div className="d-none d-md-block me-2">
+                <div className="fw-medium text-dark" style={{ fontSize: '0.9rem' }}>
+                  BURUNDI UBWIZA
+                </div>
+                <small className="text-muted" style={{ fontSize: '0.75rem' }}>
+                  ubwizaburundi@gmail.com
+                </small>
+              </div>
+              <i className={`pi pi-angle-${isUserMenuOpen ? 'up' : 'down'} text-muted`}></i>
+            </div>
+            
+            {/* Dropdown Menu Utilisateur */}
+            {isUserMenuOpen && (
+              <div className="dropdown-menu show position-absolute end-0 mt-2 shadow-lg border-0" style={{ width: '200px', zIndex: 1050 }}>
+                <div className="dropdown-item-text px-3 py-2 border-bottom">
+                  <div className="fw-bold text-primary small">BURUNDI UBWIZA</div>
+                </div>
+                <button 
+                  className="dropdown-item d-flex align-items-center px-3 py-2 hover-bg-light"
+                  onClick={handleProfileClick}
+                >
+                  <i className="pi pi-user me-2 text-muted"></i>
+                  <span>Profile</span>
+                </button>
+                <button 
+                  className="dropdown-item d-flex align-items-center justify-content-between px-3 py-2 hover-bg-light"
+                  onClick={handleSettingsClick}
+                >
+                  <div className="d-flex align-items-center">
+                    <i className="pi pi-cog me-2 text-muted"></i>
+                    <span>Settings</span>
+                  </div>
+                  <small className="text-muted">⌘+O</small>
+                </button>
+                <button 
+                  className="dropdown-item d-flex align-items-center justify-content-between px-3 py-2 hover-bg-light"
+                  onClick={handleMessagesClick}
+                >
+                  <div className="d-flex align-items-center">
+                    <i className="pi pi-envelope me-2 text-muted"></i>
+                    <span>Messages</span>
+                  </div>
+                  <Badge value="2" severity="info" className="ms-2" style={{ fontSize: '0.7rem' }} />
+                </button>
+                <div className="dropdown-divider"></div>
+                <button 
+                  className="dropdown-item d-flex align-items-center justify-content-between px-3 py-2 hover-bg-light text-danger"
+                  onClick={handleLogout}
+                >
+                  <div className="d-flex align-items-center">
+                    <i className="pi pi-sign-out me-2"></i>
+                    <span>Logout</span>
+                  </div>
+                  <small className="text-muted">⌘+Q</small>
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* CSS optimisé */}
+      <style jsx global>{`
         @keyframes pulse {
           0% { transform: scale(1); }
           50% { transform: scale(1.1); }
           100% { transform: scale(1); }
         }
         
-        .user-menu-container:hover .p-avatar {
-          transform: scale(1.05);
-          transition: transform 0.2s ease;
-        }
-
-        .user-menu-container:hover {
-          background-color: #f8f9fa;
-          border-radius: 8px;
+        .hover-bg-light:hover {
+          background-color: #f8f9fa !important;
           transition: background-color 0.2s ease;
         }
 
-        .notification-menu .p-menu-item {
-          padding: 0;
+        .dropdown-menu {
+          border-radius: 8px;
+          border: 1px solid #e9ecef;
+          background: white;
+          box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
         }
 
-        .notification-menu .p-menu-item:hover {
+        .dropdown-item {
+          border: none;
+          background: none;
+          width: 100%;
+          text-align: left;
+          font-size: 0.875rem;
+          transition: background-color 0.15s ease-in-out;
+        }
+
+        .dropdown-item:hover {
           background-color: #f8f9fa;
         }
 
-        .user-menu .p-menu-item:hover {
+        .notification-item:hover {
           background-color: #f8f9fa;
-        }
-
-        .user-menu .p-menu-item.text-danger:hover {
-          background-color: #f8d7da;
+          cursor: pointer;
         }
 
         .p-button:hover {
@@ -315,8 +280,17 @@ const Header = ({ onSidebarToggle, pageTitle = 'Tableau de bord' }) => {
         .p-button:focus {
           box-shadow: none !important;
         }
+
+        .navbar {
+          height: 60px;
+        }
+
+        .dropdown-item.text-danger:hover {
+          background-color: #f8d7da;
+          color: #721c24 !important;
+        }
       `}</style>
-    </>
+    </nav>
   );
 };
 

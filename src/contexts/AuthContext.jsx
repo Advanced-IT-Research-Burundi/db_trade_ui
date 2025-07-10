@@ -30,7 +30,7 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (credentials) => {
     try {
-      const response = await fetch('http://10.193.130.100:8000/api/login', {
+      const response = await fetch('http://192.168.1.37:8000/api/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

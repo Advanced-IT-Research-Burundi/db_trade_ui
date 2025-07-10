@@ -5,7 +5,7 @@ import { Button } from 'primereact/button';
 import { Avatar } from 'primereact/avatar';
 
 const Header = ({ onSidebarToggle, pageTitle = 'Tableau de bord' }) => {
-  const { user, logout } = useAuth();
+  const { user, logout, isLoading, getUserInfo } = useAuth();
   const userMenuRef = useRef(null);
   const notificationMenuRef = useRef(null);
   const [isUserMenuOpen, setIsUserMenuOpen] = React.useState(false);
@@ -57,6 +57,12 @@ const Header = ({ onSidebarToggle, pageTitle = 'Tableau de bord' }) => {
   const handleLogout = () => {
     logout();
     setIsUserMenuOpen(false);
+  };
+
+  // Obtenir les informations utilisateur avec la fonction du contexte
+  const userInfo = getUserInfo ? getUserInfo() : {
+    name: isLoading ? 'Chargement...' : (user?.name || user?.username || user?.firstName || 'Utilisateur'),
+    email: isLoading ? 'Chargement...' : (user?.email || 'Email non disponible')
   };
 
   return (
@@ -176,10 +182,10 @@ const Header = ({ onSidebarToggle, pageTitle = 'Tableau de bord' }) => {
               
               <div className="d-none d-md-block me-2">
                 <div className="fw-medium text-dark" style={{ fontSize: '0.9rem' }}>
-                  {user ? user.name : 'Utilisateur'}
+                  {userInfo.name}
                 </div>
                 <small className="text-muted" style={{ fontSize: '0.75rem' }}>
-                  {user ? user.email : 'Email'}
+                  {userInfo.email}
                 </small>
               </div>
               <i className={`pi pi-angle-${isUserMenuOpen ? 'up' : 'down'} text-muted`}></i>

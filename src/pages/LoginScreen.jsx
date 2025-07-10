@@ -1,280 +1,345 @@
-import React, { useState } from 'react';
-import { Card } from 'primereact/card';
-import { InputText } from 'primereact/inputtext';
-import { Password } from 'primereact/password';
-import { Button } from 'primereact/button';
-import { Message } from 'primereact/message';
-import { Divider } from 'primereact/divider';
-import { useAuth } from '../contexts/AuthContext';
+import React, { useState, useCallback } from "react";
+import { Card } from "primereact/card";
+import { InputText } from "primereact/inputtext";
+import { Password } from "primereact/password";
+import { Button } from "primereact/button";
+import { Message } from "primereact/message";
+import { useAuth } from "../contexts/AuthContext";
+
+const APP_CONFIG = {
+  name: process.env.REACT_APP_NAME || "Advanced IT Store",
+  description:
+    process.env.REACT_APP_DESCRIPTION ||
+    "Système de gestion des ventes et produits",
+  version: process.env.REACT_APP_VERSION || "1.0.0",
+};
+
+const FEATURES = [
+  {
+    icon: "pi-shopping-cart",
+    label: "Ventes",
+    description: "Gestion des commandes et factures",
+  },
+  { icon: "pi-box", label: "Stock", description: "Inventaire en temps réel" },
+  {
+    icon: "pi-chart-line",
+    label: "Rapports",
+    description: "Analyses et statistiques",
+  },
+  {
+    icon: "pi-users",
+    label: "Clients",
+    description: "Base de données clients",
+  },
+];
 
 const LoginScreen = () => {
-  const [credentials, setCredentials] = useState({ email: '', password: '' });
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [credentials, setCredentials] = useState({ email: "", password: "" });
+  const [error, setError] = useState("");
   const { login } = useAuth();
+  const [loginloading, setLoginloading] = useState(false);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setError('');
+  const handleInputChange = useCallback(
+    (field, value) => {
+      setCredentials((prev) => ({ ...prev, [field]: value }));
+      if (error) setError("");
+    },
+    [error]
+  );
 
-    const result = await login(credentials);
-    
-    if (!result.success) {
-      setError(result.error);
-    }
-    
-    setLoading(false);
-  };
+  const handleSubmit = useCallback(
+    async (e) => {
+      e.preventDefault();
+      try {
+        setLoginloading(true);
+        const result = await login(credentials);
+        if (!result.success) {
+          setError(result.error || "Erreur de connexion");
+        }
+        setLoginloading(false);
+      } catch (err) {
+        setError("Erreur de connexion. Veuillez réessayer" + err.message);
+        setLoginloading(false);
+      }
+    },
+    [credentials, login]
+  );
+
+  const isFormValid = credentials.email.trim() && credentials.password.trim();
 
   return (
-    <div 
-      className="login-container min-vh-100 d-flex align-items-center justify-content-center"
-      style={{ 
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-        position: 'relative',
-        overflow: 'hidden'
+    <div
+      className="d-flex align-items-center justify-content-center min-vh-100"
+      style={{
+        backgroundColor: "#f8fafc",
+        fontFamily: "Inter, system-ui, sans-serif",
       }}
     >
-      {/* Animated Background Elements */}
-      <div className="position-absolute w-100 h-100">
-        <div 
-          className="position-absolute rounded-circle"
-          style={{
-            width: '200px',
-            height: '200px',
-            background: 'rgba(255, 255, 255, 0.1)',
-            top: '10%',
-            left: '10%',
-            animation: 'float 6s ease-in-out infinite'
-          }}
-        />
-        <div 
-          className="position-absolute rounded-circle"
-          style={{
-            width: '150px',
-            height: '150px',
-            background: 'rgba(255, 255, 255, 0.1)',
-            top: '60%',
-            right: '15%',
-            animation: 'float 8s ease-in-out infinite reverse'
-          }}
-        />
-        <div 
-          className="position-absolute rounded-circle"
-          style={{
-            width: '100px',
-            height: '100px',
-            background: 'rgba(255, 255, 255, 0.1)',
-            bottom: '20%',
-            left: '20%',
-            animation: 'float 4s ease-in-out infinite'
-          }}
-        />
-      </div>
-
-      {/* Login Card */}
-      <div className="login-card position-relative" style={{ zIndex: 2 }}>
-        <Card 
-          className="shadow-lg border-0"
-          style={{ 
-            width: '450px', 
-            maxWidth: '95vw',
-            borderRadius: '20px',
-            background: 'rgba(255, 255, 255, 0.95)',
-            backdropFilter: 'blur(20px)'
-          }}
-        >
-          <div className="text-center mb-4">
-            <div 
-              className="d-inline-flex align-items-center justify-content-center rounded-circle mb-3"
+      <div className="container-fluid px-3">
+        <div className="row justify-content-center">
+          <div className="col-12 col-xl-10">
+            <Card
+              className="border-0 shadow-lg"
               style={{
-                width: '80px',
-                height: '80px',
-                background: 'linear-gradient(135deg, var(--primary-blue) 0%, var(--secondary-blue) 100%)',
-                boxShadow: '0 8px 32px rgba(46, 125, 184, 0.3)'
+                borderRadius: "20px",
+                overflow: "hidden",
+                maxWidth: "1000px",
+                margin: "0 auto",
               }}
             >
-              <i className="pi pi-desktop text-white" style={{ fontSize: '2rem' }}></i>
-            </div>
-            <h2 className="fw-bold mb-2" style={{ color: 'var(--primary-blue)' }}>
-              Advanced IT
-            </h2>
-            <p className="text-muted mb-0">Connectez-vous à votre espace</p>
-          </div>
+              <div className="row g-0">
+                <div className="col-lg-6 d-none d-lg-block">
+                  <div
+                    className="h-100 d-flex flex-column p-5"
+                    style={{
+                      background:
+                        "linear-gradient(135deg, #3b82f6 0%, #1e40af 100%)",
+                      color: "white",
+                    }}
+                  >
+                    <div className="text-center mb-5">
+                      <div
+                        className="d-inline-flex align-items-center justify-content-center rounded-circle mb-3"
+                        style={{
+                          width: "80px",
+                          height: "80px",
+                          background: "rgba(255, 255, 255, 0.2)",
+                          backdropFilter: "blur(10px)",
+                          border: "2px solid rgba(255, 255, 255, 0.3)",
+                        }}
+                      >
+                        <i
+                          className="pi pi-shop"
+                          style={{ fontSize: "2rem" }}
+                        ></i>
+                      </div>
+                      <h1 className="h2 fw-bold mb-2">{APP_CONFIG.name}</h1>
+                      <p className="opacity-75 mb-0">
+                        {APP_CONFIG.description}
+                      </p>
+                      <small className="opacity-50">
+                        Version {APP_CONFIG.version}
+                      </small>
+                    </div>
 
-          {error && (
-            <Message 
-              severity="error" 
-              text={error} 
-              className="mb-3 w-100"
-              style={{ 
-                borderRadius: '10px',
-                border: 'none',
-                background: 'linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%)',
-                color: 'white'
-              }}
-            />
-          )}
+                    <div className="flex-grow-1">
+                      <h5 className="mb-4 fw-bold">
+                        Fonctionnalités principales
+                      </h5>
+                      {FEATURES.map((feature, index) => (
+                        <div
+                          key={index}
+                          className="d-flex align-items-start mb-4"
+                        >
+                          <div
+                            className="d-flex align-items-center justify-content-center rounded-circle me-3"
+                            style={{
+                              width: "50px",
+                              height: "50px",
+                              background: "rgba(255, 255, 255, 0.2)",
+                              backdropFilter: "blur(10px)",
+                            }}
+                          >
+                            <i
+                              className={`pi ${feature.icon}`}
+                              style={{ fontSize: "1.5rem" }}
+                            ></i>
+                          </div>
+                          <div>
+                            <h6 className="mb-1 fw-bold">{feature.label}</h6>
+                            <p className="mb-0 opacity-75 small">
+                              {feature.description}
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
 
-          <form onSubmit={handleSubmit} className="px-3">
-            <div className="mb-4">
-              <label htmlFor="email" className="form-label fw-semibold mb-2" style={{ color: 'var(--primary-blue)' }}>
-                <i className="pi pi-envelope me-2"></i>
-                Adresse email
-              </label>
-              <InputText
-                id="email"
-                type="email"
-                value={credentials.email}
-                onChange={(e) => setCredentials({ ...credentials, email: e.target.value })}
-                className="w-100"
-                placeholder="exemple@email.com"
-                style={{ 
-                  padding: '12px 16px',
-                  borderRadius: '12px',
-                  border: '2px solid #e1e8ed',
-                  fontSize: '1rem'
-                }}
-                required
-              />
-            </div>
+                    <div className="mt-auto">
+                      <div className="d-flex align-items-center">
+                        <i className="pi pi-shield opacity-75 me-2"></i>
+                        <small className="opacity-75">
+                          Connexion sécurisée SSL
+                        </small>
+                      </div>
+                    </div>
+                  </div>
+                </div>
 
-            <div className="mb-4">
-              <label htmlFor="password" className="form-label fw-semibold mb-2" style={{ color: 'var(--primary-blue)' }}>
-                <i className="pi pi-lock me-2"></i>
-                Mot de passe
-              </label>
-              <Password
-                id="password"
-                value={credentials.password}
-                onChange={(e) => setCredentials({ ...credentials, password: e.target.value })}
-                className="w-100"
-                placeholder="Entrez votre mot de passe"
-                toggleMask
-                feedback={false}
-                style={{ 
-                  borderRadius: '12px',
-                }}
-                inputStyle={{ 
-                  padding: '12px 16px',
-                  borderRadius: '12px',
-                  border: '2px solid #e1e8ed',
-                  fontSize: '1rem'
-                }}
-                required
-              />
-            </div>
+                <div className="col-12 col-lg-6">
+                  <div className="h-100 d-flex flex-column justify-content-center p-5">
+                    {error && (
+                      <Message
+                        severity="error"
+                        text={error}
+                        className="mb-4 w-100"
+                        style={{
+                          borderRadius: "12px",
+                          border: "none",
+                          background:
+                            "linear-gradient(135deg, #ef4444 0%, #dc2626 100%)",
+                          color: "white",
+                        }}
+                      />
+                    )}
 
-            <div className="d-flex justify-content-between align-items-center mb-4">
-              <div className="form-check">
-                <input className="form-check-input" type="checkbox" id="rememberMe" />
-                <label className="form-check-label text-muted" htmlFor="rememberMe">
-                  Se souvenir de moi
-                </label>
+                    <div className="text-center mb-5">
+                      <h2 className="h3 fw-bold mb-2 text-dark">Connexion</h2>
+                      <p className="text-muted mb-0">
+                        Accédez à votre espace de gestion
+                      </p>
+                    </div>
+
+                    <form onSubmit={handleSubmit} className="w-100">
+                      <div className="mb-4">
+                        <label
+                          htmlFor="email"
+                          className="form-label fw-semibold mb-2 text-dark"
+                        >
+                          <i className="pi pi-envelope me-2 text-muted"></i>
+                          Adresse email
+                        </label>
+                        <InputText
+                          id="email"
+                          type="email"
+                          value={credentials.email}
+                          onChange={(e) =>
+                            handleInputChange("email", e.target.value)
+                          }
+                          className="w-100"
+                          placeholder="votre@email.com"
+                          style={{
+                            padding: "0.875rem 1rem",
+                            borderRadius: "12px",
+                            border: "2px solid #e5e7eb",
+                            backgroundColor: "#f9fafb",
+                            fontSize: "1rem",
+                          }}
+                          autoComplete="email"
+                          required
+                        />
+                      </div>
+
+                      <div className="mb-4">
+                        <label
+                          htmlFor="password"
+                          className="form-label fw-semibold mb-2 text-dark"
+                        >
+                          <i className="pi pi-lock me-2 text-muted"></i>
+                          Mot de passe
+                        </label>
+                        <InputText
+                          id="password"
+                          type="password"
+                          value={credentials.password}
+                          onChange={(e) =>
+                            handleInputChange("password", e.target.value)
+                          }
+                          className="w-100"
+                          placeholder="Votre mot de passe"
+                          style={{
+                            padding: "0.875rem 1rem",
+                            borderRadius: "12px",
+                            border: "2px solid #e5e7eb",
+                            backgroundColor: "#f9fafb",
+                            fontSize: "1rem",
+                          }}
+                          autoComplete="current-password"
+                          required
+                        />
+                      </div>
+
+                      <div className="d-flex justify-content-between align-items-center mb-4">
+                        <div className="form-check">
+                          <input
+                            className="form-check-input"
+                            type="checkbox"
+                            id="remember"
+                          />
+                          <label
+                            className="form-check-label text-muted ms-2"
+                            htmlFor="remember"
+                          >
+                            Se souvenir de moi
+                          </label>
+                        </div>
+                        <a
+                          href="#"
+                          className="text-decoration-none fw-semibold"
+                          style={{ color: "#3b82f6" }}
+                        >
+                          Mot de passe oublié ?
+                        </a>
+                      </div>
+
+                      <Button
+                        type="submit"
+                        label={
+                          loginloading
+                            ? "Connexion en cours..."
+                            : "Se connecter"
+                        }
+                        loading={loginloading}
+                        icon={!loginloading ? "pi pi-sign-in" : ""}
+                        className="w-100"
+                        style={{
+                          background:
+                            "linear-gradient(135deg, #3b82f6 0%, #1e40af 100%)",
+                          border: "none",
+                          padding: "1rem",
+                          borderRadius: "12px",
+                          fontSize: "1.1rem",
+                          fontWeight: "600",
+                          boxShadow: "0 8px 32px rgba(59, 130, 246, 0.3)",
+                        }}
+                        disabled={!isFormValid || loginloading}
+                      />
+                    </form>
+
+                    <div className="text-center mt-4">
+                      <small className="text-muted">
+                        <i className="pi pi-info-circle me-1"></i>
+                        Besoin d'aide ? Contactez le support technique
+                      </small>
+                    </div>
+                  </div>
+                </div>
               </div>
-              <a 
-                href="#" 
-                className="text-decoration-none fw-semibold"
-                style={{ color: 'var(--primary-blue)' }}
-              >
-                Mot de passe oublié ?
-              </a>
-            </div>
-
-            <Button
-              type="submit"
-              label={loading ? "Connexion en cours..." : "Se connecter"}
-              loading={loading}
-              className="w-100 mb-3"
-              style={{ 
-                background: 'linear-gradient(135deg, var(--primary-blue) 0%, var(--secondary-blue) 100%)',
-                border: 'none',
-                padding: '12px',
-                borderRadius: '12px',
-                fontSize: '1.1rem',
-                fontWeight: '600',
-                boxShadow: '0 4px 16px rgba(46, 125, 184, 0.3)'
-              }}
-            />
-
-            <Divider className="my-3">
-              <span className="text-muted">ou</span>
-            </Divider>
-
-            <div className="d-flex gap-2 mb-3">
-              <Button
-                type="button"
-                icon="pi pi-google"
-                className="flex-fill"
-                outlined
-                style={{ 
-                  borderColor: '#db4437',
-                  color: '#db4437',
-                  borderRadius: '12px',
-                  padding: '10px'
-                }}
-              />
-              <Button
-                type="button"
-                icon="pi pi-microsoft"
-                className="flex-fill"
-                outlined
-                style={{ 
-                  borderColor: '#0078d4',
-                  color: '#0078d4',
-                  borderRadius: '12px',
-                  padding: '10px'
-                }}
-              />
-            </div>
-          </form>
-
-          <div className="text-center mt-4 pt-3" style={{ borderTop: '1px solid #e1e8ed' }}>
-            <p className="text-muted mb-0">
-              Nouveau sur Advanced IT ? 
-              <a 
-                href="#" 
-                className="text-decoration-none fw-semibold ms-1"
-                style={{ color: 'var(--primary-blue)' }}
-              >
-                Créer un compte
-              </a>
-            </p>
+            </Card>
           </div>
-        </Card>
+        </div>
       </div>
 
       <style>{`
-        @keyframes float {
-          0%, 100% { transform: translateY(0px) rotate(0deg); }
-          50% { transform: translateY(-20px) rotate(5deg); }
-        }
-        
-        .login-card {
-          animation: slideInUp 0.8s ease-out;
-        }
-        
-        @keyframes slideInUp {
-          from {
-            opacity: 0;
-            transform: translateY(50px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-        
         .p-inputtext:focus,
         .p-password input:focus {
-          border-color: var(--primary-blue) !important;
-          box-shadow: 0 0 0 0.2rem rgba(46, 125, 184, 0.25) !important;
+          border-color: #3b82f6 !important;
+          box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
+          background-color: white !important;
         }
         
-        .p-button:hover {
+        .p-inputtext:hover,
+        .p-password input:hover {
+          border-color: #9ca3af !important;
+          background-color: white !important;
+        }
+        
+        .p-button:hover:not(:disabled) {
           transform: translateY(-2px);
-          transition: all 0.3s ease;
+          box-shadow: 0 12px 40px rgba(59, 130, 246, 0.4) !important;
+        }
+        
+        .p-password .p-inputtext {
+          width: 100% !important;
+        }
+        
+        .p-password {
+          width: 100% !important;
+        }
+        
+        .form-check-input:checked {
+          background-color: #3b82f6 !important;
+          border-color: #3b82f6 !important;
         }
       `}</style>
     </div>
@@ -282,5 +347,3 @@ const LoginScreen = () => {
 };
 
 export default LoginScreen;
-
-

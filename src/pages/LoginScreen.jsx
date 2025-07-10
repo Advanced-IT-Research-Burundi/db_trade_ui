@@ -7,11 +7,11 @@ import { Message } from "primereact/message";
 import { useAuth } from "../contexts/AuthContext";
 
 const APP_CONFIG = {
-  name: process.env.REACT_APP_NAME || "Advanced IT Store",
+  name: process.env.APP_NAME || "Advanced IT Store",
   description:
-    process.env.REACT_APP_DESCRIPTION ||
+    process.env.APP_DESCRIPTION ||
     "Système de gestion des ventes et produits",
-  version: process.env.REACT_APP_VERSION || "1.0.0",
+  version: process.env.APP_VERSION || "1.0.0",
 };
 
 const FEATURES = [

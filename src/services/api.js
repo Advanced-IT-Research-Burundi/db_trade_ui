@@ -1,4 +1,5 @@
-const API_BASE_URL = 'http://192.168.0.112:8000';
+// const API_BASE_URL = 'http://192.168.0.112:8000'; // URL de l'API backend en local
+const API_BASE_URL = 'http://84.46.251.167:8203'; // URL de l'API backend en production
 
 class ApiService {
   constructor() {

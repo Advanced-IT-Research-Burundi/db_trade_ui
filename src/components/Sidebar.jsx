@@ -1,27 +1,11 @@
 import React from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, Link } from 'react-router-dom';
 import { Tooltip } from 'primereact/tooltip';
+import { getMenuItems } from '../config/routeConfig.js';
 
 const Sidebar = ({ isCollapsed, onToggle }) => {
   const location = useLocation();
-
-  const menuItems = [
-    { icon: 'pi pi-home', label: 'Dashboard', path: '/dashboard' },
-    { icon: 'pi pi-dollar', label: 'Ventes', path: '/sales' },
-    { icon: 'pi pi-box', label: 'Stocks', path: '/stocks' },
-    { icon: 'pi pi-shopping-bag', label: 'Produits', path: '/products' },
-    { icon: 'pi pi-tags', label: 'Catégories', path: '/categories' },
-    { icon: 'pi pi-user', label: 'Clients', path: '/clients' },
-    { icon: 'pi pi-truck', label: 'Fournisseurs', path: '/suppliers' },
-    { icon: 'pi pi-shopping-cart', label: 'Achats', path: '/purchases' },
-    { icon: 'pi pi-users', label: 'Utilisateurs', path: '/users' },
-    { icon: 'pi pi-car', label: 'Véhicules', path: '/vehicles' },
-    { icon: 'pi pi-wallet', label: 'Caisse', path: '/cash-registers' },
-    { icon: 'pi pi-refresh', label: 'Transactions', path: '/transactions' },
-    { icon: 'pi pi-money-bill', label: 'Dépenses', path: '/expenses' },
-    { icon: 'pi pi-cog', label: 'Types de dépenses', path: '/expense-types' },
-    { icon: 'pi pi-chart-bar', label: 'Rapports', path: '/reports' },
-  ];
+  const menuItems = getMenuItems();
 
   return (
     <>
@@ -61,8 +45,8 @@ const Sidebar = ({ isCollapsed, onToggle }) => {
         <ul className="sidebar-nav list-unstyled p-0 mt-3">
           {menuItems.map((item, index) => (
             <li key={index} className="nav-item mb-1">
-              <a
-                href={item.path}
+              <Link
+                to={item.path}
                 className={`nav-link d-flex align-items-center text-decoration-none ${
                   location.pathname === item.path ? 'active' : ''
                 } ${isCollapsed ? 'nav-link-collapsed' : ''}`}
@@ -108,7 +92,7 @@ const Sidebar = ({ isCollapsed, onToggle }) => {
                     }}
                   />
                 )}
-              </a>
+              </Link>
             </li>
           ))}
         </ul>

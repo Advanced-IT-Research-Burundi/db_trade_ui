@@ -11,10 +11,10 @@ import { Card } from 'primereact/card';
 import { Dropdown } from 'primereact/dropdown';
 import { Toolbar } from 'primereact/toolbar';
 import { Badge } from 'primereact/badge';
-import ApiService from '../services/api';
-import { formatCurrency } from '../utils/helpers';
+import ApiService from '../../services/api.js';
+import { formatCurrency } from '../../utils/helpers.js';
 
-const ProductScreen = () => {
+const ProductsScreen = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [totalRecords, setTotalRecords] = useState(0);
@@ -536,4 +536,4 @@ const ProductScreen = () => {
   );
 };
 
-export default ProductScreen;
+export default ProductsScreen;

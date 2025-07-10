@@ -11,8 +11,9 @@ const Header = ({ onSidebarToggle, pageTitle = 'Tableau de bord' }) => {
   const [isUserMenuOpen, setIsUserMenuOpen] = React.useState(false);
   const [isNotificationMenuOpen, setIsNotificationMenuOpen] = React.useState(false);
 
-  // Fermer les menus si on clique à l'extérieur
+  
   useEffect(() => {
+    console.log('User:', user);
     const handleClickOutside = (event) => {
       if (userMenuRef.current && !userMenuRef.current.contains(event.target)) {
         setIsUserMenuOpen(false);
@@ -175,10 +176,10 @@ const Header = ({ onSidebarToggle, pageTitle = 'Tableau de bord' }) => {
               
               <div className="d-none d-md-block me-2">
                 <div className="fw-medium text-dark" style={{ fontSize: '0.9rem' }}>
-                  BURUNDI UBWIZA
+                  {user ? user.name : 'Utilisateur'}
                 </div>
                 <small className="text-muted" style={{ fontSize: '0.75rem' }}>
-                  ubwizaburundi@gmail.com
+                  {user ? user.email : 'Email'}
                 </small>
               </div>
               <i className={`pi pi-angle-${isUserMenuOpen ? 'up' : 'down'} text-muted`}></i>
@@ -235,7 +236,7 @@ const Header = ({ onSidebarToggle, pageTitle = 'Tableau de bord' }) => {
       </div>
 
       {/* CSS optimisé */}
-      <style jsx global>{`
+      <style>{`
         @keyframes pulse {
           0% { transform: scale(1); }
           50% { transform: scale(1.1); }

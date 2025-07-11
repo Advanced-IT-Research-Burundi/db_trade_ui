@@ -21,6 +21,8 @@ import ExpensesScreen from '../pages/expenses/ExpensesScreen';
 import ExpenseTypesScreen from '../pages/expensetypes/ExpenseTypesScreen';
 import ReportsScreen from '../pages/reports/ReportsScreen.jsx';
 
+import NotFound from '../components/NotFound';
+
 // Composant pour les routes protégées
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated } = useAuth();
@@ -58,6 +60,7 @@ const protectedRoutes = [
   { path: '/expenses', component: ExpensesScreen },
   { path: '/expense-types', component: ExpenseTypesScreen },
   { path: '/reports', component: ReportsScreen },
+  { path: '/404', component: NotFound },
 ];
 
 const AppRoutes = () => {
@@ -90,7 +93,7 @@ const AppRoutes = () => {
       <Route path="/" element={<Navigate to="/dashboard" replace />} />
       
       {/* Route 404 - page non trouvée */}
-      <Route path="*" element={<Navigate to="/dashboard" replace />} />
+      <Route path="*" element={<Navigate to="/404" replace />} />
     </Routes>
   );
 };

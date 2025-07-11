@@ -6,7 +6,6 @@ import { InputText } from 'primereact/inputtext';
 import { Tag } from 'primereact/tag';
 import { Toast } from 'primereact/toast';
 import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
-import { FilterMatchMode } from 'primereact/api';
 import { Card } from 'primereact/card';
 import { Dropdown } from 'primereact/dropdown';
 import { Toolbar } from 'primereact/toolbar';
@@ -18,54 +17,45 @@ const ProductsScreen = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [totalRecords, setTotalRecords] = useState(0);
+  const [globalFilter, setGlobalFilter] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState(null);
+  const [categories, setCategories] = useState([]);
+  const [selectedProducts, setSelectedProducts] = useState([]);
   const [lazyParams, setLazyParams] = useState({
     first: 0,
-    rows: 15,
+    rows: 25,
     page: 1,
     sortField: null,
-    sortOrder: null,
-    filters: {
-      global: { value: null, matchMode: FilterMatchMode.CONTAINS },
-      name: { value: null, matchMode: FilterMatchMode.CONTAINS },
-      code: { value: null, matchMode: FilterMatchMode.CONTAINS },
-      'category.name': { value: null, matchMode: FilterMatchMode.CONTAINS }
-    }
+    sortOrder: null
   });
-  const [globalFilterValue, setGlobalFilterValue] = useState('');
-  const [categories, setCategories] = useState([]);
-  const [selectedCategory, setSelectedCategory] = useState(null);
-  const [selectedProducts, setSelectedProducts] = useState([]);
+  
   const toast = useRef(null);
   const dt = useRef(null);
 
   useEffect(() => {
-    loadLazyData();
+    loadData();
     loadCategories();
-  }, [lazyParams]);
+  }, [lazyParams, globalFilter, selectedCategory]);
 
-  const loadLazyData = async () => {
+  const loadData = async () => {
     setLoading(true);
     try {
-      const params = new URLSearchParams({
+      const params = {
         page: lazyParams.page,
         per_page: lazyParams.rows,
-        ...(globalFilterValue && { search: globalFilterValue }),
+        ...(globalFilter && { search: globalFilter }),
         ...(selectedCategory && { category_id: selectedCategory }),
-        ...(lazyParams.sortField && { sort: lazyParams.sortField }),
-        ...(lazyParams.sortOrder && { order: lazyParams.sortOrder === 1 ? 'asc' : 'desc' })
-      });
+        ...(lazyParams.sortField && { 
+          sort: lazyParams.sortField,
+          order: lazyParams.sortOrder === 1 ? 'asc' : 'desc'
+        })
+      };
 
-      const response = await ApiService.request(`/api/products?${params}`);
-      
+      const response = await ApiService.request('/api/products', { params });
       setProducts(response.data.data);
       setTotalRecords(response.data.total);
     } catch (error) {
-      toast.current.show({
-        severity: 'error',
-        summary: 'Erreur',
-        detail: 'Impossible de charger les produits'        + error.message,
-        life: 3000
-      });
+      showError('Erreur lors du chargement des produits');
     } finally {
       setLoading(false);
     }
@@ -74,374 +64,267 @@ const ProductsScreen = () => {
   const loadCategories = async () => {
     try {
       const response = await ApiService.request('/api/categories');
-      const categoryOptions = [
+      const categoriesData = response.data?.data || response.data || [];
+      setCategories([
         { label: 'Toutes les catégories', value: null },
-        ...(response.data?.map(cat => ({ label: cat.name, value: cat.id })) || [])
-      ];
-      setCategories(categoryOptions);
+        ...categoriesData.map(cat => ({ label: cat.name, value: cat.id }))
+      ]);
     } catch (error) {
-      console.error('Erreur lors du chargement des catégories:', error);
+      console.error('Erreur catégories:', error);
+      setCategories([{ label: 'Toutes les catégories', value: null }]);
     }
+  };
+
+  const showError = (message) => {
+    toast.current.show({
+      severity: 'error',
+      summary: 'Erreur',
+      detail: message,
+      life: 3000
+    });
+  };
+
+  const showSuccess = (message) => {
+    toast.current.show({
+      severity: 'success',
+      summary: 'Succès',
+      detail: message,
+      life: 3000
+    });
+  };
+
+  const handleDelete = (product) => {
+    confirmDialog({
+      message: `Supprimer "${product.name}" ?`,
+      header: 'Confirmation',
+      icon: 'pi pi-exclamation-triangle',
+      acceptClassName: 'p-button-danger',
+      accept: async () => {
+        try {
+          await ApiService.request(`/api/products/${product.id}`, { method: 'DELETE' });
+          showSuccess('Produit supprimé');
+          loadData();
+        } catch (error) {
+          showError('Erreur lors de la suppression');
+        }
+      }
+    });
   };
 
   const onPage = (event) => {
-    const newLazyParams = { 
-      ...lazyParams, 
-      first: event.first, 
-      rows: event.rows, 
-      page: Math.floor(event.first / event.rows) + 1 
-    };
-    setLazyParams(newLazyParams);
+    setLazyParams(prev => ({
+      ...prev,
+      first: event.first,
+      rows: event.rows,
+      page: Math.floor(event.first / event.rows) + 1
+    }));
   };
 
   const onSort = (event) => {
-    const newLazyParams = { 
-      ...lazyParams, 
-      sortField: event.sortField, 
-      sortOrder: event.sortOrder 
-    };
-    setLazyParams(newLazyParams);
+    setLazyParams(prev => ({
+      ...prev,
+      sortField: event.sortField,
+      sortOrder: event.sortOrder
+    }));
   };
 
-  const onGlobalFilterChange = (e) => {
-    const value = e.target.value;
-    setGlobalFilterValue(value);
-    
-    // Debounce search
-    setTimeout(() => {
-      const newLazyParams = { 
-        ...lazyParams, 
-        page: 1, 
-        first: 0 
-      };
-      setLazyParams(newLazyParams);
-    }, 500);
-  };
+  // Templates optimisés
+  const imageTemplate = (product) => (
+    <div className="flex align-items-center justify-content-center">
+      {product.image ? (
+        <img 
+          src={product.image} 
+          alt={product.name}
+          className="w-3rem h-3rem border-circle object-fit-cover"
+        />
+      ) : (
+        <div className="w-3rem h-3rem border-circle bg-gray-100 flex align-items-center justify-content-center">
+          <i className="pi pi-image text-gray-400"></i>
+        </div>
+      )}
+    </div>
+  );
 
-  const onCategoryChange = (e) => {
-    setSelectedCategory(e.value);
-    const newLazyParams = { 
-      ...lazyParams, 
-      page: 1, 
-      first: 0 
-    };
-    setLazyParams(newLazyParams);
-  };
+  const codeTemplate = (product) => (
+    <Badge value={product.code} severity="info" />
+  );
 
-  const confirmDelete = (product) => {
-    confirmDialog({
-      message: `Êtes-vous sûr de vouloir supprimer le produit "${product.name}" ?`,
-      header: 'Confirmation de suppression',
-      icon: 'pi pi-exclamation-triangle',
-      accept: () => deleteProduct(product.id),
-      reject: () => {},
-      acceptLabel: 'Oui',
-      rejectLabel: 'Non',
-      acceptClassName: 'p-button-danger'
-    });
-  };
+  const nameTemplate = (product) => (
+    <div>
+      <div className="font-bold text-primary">{product.name}</div>
+      {product.description && (
+        <div className="text-sm text-gray-600 mt-1">
+          {product.description.length > 60 ? 
+            `${product.description.substring(0, 60)}...` : 
+            product.description}
+        </div>
+      )}
+    </div>
+  );
 
-  const deleteProduct = async (id) => {
-    try {
-      await ApiService.request(`/api/products/${id}`, { method: 'DELETE' });
-      toast.current.show({
-        severity: 'success',
-        summary: 'Succès',
-        detail: 'Produit supprimé avec succès',
-        life: 3000
-      });
-      loadLazyData();
-    } catch (error) {
-      toast.current.show({
-        severity: 'error',
-        summary: 'Erreur',
-        detail: 'Impossible de supprimer le produit' + error.message,
-        life: 3000
-      });
-    }
-  };
+  const categoryTemplate = (product) => (
+    <Tag 
+      value={product.category?.name || 'Non définie'} 
+      className="bg-primary text-white"
+    />
+  );
 
-  const exportCSV = () => {
-    dt.current.exportCSV();
-  };
-
-  const exportPdf = () => {
-    toast.current.show({
-      severity: 'info',
-      summary: 'Export PDF',
-      detail: 'Fonctionnalité d\'export PDF en cours de développement',
-      life: 3000
-    });
-  };
-
-  const exportExcel = () => {
-    toast.current.show({
-      severity: 'info',
-      summary: 'Export Excel',
-      detail: 'Fonctionnalité d\'export Excel en cours de développement',
-      life: 3000
-    });
-  };
-
-  // Templates pour les colonnes
-  const imageBodyTemplate = (rowData) => {
-    return (
-      <div className="d-flex align-items-center justify-content-center">
-        {rowData.image ? (
-          <img 
-            src={rowData.image} 
-            alt={rowData.name}
-            style={{ width: '50px', height: '50px', objectFit: 'cover' }}
-            className="rounded shadow-sm"
-          />
-        ) : (
-          <div 
-            className="d-flex align-items-center justify-content-center rounded shadow-sm"
-            style={{ 
-              width: '50px', 
-              height: '50px', 
-              backgroundColor: '#f1f3f4',
-              color: '#6c757d'
-            }}
-          >
-            <i className="pi pi-image"></i>
-          </div>
-        )}
+  const priceTemplate = (product) => (
+    <div className="text-right">
+      <div className="font-bold text-green-600">
+        {formatCurrency(product.purchase_price)}
       </div>
-    );
-  };
+    </div>
+  );
 
-  const codeBodyTemplate = (rowData) => {
+  const salePriceTemplate = (product) => (
+    <div className="text-right">
+      <div className="font-bold text-blue-600">
+        {formatCurrency(product.sale_price_ttc)}
+      </div>
+      {product.sale_price_ht && (
+        <div className="text-sm text-gray-500">
+          HT: {formatCurrency(product.sale_price_ht)}
+        </div>
+      )}
+    </div>
+  );
+
+  const unitTemplate = (product) => (
+    <Tag value={product.unit} severity="secondary" />
+  );
+
+  const alertTemplate = (product) => {
+    const isAlert = product.current_stock <= product.alert_quantity;
     return (
-      <div className="d-flex align-items-center">
+      <div className="text-center">
         <Badge 
-          value={rowData.code} 
-          severity="info"
-          className="p-badge-lg"
+          value={product.alert_quantity} 
+          severity={isAlert ? 'danger' : 'success'}
         />
       </div>
     );
   };
 
-  const nameBodyTemplate = (rowData) => {
-    return (
-      <div>
-        <div className="fw-bold text-primary">{rowData.name}</div>
-        {rowData.description && (
-          <small className="text-muted">
-            {rowData.description.length > 50 ? 
-              `${rowData.description.substring(0, 50)}...` : 
-              rowData.description
-            }
-          </small>
-        )}
-      </div>
-    );
-  };
+  const agencyTemplate = (product) => (
+    <div className="text-sm">
+      <i className="pi pi-building mr-1"></i>
+      {product.agency?.name || 'Non définie'}
+    </div>
+  );
 
-  const priceBodyTemplate = (rowData) => {
-    return (
-      <div className="text-end">
-        <div className="fw-bold text-success">{formatCurrency(rowData.sale_price_ttc)}</div>
-        <small className="text-muted">HT: {formatCurrency(rowData.sale_price_ht || 0)}</small>
-        <div className="mt-1">
-          <small className="text-muted">Achat: {formatCurrency(rowData.purchase_price)}</small>
-        </div>
-      </div>
-    );
-  };
-
-  const stockBodyTemplate = (rowData) => {
-    const currentStock = rowData.current_stock || 0;
-    const alertQuantity = rowData.alert_quantity || 0;
-    
-    let severity = 'success';
-    let label = 'En stock';
-    
-    if (currentStock <= 0) {
-      severity = 'danger';
-      label = 'Rupture';
-    } else if (currentStock <= alertQuantity) {
-      severity = 'warning';
-      label = 'Stock faible';
-    }
-    
-    return (
-      <div className="text-center">
-        <div className="fw-bold mb-1">{currentStock} {rowData.unit}</div>
-        <Tag 
-          value={label}
-          severity={severity}
-          className="p-tag-rounded"
-        />
-      </div>
-    );
-  };
-
-  const categoryBodyTemplate = (rowData) => {
-    return (
-      <Tag 
-        value={rowData.category?.name || 'Non définie'}
-        className="p-tag-rounded"
-        style={{ backgroundColor: 'var(--primary-blue)', color: 'white' }}
+  const actionsTemplate = (product) => (
+    <div className="flex gap-2">
+      <Button 
+        icon="pi pi-eye" 
+        size="small"
+        severity="info"
+        rounded
+        onClick={() => window.location.href = `/products/${product.id}`}
+        tooltip="Voir"
       />
-    );
-  };
+      <Button 
+        icon="pi pi-pencil" 
+        size="small"
+        severity="success"
+        rounded
+        onClick={() => window.location.href = `/products/${product.id}/edit`}
+        tooltip="Modifier"
+      />
+      <Button 
+        icon="pi pi-trash" 
+        size="small"
+        severity="danger"
+        rounded
+        onClick={() => handleDelete(product)}
+        tooltip="Supprimer"
+      />
+    </div>
+  );
 
-  const marginBodyTemplate = (rowData) => {
-    const margin = rowData.sale_price_ttc - rowData.purchase_price;
-    const marginPercent = rowData.purchase_price > 0 ? 
-      ((margin / rowData.purchase_price) * 100).toFixed(1) : 0;
-    
-    return (
-      <div className="text-center">
-        <div className="fw-bold text-success">{formatCurrency(margin)}</div>
-        <small className="text-muted">{marginPercent}%</small>
+  const header = (
+    <div className="flex justify-content-between align-items-center">
+      <div className="flex align-items-center gap-3">
+        <h4 className="m-0 text-primary">
+          <i className="pi pi-box mr-2"></i>
+          Produits
+        </h4>
+        <Badge value={totalRecords} severity="info" />
       </div>
-    );
-  };
-
-  const actionBodyTemplate = (rowData) => {
-    return (
-      <div className="d-flex gap-2 justify-content-center">
-        <Button 
-          icon="pi pi-eye" 
-          className="p-button-rounded p-button-info p-button-sm"
-          onClick={() => window.location.href = `/products/${rowData.id}`}
-          tooltip="Voir les détails"
-          tooltipOptions={{ position: 'top' }}
-        />
-        <Button 
-          icon="pi pi-pencil" 
-          className="p-button-rounded p-button-success p-button-sm"
-          onClick={() => window.location.href = `/products/${rowData.id}/edit`}
-          tooltip="Modifier"
-          tooltipOptions={{ position: 'top' }}
-        />
-        <Button 
-          icon="pi pi-trash" 
-          className="p-button-rounded p-button-danger p-button-sm"
-          onClick={() => confirmDelete(rowData)}
-          tooltip="Supprimer"
-          tooltipOptions={{ position: 'top' }}
-        />
-      </div>
-    );
-  };
-
-  const leftToolbarTemplate = () => {
-    return (
-      <div className="d-flex align-items-center gap-2">
-        <Button 
-          label="Nouveau produit" 
-          icon="pi pi-plus" 
-          severity="success"
-          onClick={() => window.location.href = '/products/create'}
-        />
-        <Button 
-          label="Supprimer sélection" 
-          icon="pi pi-trash" 
-          severity="danger"
-          disabled={!selectedProducts || selectedProducts.length === 0}
-          onClick={() => {
-            // Logique de suppression multiple
-            toast.current.show({
-              severity: 'info',
-              summary: 'Suppression multiple',
-              detail: 'Fonctionnalité en cours de développement',
-              life: 3000
-            });
-          }}
+      
+      <div className="flex gap-2">
+        <span className="p-input-icon-left">
+          <i className="pi pi-search" />
+          <InputText
+            value={globalFilter}
+            onChange={(e) => setGlobalFilter(e.target.value)}
+            placeholder="Rechercher..."
+            className="w-20rem"
+          />
+        </span>
+        <Dropdown
+          value={selectedCategory}
+          onChange={(e) => setSelectedCategory(e.value)}
+          options={categories}
+          placeholder="Catégorie"
+          className="w-12rem"
         />
       </div>
-    );
-  };
+    </div>
+  );
 
-  const rightToolbarTemplate = () => {
-    return (
-      <div className="d-flex align-items-center gap-2">
-        <Button 
-          label="CSV" 
-          icon="pi pi-file" 
-          className="p-button-help"
-          onClick={exportCSV}
-        />
-        <Button 
-          label="PDF" 
-          icon="pi pi-file-pdf" 
-          className="p-button-warning"
-          onClick={exportPdf}
-        />
-        <Button 
-          label="Excel" 
-          icon="pi pi-file-excel" 
-          className="p-button-success"
-          onClick={exportExcel}
-        />
-      </div>
-    );
-  };
-
-  const renderHeader = () => {
-    return (
-      <div className="row align-items-center">
-        <div className="col-md-6">
-          <div className="d-flex align-items-center gap-3">
-            <h4 className="mb-0" style={{ color: 'var(--primary-blue)' }}>
-              <i className="pi pi-box me-2"></i>
-              Gestion des Produits
-            </h4>
-            <Badge 
-              value={totalRecords} 
-              severity="info"
-              className="p-badge-lg"
-            />
-          </div>
+  const toolbar = (
+    <Toolbar
+      left={
+        <div className="flex gap-2">
+          <Button 
+            label="Nouveau" 
+            icon="pi pi-plus" 
+            severity="success"
+            onClick={() => window.location.href = '/products/create'}
+          />
+          <Button 
+            label="Supprimer" 
+            icon="pi pi-trash" 
+            severity="danger"
+            disabled={!selectedProducts.length}
+            onClick={() => showError('Fonction en développement')}
+          />
         </div>
-        
-        <div className="col-md-6">
-          <div className="d-flex gap-2">
-            <span className="p-input-icon-left">
-              <i className="pi pi-search" />
-              <InputText
-                value={globalFilterValue}
-                onChange={onGlobalFilterChange}
-                placeholder="Rechercher un produit..."
-                className="w-auto"
-              />
-            </span>
-            <Dropdown
-              value={selectedCategory}
-              onChange={onCategoryChange}
-              options={categories}
-              placeholder="Filtrer par catégorie"
-              className="w-auto"
-            />
-          </div>
+      }
+      right={
+        <div className="flex gap-2">
+          <Button 
+            label="CSV" 
+            icon="pi pi-file" 
+            severity="help"
+            onClick={() => dt.current.exportCSV()}
+          />
+          <Button 
+            label="Excel" 
+            icon="pi pi-file-excel" 
+            severity="success"
+            onClick={() => showError('Fonction en développement')}
+          />
         </div>
-      </div>
-    );
-  };
+      }
+    />
+  );
 
   return (
-    <div className="product-screen">
+    <div className="p-4">
       <Toast ref={toast} />
       <ConfirmDialog />
       
       <div className="mb-4">
-        <Toolbar 
-          className="mb-3 shadow-sm"
-          left={leftToolbarTemplate} 
-          right={rightToolbarTemplate}
-        />
+        {toolbar}
       </div>
       
-      <Card className="shadow-sm">
+      <Card>
         <DataTable
           ref={dt}
           value={products}
           lazy
-          dataKey="id"
           paginator
           first={lazyParams.first}
           rows={lazyParams.rows}
@@ -451,84 +334,80 @@ const ProductsScreen = () => {
           sortField={lazyParams.sortField}
           sortOrder={lazyParams.sortOrder}
           loading={loading}
-          header={renderHeader()}
+          header={header}
           emptyMessage="Aucun produit trouvé"
-          responsiveLayout="scroll"
+          selection={selectedProducts}
+          onSelectionChange={(e) => setSelectedProducts(e.value)}
+          dataKey="id"
           stripedRows
           showGridlines
           size="small"
-          className="p-datatable-sm"
-          selection={selectedProducts}
-          onSelectionChange={(e) => setSelectedProducts(e.value)}
+          responsiveLayout="scroll"
           paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
           currentPageReportTemplate="Affichage de {first} à {last} sur {totalRecords} produits"
-          rowsPerPageOptions={[15, 25, 50, 100]}
-          paginatorLeft={
-            <div className="text-muted">
-              <i className="pi pi-clock me-2"></i>
-              Dernière mise à jour: {new Date().toLocaleTimeString()}
-            </div>
-          }
-          paginatorRight={
-            <div className="text-muted">
-              Total: {totalRecords} produits
-            </div>
-          }
+          rowsPerPageOptions={[25, 50, 100]}
         >
-          <Column 
-            selectionMode="multiple" 
-            headerStyle={{ width: '3rem' }}
-            exportable={false}
-          />
+          <Column selectionMode="multiple" style={{ width: '3rem' }} />
           <Column 
             header="Image" 
-            body={imageBodyTemplate} 
-            style={{ width: '80px' }}
-            className="text-center"
-            exportable={false}
+            body={imageTemplate} 
+            style={{ width: '5rem' }}
           />
           <Column 
             field="code" 
             header="Code" 
-            body={codeBodyTemplate}
+            body={codeTemplate}
             sortable 
-            style={{ width: '120px' }}
+            style={{ width: '8rem' }}
           />
           <Column 
             field="name" 
-            header="Produit" 
-            body={nameBodyTemplate}
+            header="Nom" 
+            body={nameTemplate}
             sortable 
-            style={{ minWidth: '250px' }}
+            style={{ minWidth: '15rem' }}
           />
           <Column 
             header="Catégorie" 
-            body={categoryBodyTemplate}
-            style={{ width: '150px' }}
+            body={categoryTemplate}
+            style={{ width: '10rem' }}
           />
           <Column 
-            header="Prix" 
-            body={priceBodyTemplate}
+            field="purchase_price"
+            header="Prix d'Achat" 
+            body={priceTemplate}
             sortable
-            sortField="sale_price_ttc"
-            style={{ width: '140px' }}
+            style={{ width: '8rem' }}
           />
           <Column 
-            header="Stock" 
-            body={stockBodyTemplate}
-            style={{ width: '130px' }}
+            field="sale_price_ttc"
+            header="Prix de Vente" 
+            body={salePriceTemplate}
+            sortable
+            style={{ width: '10rem' }}
           />
           <Column 
-            header="Marge" 
-            body={marginBodyTemplate}
-            style={{ width: '120px' }}
+            field="unit"
+            header="Unité" 
+            body={unitTemplate}
+            style={{ width: '6rem' }}
+          />
+          <Column 
+            field="alert_quantity"
+            header="Seuil d'Alerte" 
+            body={alertTemplate}
+            sortable
+            style={{ width: '8rem' }}
+          />
+          <Column 
+            header="Agence" 
+            body={agencyTemplate}
+            style={{ width: '10rem' }}
           />
           <Column 
             header="Actions" 
-            body={actionBodyTemplate}
-            style={{ width: '160px' }}
-            className="text-center"
-            exportable={false}
+            body={actionsTemplate}
+            style={{ width: '10rem' }}
           />
         </DataTable>
       </Card>

@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://10.157.91.100:8000'; // URL de l'API backend en local
+const API_BASE_URL = 'http://127.0.0.1:8000'; // URL de l'API backend en local
 // const API_BASE_URL = 'http://84.46.251.167:8203'; // URL de l'API backend en production
 
 class ApiService {
@@ -29,6 +29,7 @@ class ApiService {
     const token = this.token || localStorage.getItem('token');
     return {
       'Content-Type': 'application/json',
+      'Accept': 'application/json',
       ...(token && { Authorization: `Bearer ${token}` }),
     };
   }

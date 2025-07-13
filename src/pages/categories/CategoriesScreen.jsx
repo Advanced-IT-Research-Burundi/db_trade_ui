@@ -11,6 +11,8 @@ import { Card } from 'primereact/card';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 
+import ApiService from '../../services/api.js';
+
 const CategoryScreen = () => {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -26,15 +28,15 @@ const CategoryScreen = () => {
   const loadCategories = async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/categories');
-      const data = await response.json();
-      
-      if (response.ok) {
+      const response = await ApiService.request('/api/categories');
+      const data = response.data;
+      if (response.success) {
         setCategories(data.data || []);
       } else {
         toast.error(data.message || 'Erreur lors du chargement');
       }
     } catch (error) {
+      console.log('Erreur de connexion: ' + error.message);
       toast.error('Erreur de connexion: ' + error.message);
     } finally {
       setLoading(false);
@@ -48,11 +50,10 @@ const CategoryScreen = () => {
 
   const deleteCategory = async () => {
     try {
-      const response = await fetch(`/api/categories/${selectedCategory.id}`, {
-        method: 'DELETE'
-      });
+      const response = await ApiService.delete(`/api/categories/${selectedCategory.id}`);
       
       if (response.ok) {
+        loadCategories
         setCategories(categories.filter(cat => cat.id !== selectedCategory.id));
         toast.success('Catégorie supprimée avec succès');
       } else {

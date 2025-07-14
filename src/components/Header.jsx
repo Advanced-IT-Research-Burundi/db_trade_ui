@@ -11,7 +11,7 @@ const Header = ({ onSidebarToggle, pageTitle = 'Tableau de bord' }) => {
   const [isUserMenuOpen, setIsUserMenuOpen] = React.useState(false);
   const [isNotificationMenuOpen, setIsNotificationMenuOpen] = React.useState(false);
 
-  
+
   useEffect(() => {
     console.log('User:', user);
     const handleClickOutside = (event) => {
@@ -94,9 +94,9 @@ const Header = ({ onSidebarToggle, pageTitle = 'Tableau de bord' }) => {
               tooltip="Panier"
               tooltipOptions={{ position: 'bottom' }}
             />
-            <Badge 
-              value="0" 
-              severity="danger" 
+            <Badge
+              value="0"
+              severity="danger"
               className="position-absolute top-0 start-100 translate-middle"
               style={{ fontSize: '0.65rem' }}
             />
@@ -111,13 +111,13 @@ const Header = ({ onSidebarToggle, pageTitle = 'Tableau de bord' }) => {
               tooltipOptions={{ position: 'bottom' }}
               onClick={toggleNotificationMenu}
             />
-            <Badge 
-              value="3" 
+            <Badge
+              value="3"
               severity="warning"
               className="position-absolute top-0 start-100 translate-middle"
               style={{ fontSize: '0.65rem', animation: 'pulse 2s infinite' }}
             />
-            
+
             {/* Dropdown Notifications */}
             {isNotificationMenuOpen && (
               <div className="dropdown-menu show position-absolute end-0 mt-2 shadow-lg border-0" style={{ width: '350px', zIndex: 1050 }}>
@@ -162,7 +162,7 @@ const Header = ({ onSidebarToggle, pageTitle = 'Tableau de bord' }) => {
 
           {/* Menu utilisateur */}
           <div className="position-relative" ref={userMenuRef}>
-            <div 
+            <div
               className="d-flex align-items-center p-2 rounded hover-bg-light"
               style={{ cursor: 'pointer' }}
               onClick={toggleUserMenu}
@@ -172,14 +172,14 @@ const Header = ({ onSidebarToggle, pageTitle = 'Tableau de bord' }) => {
                 shape="circle"
                 size="normal"
                 className="me-2"
-                style={{ 
+                style={{
                   backgroundColor: 'var(--primary-blue)',
                   color: 'white',
                   width: '32px',
                   height: '32px'
                 }}
               />
-              
+
               <div className="d-none d-md-block me-2">
                 <div className="fw-medium text-dark" style={{ fontSize: '0.9rem' }}>
                   {userInfo.name}
@@ -190,21 +190,21 @@ const Header = ({ onSidebarToggle, pageTitle = 'Tableau de bord' }) => {
               </div>
               <i className={`pi pi-angle-${isUserMenuOpen ? 'up' : 'down'} text-muted`}></i>
             </div>
-            
+
             {/* Dropdown Menu Utilisateur */}
             {isUserMenuOpen && (
               <div className="dropdown-menu show position-absolute end-0 mt-2 shadow-lg border-0" style={{ width: '200px', zIndex: 1050 }}>
-                <div className="dropdown-item-text px-3 py-2 border-bottom">
+                {/* <div className="dropdown-item-text px-3 py-2 border-bottom">
                   <div className="fw-bold text-primary small">BURUNDI UBWIZA</div>
-                </div>
-                <button 
+                </div> */}
+                <button
                   className="dropdown-item d-flex align-items-center px-3 py-2 hover-bg-light"
                   onClick={handleProfileClick}
                 >
                   <i className="pi pi-user me-2 text-muted"></i>
                   <span>Profile</span>
                 </button>
-                <button 
+                <button
                   className="dropdown-item d-flex align-items-center justify-content-between px-3 py-2 hover-bg-light"
                   onClick={handleSettingsClick}
                 >
@@ -214,7 +214,7 @@ const Header = ({ onSidebarToggle, pageTitle = 'Tableau de bord' }) => {
                   </div>
                   <small className="text-muted">⌘+O</small>
                 </button>
-                <button 
+                <button
                   className="dropdown-item d-flex align-items-center justify-content-between px-3 py-2 hover-bg-light"
                   onClick={handleMessagesClick}
                 >
@@ -225,7 +225,7 @@ const Header = ({ onSidebarToggle, pageTitle = 'Tableau de bord' }) => {
                   <Badge value="2" severity="info" className="ms-2" style={{ fontSize: '0.7rem' }} />
                 </button>
                 <div className="dropdown-divider"></div>
-                <button 
+                <button
                   className="dropdown-item d-flex align-items-center justify-content-between px-3 py-2 hover-bg-light text-danger"
                   onClick={handleLogout}
                 >
@@ -248,7 +248,7 @@ const Header = ({ onSidebarToggle, pageTitle = 'Tableau de bord' }) => {
           50% { transform: scale(1.1); }
           100% { transform: scale(1); }
         }
-        
+
         .hover-bg-light:hover {
           background-color: #f8f9fa !important;
           transition: background-color 0.2s ease;

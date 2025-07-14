@@ -6,7 +6,7 @@ const AuthContext = createContext();
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error('use Auth must be used within an AuthProvider');
   }
   return context;
 };
@@ -20,15 +20,15 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const initializeAuth = async () => {
       const token = localStorage.getItem('token');
-      
+
       if (token) {
         try {
           // Définir le token dans ApiService si nécessaire
           ApiService.setToken(token);
-          
+
           const userData = await ApiService.getCurrentUser();
           const userInfo = userData.data || userData.user || userData;
-          
+
           setUser(userInfo);
           setIsAuthenticated(true);
         } catch (error) {
@@ -36,7 +36,7 @@ export const AuthProvider = ({ children }) => {
           localStorage.removeItem('token');
           setIsAuthenticated(false);
           setUser(null);
-          
+
           // Rediriger vers la page de connexion si le token est invalide
           if (error.response?.status === 401) {
             window.location.href = '/login';
@@ -46,12 +46,12 @@ export const AuthProvider = ({ children }) => {
         // Pas de token, vérifier si on est sur une page protégée
         const currentPath = window.location.pathname;
         const publicPaths = ['/login', '/register', '/forgot-password', '/'];
-        
+
         if (!publicPaths.includes(currentPath)) {
           window.location.href = '/login';
         }
       }
-      
+
       setLoading(false);
       setIsLoading(false);
     };
@@ -63,12 +63,12 @@ export const AuthProvider = ({ children }) => {
     try {
       // setLoading(true);
       // setIsLoading(true);
-      
+
       const response = await ApiService.login(credentials);
-      
+
       const token = response.token || response.data?.token;
       const userData = response.data?.user || response.user || response.data;
-      
+
       if (token && userData) {
         localStorage.setItem('token', token);
         ApiService.setToken(token);
@@ -80,8 +80,8 @@ export const AuthProvider = ({ children }) => {
       }
     } catch (error) {
       console.error('Erreur de connexion:', error);
-      return { 
-        success: false, 
+      return {
+        success: false,
         error: error.response?.data?.message || error.message || 'Erreur de connexion'
       };
     } finally {
@@ -100,7 +100,7 @@ export const AuthProvider = ({ children }) => {
       ApiService.clearToken();
       setIsAuthenticated(false);
       setUser(null);
-      
+
       // Rediriger vers la page de connexion
       window.location.href = '/login';
     }
@@ -121,12 +121,12 @@ export const AuthProvider = ({ children }) => {
       return userInfo;
     } catch (error) {
       console.error('Erreur lors du rafraîchissement des données utilisateur:', error);
-      
+
       // Si l'erreur est due à un token invalide, déconnecter l'utilisateur
       if (error.response?.status === 401) {
         logout();
       }
-      
+
       throw error;
     }
   };
@@ -134,13 +134,13 @@ export const AuthProvider = ({ children }) => {
   // Fonction pour obtenir les informations utilisateur avec fallback
   const getUserInfo = () => {
     if (loading || isLoading) {
-      return { 
-        name: 'Chargement...', 
+      return {
+        name: 'Chargement...',
         email: 'Chargement...',
         isLoading: true
       };
     }
-    
+
     if (user) {
       return {
         name: user.name || user.username || user.firstName || user.fullName || 'Utilisateur',
@@ -150,9 +150,9 @@ export const AuthProvider = ({ children }) => {
         isLoading: false
       };
     }
-    
-    return { 
-      name: 'Utilisateur', 
+
+    return {
+      name: 'Utilisateur',
       email: 'Email',
       isLoading: false
     };

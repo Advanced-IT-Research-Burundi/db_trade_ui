@@ -25,8 +25,8 @@ import NotFound from '../components/NotFound';
 
 // Composant pour les routes protégées
 const ProtectedRoute = ({ children }) => {
-  const { isAuthenticated } = useAuth();
-  
+const { isAuthenticated } = useAuth();
+
   return isAuthenticated ? (
     <MainLayout>
       {children}
@@ -39,7 +39,7 @@ const ProtectedRoute = ({ children }) => {
 // Composant pour les routes publiques (accessible seulement si non connecté)
 const PublicRoute = ({ children }) => {
   const { isAuthenticated } = useAuth();
-  
+
   return !isAuthenticated ? children : <Navigate to="/dashboard" replace />;
 };
 
@@ -67,13 +67,13 @@ const AppRoutes = () => {
   return (
     <Routes>
       {/* Route de connexion */}
-      <Route 
-        path="/login" 
+      <Route
+        path="/login"
         element={
           <PublicRoute>
             <LoginScreen />
           </PublicRoute>
-        } 
+        }
       />
 
       {/* Routes protégées */}
@@ -91,7 +91,7 @@ const AppRoutes = () => {
 
       {/* Redirection par défaut */}
       <Route path="/" element={<Navigate to="/dashboard" replace />} />
-      
+
       {/* Route 404 - page non trouvée */}
       <Route path="*" element={<Navigate to="/404" replace />} />
     </Routes>

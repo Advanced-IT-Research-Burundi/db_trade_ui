@@ -6,10 +6,17 @@ import MainLayout from '../layouts/MainLayout';
 // Import des pages
 import LoginScreen from '../pages/LoginScreen';
 import DashboardScreen from '../pages/DashboardScreen';
+//sales
 import SalesScreen from '../pages/sales/SalesScreen';
+//stocks
 import StocksScreen from '../pages/stocks/StocksScreen';
+//products
 import ProductsScreen from '../pages/products/ProductsScreen';
+//category
 import CategoriesScreen from '../pages/categories/CategoriesScreen';
+import CategoryCreateScreen from '../pages/categories/CategoryCreateScreen.jsx';
+import CategoryEditScreen from '../pages/categories/CategoryEditScreen.jsx';
+
 import ClientsScreen from '../pages/clients/ClientsScreen';
 import SuppliersScreen from '../pages/suppliers/SuppliersScreen';
 import PurchasesScreen from '../pages/purchases/PurchasesScreen';
@@ -20,6 +27,7 @@ import TransactionsScreen from '../pages/transactions/TransactionsScreen';
 import ExpensesScreen from '../pages/expenses/ExpensesScreen';
 import ExpenseTypesScreen from '../pages/expensetypes/ExpenseTypesScreen';
 import ReportsScreen from '../pages/reports/ReportsScreen.jsx';
+
 
 import NotFound from '../components/NotFound';
 
@@ -46,10 +54,17 @@ const PublicRoute = ({ children }) => {
 // Configuration des routes protégées
 const protectedRoutes = [
   { path: '/dashboard', component: DashboardScreen },
+  //sales
   { path: '/sales', component: SalesScreen },
+  //stocks
   { path: '/stocks', component: StocksScreen },
+  //products
   { path: '/products', component: ProductsScreen },
+  //category
   { path: '/categories', component: CategoriesScreen },
+  { path: '/categories/create', component: CategoryCreateScreen },
+  { path: '/categories/:id/edit', component: CategoryEditScreen },
+  //clients
   { path: '/clients', component: ClientsScreen },
   { path: '/suppliers', component: SuppliersScreen },
   { path: '/purchases', component: PurchasesScreen },

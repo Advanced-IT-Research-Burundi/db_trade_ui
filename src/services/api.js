@@ -43,8 +43,8 @@ class ApiService {
 
   // HTTP methods pour compatibilité
   async request(endpoint, options = {}) { return this.http.request(endpoint, options); }
-  async create(endpoint, data) { return this.http.post(endpoint, data); }
-  async update(endpoint, data) { return this.http.put(endpoint, data); }
+  async post(endpoint, data) { return this.http.post(endpoint, data); }
+  async put(endpoint, data) { return this.http.put(endpoint, data); }
   async patch(endpoint, data) { return this.http.patch(endpoint, data); }
   async delete(endpoint) { return this.http.delete(endpoint); }
   async get(endpoint, params = {}) { return this.http.get(endpoint, params); }

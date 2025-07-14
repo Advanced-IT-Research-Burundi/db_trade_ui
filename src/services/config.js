@@ -1,6 +1,8 @@
 // const API_BASE_URL = 'http://192.168.0.112:8000'; // URL de l'API backend en local
 const API_BASE_URL = 'http://84.46.251.167:8203'; // URL de l'API backend en production
-
+// const API_BASE_URL= process.env.APP_BASE_URL
+// console.log('API_BASE_URL:', API_BASE_URL);
+// return;
 export const API_CONFIG = {
   BASE_URL: API_BASE_URL,
   ENDPOINTS: {
@@ -15,7 +17,6 @@ export const API_CONFIG = {
     USER_PROFILE: '/api/user/profile',
     USER_AVATAR: '/api/user/avatar',
     CHANGE_PASSWORD: '/api/user/change-password',
-
     // Data
     DASHBOARD: '/api/dashboard',
     PRODUCTS: '/api/products',

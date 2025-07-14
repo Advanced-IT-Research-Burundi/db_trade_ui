@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import { Button } from 'primereact/button';
@@ -8,14 +8,13 @@ import { Toast } from 'primereact/toast';
 import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
 import { Card } from 'primereact/card';
 import { Dropdown } from 'primereact/dropdown';
-import { Toolbar } from 'primereact/toolbar';
 import { Badge } from 'primereact/badge';
 import ApiService from '../../services/api.js';
 import { formatCurrency } from '../../utils/helpers.js';
 
 const ProductsScreen = () => {
   const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [totalRecords, setTotalRecords] = useState(0);
   const [globalFilter, setGlobalFilter] = useState('');
   const [selectedCategory, setSelectedCategory] = useState(null);
@@ -30,17 +29,16 @@ const ProductsScreen = () => {
   });
   
   const toast = useRef(null);
-  const dt = useRef(null);
+  const searchTimeout = useRef(null);
 
-  useEffect(() => {
-    loadData();
-    loadCategories();
-  }, [lazyParams, globalFilter, selectedCategory]);
+  const showToast = (severity, detail) => {
+    toast.current?.show({ severity, summary: severity === 'error' ? 'Erreur' : 'Succès', detail, life: 3000 });
+  };
 
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     setLoading(true);
     try {
-      const params = {
+      const params = new URLSearchParams({
         page: lazyParams.page,
         per_page: lazyParams.rows,
         ...(globalFilter && { search: globalFilter }),
@@ -49,49 +47,34 @@ const ProductsScreen = () => {
           sort: lazyParams.sortField,
           order: lazyParams.sortOrder === 1 ? 'asc' : 'desc'
         })
-      };
+      });
 
-      const response = await ApiService.request('/api/products', { params });
-      setProducts(response.data.data);
-      setTotalRecords(response.data.total);
+      const response = await ApiService.request(`/api/products?${params}`);
+      const data = response.data?.data?.products || response.data?.products || {};
+      
+      setProducts(data.data || []);
+      setTotalRecords(data.total || 0);
     } catch (error) {
-      showError('Erreur lors du chargement des produits');
+      showToast('error', 'Erreur lors du chargement des produits');
+      setProducts([]);
+      setTotalRecords(0);
     } finally {
       setLoading(false);
     }
-  };
+  }, [lazyParams, globalFilter, selectedCategory]);
 
-  const loadCategories = async () => {
+  const loadCategories = useCallback(async () => {
     try {
       const response = await ApiService.request('/api/categories');
-      const categoriesData = response.data?.data || response.data || [];
+      const data = response.data?.data || response.data || [];
       setCategories([
         { label: 'Toutes les catégories', value: null },
-        ...categoriesData.map(cat => ({ label: cat.name, value: cat.id }))
+        ...data.map(cat => ({ label: cat.name, value: cat.id }))
       ]);
     } catch (error) {
-      console.error('Erreur catégories:', error);
       setCategories([{ label: 'Toutes les catégories', value: null }]);
     }
-  };
-
-  const showError = (message) => {
-    toast.current.show({
-      severity: 'error',
-      summary: 'Erreur',
-      detail: message,
-      life: 3000
-    });
-  };
-
-  const showSuccess = (message) => {
-    toast.current.show({
-      severity: 'success',
-      summary: 'Succès',
-      detail: message,
-      life: 3000
-    });
-  };
+  }, []);
 
   const handleDelete = (product) => {
     confirmDialog({
@@ -102,10 +85,10 @@ const ProductsScreen = () => {
       accept: async () => {
         try {
           await ApiService.request(`/api/products/${product.id}`, { method: 'DELETE' });
-          showSuccess('Produit supprimé');
+          showToast('success', 'Produit supprimé');
           loadData();
         } catch (error) {
-          showError('Erreur lors de la suppression');
+          showToast('error', 'Erreur lors de la suppression');
         }
       }
     });
@@ -128,7 +111,30 @@ const ProductsScreen = () => {
     }));
   };
 
-  // Templates optimisés
+  const onSearchChange = (e) => {
+    const value = e.target.value;
+    setGlobalFilter(value);
+    
+    if (searchTimeout.current) clearTimeout(searchTimeout.current);
+    searchTimeout.current = setTimeout(() => {
+      setLazyParams(prev => ({ ...prev, first: 0, page: 1 }));
+    }, 500);
+  };
+
+  const onCategoryChange = (e) => {
+    setSelectedCategory(e.value);
+    setLazyParams(prev => ({ ...prev, first: 0, page: 1 }));
+  };
+
+  useEffect(() => {
+    loadCategories();
+  }, []);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
+
+  // Templates
   const imageTemplate = (product) => (
     <div className="flex align-items-center justify-content-center">
       {product.image ? (
@@ -136,6 +142,7 @@ const ProductsScreen = () => {
           src={product.image} 
           alt={product.name}
           className="w-3rem h-3rem border-circle object-fit-cover"
+          onError={(e) => e.target.style.display = 'none'}
         />
       ) : (
         <div className="w-3rem h-3rem border-circle bg-gray-100 flex align-items-center justify-content-center">
@@ -145,73 +152,46 @@ const ProductsScreen = () => {
     </div>
   );
 
-  const codeTemplate = (product) => (
-    <Badge value={product.code} severity="info" />
-  );
-
   const nameTemplate = (product) => (
     <div>
       <div className="font-bold text-primary">{product.name}</div>
       {product.description && (
-        <div className="text-sm text-gray-600 mt-1">
-          {product.description.length > 60 ? 
-            `${product.description.substring(0, 60)}...` : 
-            product.description}
+        <div className="text-sm text-600 mt-1">
+          {product.description.length > 60 ? `${product.description.substring(0, 60)}...` : product.description}
         </div>
       )}
     </div>
   );
 
   const categoryTemplate = (product) => (
-    <Tag 
-      value={product.category?.name || 'Non définie'} 
-      className="bg-primary text-white"
-    />
+    <Tag value={product.category?.name || 'Non classé'} severity="info" />
   );
 
   const priceTemplate = (product) => (
-    <div className="text-right">
-      <div className="font-bold text-green-600">
-        {formatCurrency(product.purchase_price)}
-      </div>
-    </div>
+    <div className="font-bold text-green-600">{formatCurrency(product.purchase_price || 0)}</div>
   );
 
   const salePriceTemplate = (product) => (
-    <div className="text-right">
-      <div className="font-bold text-blue-600">
-        {formatCurrency(product.sale_price_ttc)}
-      </div>
+    <div>
+      <div className="font-bold text-blue-600">{formatCurrency(product.sale_price_ttc || 0)}</div>
       {product.sale_price_ht && (
-        <div className="text-sm text-gray-500">
-          HT: {formatCurrency(product.sale_price_ht)}
-        </div>
+        <div className="text-sm text-500">HT: {formatCurrency(product.sale_price_ht)}</div>
       )}
     </div>
   );
 
-  const unitTemplate = (product) => (
-    <Tag value={product.unit} severity="secondary" />
-  );
-
   const alertTemplate = (product) => {
-    const isAlert = product.current_stock <= product.alert_quantity;
+    const stock = product.current_stock || product.stock || 0;
+    const alert = product.alert_quantity || 0;
+    const isAlert = stock <= alert;
+    
     return (
       <div className="text-center">
-        <Badge 
-          value={product.alert_quantity} 
-          severity={isAlert ? 'danger' : 'success'}
-        />
+        <Badge value={alert} severity={isAlert ? 'danger' : 'success'} />
+        <div className="text-xs text-500 mt-1">Stock: {stock}</div>
       </div>
     );
   };
-
-  const agencyTemplate = (product) => (
-    <div className="text-sm">
-      <i className="pi pi-building mr-1"></i>
-      {product.agency?.name || 'Non définie'}
-    </div>
-  );
 
   const actionsTemplate = (product) => (
     <div className="flex gap-2">
@@ -221,7 +201,6 @@ const ProductsScreen = () => {
         severity="info"
         rounded
         onClick={() => window.location.href = `/products/${product.id}`}
-        tooltip="Voir"
       />
       <Button 
         icon="pi pi-pencil" 
@@ -229,7 +208,6 @@ const ProductsScreen = () => {
         severity="success"
         rounded
         onClick={() => window.location.href = `/products/${product.id}/edit`}
-        tooltip="Modifier"
       />
       <Button 
         icon="pi pi-trash" 
@@ -237,7 +215,6 @@ const ProductsScreen = () => {
         severity="danger"
         rounded
         onClick={() => handleDelete(product)}
-        tooltip="Supprimer"
       />
     </div>
   );
@@ -257,58 +234,21 @@ const ProductsScreen = () => {
           <i className="pi pi-search" />
           <InputText
             value={globalFilter}
-            onChange={(e) => setGlobalFilter(e.target.value)}
+            onChange={onSearchChange}
             placeholder="Rechercher..."
             className="w-20rem"
           />
         </span>
         <Dropdown
           value={selectedCategory}
-          onChange={(e) => setSelectedCategory(e.value)}
+          onChange={onCategoryChange}
           options={categories}
           placeholder="Catégorie"
           className="w-12rem"
+          showClear
         />
       </div>
     </div>
-  );
-
-  const toolbar = (
-    <Toolbar
-      left={
-        <div className="flex gap-2">
-          <Button 
-            label="Nouveau" 
-            icon="pi pi-plus" 
-            severity="success"
-            onClick={() => window.location.href = '/products/create'}
-          />
-          <Button 
-            label="Supprimer" 
-            icon="pi pi-trash" 
-            severity="danger"
-            disabled={!selectedProducts.length}
-            onClick={() => showError('Fonction en développement')}
-          />
-        </div>
-      }
-      right={
-        <div className="flex gap-2">
-          <Button 
-            label="CSV" 
-            icon="pi pi-file" 
-            severity="help"
-            onClick={() => dt.current.exportCSV()}
-          />
-          <Button 
-            label="Excel" 
-            icon="pi pi-file-excel" 
-            severity="success"
-            onClick={() => showError('Fonction en développement')}
-          />
-        </div>
-      }
-    />
   );
 
   return (
@@ -317,12 +257,24 @@ const ProductsScreen = () => {
       <ConfirmDialog />
       
       <div className="mb-4">
-        {toolbar}
+        <Button 
+          label="Nouveau" 
+          icon="pi pi-plus" 
+          severity="success"
+          onClick={() => window.location.href = '/products/create'}
+          className="mr-2"
+        />
+        <Button 
+          label="Supprimer" 
+          icon="pi pi-trash" 
+          severity="danger"
+          disabled={!selectedProducts.length}
+          onClick={() => showToast('error', 'Fonction en développement')}
+        />
       </div>
       
       <Card>
         <DataTable
-          ref={dt}
           value={products}
           lazy
           paginator
@@ -346,69 +298,18 @@ const ProductsScreen = () => {
           paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
           currentPageReportTemplate="Affichage de {first} à {last} sur {totalRecords} produits"
           rowsPerPageOptions={[25, 50, 100]}
+          removableSort
         >
           <Column selectionMode="multiple" style={{ width: '3rem' }} />
-          <Column 
-            header="Image" 
-            body={imageTemplate} 
-            style={{ width: '5rem' }}
-          />
-          <Column 
-            field="code" 
-            header="Code" 
-            body={codeTemplate}
-            sortable 
-            style={{ width: '8rem' }}
-          />
-          <Column 
-            field="name" 
-            header="Nom" 
-            body={nameTemplate}
-            sortable 
-            style={{ minWidth: '15rem' }}
-          />
-          <Column 
-            header="Catégorie" 
-            body={categoryTemplate}
-            style={{ width: '10rem' }}
-          />
-          <Column 
-            field="purchase_price"
-            header="Prix d'Achat" 
-            body={priceTemplate}
-            sortable
-            style={{ width: '8rem' }}
-          />
-          <Column 
-            field="sale_price_ttc"
-            header="Prix de Vente" 
-            body={salePriceTemplate}
-            sortable
-            style={{ width: '10rem' }}
-          />
-          <Column 
-            field="unit"
-            header="Unité" 
-            body={unitTemplate}
-            style={{ width: '6rem' }}
-          />
-          <Column 
-            field="alert_quantity"
-            header="Seuil d'Alerte" 
-            body={alertTemplate}
-            sortable
-            style={{ width: '8rem' }}
-          />
-          <Column 
-            header="Agence" 
-            body={agencyTemplate}
-            style={{ width: '10rem' }}
-          />
-          <Column 
-            header="Actions" 
-            body={actionsTemplate}
-            style={{ width: '10rem' }}
-          />
+          <Column header="Image" body={imageTemplate} style={{ width: '5rem' }} />
+          <Column field="code" header="Code" sortable style={{ width: '8rem' }} />
+          <Column field="name" header="Nom" body={nameTemplate} sortable style={{ minWidth: '15rem' }} />
+          <Column header="Catégorie" body={categoryTemplate} style={{ width: '10rem' }} />
+          <Column field="purchase_price" header="Prix Achat" body={priceTemplate} sortable style={{ width: '8rem' }} />
+          <Column field="sale_price_ttc" header="Prix Vente" body={salePriceTemplate} sortable style={{ width: '10rem' }} />
+          <Column field="unit" header="Unité" style={{ width: '6rem' }} />
+          <Column field="alert_quantity" header="Alerte" body={alertTemplate} sortable style={{ width: '8rem' }} />
+          <Column header="Actions" body={actionsTemplate} style={{ width: '10rem' }} />
         </DataTable>
       </Card>
     </div>

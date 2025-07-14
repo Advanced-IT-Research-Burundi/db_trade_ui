@@ -3,13 +3,16 @@ import { Card } from 'primereact/card';
 import { Button } from 'primereact/button';
 import { ProgressSpinner } from 'primereact/progressspinner';
 import { useNavigate, useParams } from 'react-router-dom';
+import { Toast } from 'primereact/toast';
 
 import { useForm } from '../../hooks/useForm';
 import FormField from '../../components/input/FormField';
+import ApiService from '../../services/api.js';
 
 const CategoryEditScreen = () => {
   const navigate = useNavigate();
   const { id } = useParams();
+  const toast = React.useRef(null);
 
   const initialValues = {
     name: '',
@@ -28,35 +31,50 @@ const CategoryEditScreen = () => {
   };
 
   const loadData = async (categoryId) => {
-    const response = await fetch(`/api/categories/${categoryId}`);
-    const data = await response.json();
+    const response = await ApiService.get(`/api/categories/${categoryId}`);
 
-    if (response.ok) {
-      return { success: true, data: data.data };
+    if (response.success) {
+      return { success: true, data: response.data };
     } else {
-      throw new Error(data.message || 'Erreur lors du chargement');
+      toast.current.show({
+        severity: 'error',
+        summary: 'Erreur',
+        detail: response.message || 'Erreur lors du chargement',
+        life: 3000
+      });
+      throw new Error(response.message || 'Erreur lors du chargement');
     }
   };
 
   const handleSubmit = async (values, isEditing, entityId) => {
-    const response = await fetch(`/api/categories/${entityId}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(values)
-    });
+    const response = await ApiService.put(`/api/categories/${entityId}`, values);
 
-    const data = await response.json();
-
-    if (response.ok) {
-      navigate('/categories');
+    if (response.success) {
+      // Afficher un toast de succès
+      toast.current.show({
+        severity: 'success',
+        summary: 'Succès',
+        detail: 'Catégorie modifiée avec succès',
+        life: 3000
+      });
+      
+      // Attendre un peu avant de naviguer pour que l'utilisateur voie le toast
+      setTimeout(() => {
+        navigate('/categories');
+      }, 1000);
+      
       return { success: true, message: 'Catégorie modifiée avec succès' };
     } else {
+      toast.current.show({
+        severity: 'error',
+        summary: 'Erreur',
+        detail: response.message || 'Erreur lors de la modification de la catégorie',
+        life: 3000
+      });
+      
       if (response.status === 422) {
-        throw { status: 422, errors: data.errors };
+        throw { status: 422, errors: response.errors };
       }
-      throw new Error(data.message || 'Erreur lors de la modification');
     }
   };
 
@@ -89,6 +107,9 @@ const CategoryEditScreen = () => {
   if (form.loading) {
     return (
       <div className="container-fluid py-4">
+        {/* Ajout du composant Toast */}
+        <Toast ref={toast} />
+        
         <div className="row justify-content-center">
           <div className="col-12 col-md-8 col-lg-6">
             <Card header={cardHeader}>
@@ -105,6 +126,9 @@ const CategoryEditScreen = () => {
 
   return (
     <div className="container-fluid py-4">
+      {/* Ajout du composant Toast */}
+      <Toast ref={toast} />
+      
       <div className="row justify-content-center">
         <div className="col-12 col-md-8 col-lg-6">
           <Card header={cardHeader}>
@@ -122,7 +146,7 @@ const CategoryEditScreen = () => {
                     helperText="Le nom doit contenir entre 3 et 255 caractères"
                   />
                 </div>
-                {id}
+
                 <div className="col-12">
                   <FormField
                     name="description"

@@ -9,7 +9,6 @@ import { ConfirmDialog } from 'primereact/confirmdialog';
 import { Toolbar } from 'primereact/toolbar';
 import { Card } from 'primereact/card';
 import { useNavigate } from 'react-router-dom';
-import { toast } from 'react-toastify';
 
 import ApiService from '../../services/api.js';
 
@@ -20,6 +19,7 @@ const CategoryScreen = () => {
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [deleteDialog, setDeleteDialog] = useState(false);
   const navigate = useNavigate();
+  const toast = React.useRef(null);
 
   useEffect(() => {
     loadCategories();
@@ -28,16 +28,26 @@ const CategoryScreen = () => {
   const loadCategories = async () => {
     try {
       setLoading(true);
-      const response = await ApiService.request('/api/categories');
-      const data = response.data;
+      const response = await ApiService.get('/api/categories');
+      
       if (response.success) {
-        setCategories(data.data || []);
+        setCategories(response.data.data || []);
       } else {
-        toast.error(data.message || 'Erreur lors du chargement');
+        toast.current.show({
+          severity: 'error',
+          summary: 'Erreur',
+          detail: response.data.message || 'Erreur lors du chargement',
+          life: 3000
+        });
       }
     } catch (error) {
       console.log('Erreur de connexion: ' + error.message);
-      toast.error('Erreur de connexion: ' + error.message);
+      toast.current.show({
+        severity: 'error',
+        summary: 'Erreur de connexion',
+        detail: error.message,
+        life: 3000
+      });
     } finally {
       setLoading(false);
     }
@@ -52,16 +62,29 @@ const CategoryScreen = () => {
     try {
       const response = await ApiService.delete(`/api/categories/${selectedCategory.id}`);
       
-      if (response.ok) {
-        loadCategories
-        setCategories(categories.filter(cat => cat.id !== selectedCategory.id));
-        toast.success('Catégorie supprimée avec succès');
+      if (response.success) {
+        loadCategories();
+        toast.current.show({
+          severity: 'success',
+          summary: 'Succès',
+          detail: 'Catégorie supprimée avec succès',
+          life: 3000
+        });
       } else {
-        const data = await response.json();
-        toast.error(data.message || 'Erreur lors de la suppression');
+        toast.current.show({
+          severity: 'error',
+          summary: 'Erreur',
+          detail: response.message || 'Erreur lors de la suppression',
+          life: 3000
+        });
       }
     } catch (error) {
-      toast.error('Erreur de connexion: ' + error.message);
+      toast.current.show({
+        severity: 'error',
+        summary: 'Erreur de connexion',
+        detail: error.message,
+        life: 3000
+      });
     } finally {
       setDeleteDialog(false);
       setSelectedCategory(null);
@@ -148,6 +171,9 @@ const CategoryScreen = () => {
 
   return (
     <div className="container-fluid py-4">
+      {/* Ajout du composant Toast */}
+      <Toast ref={toast} />
+      
       <div className="row">
         <div className="col-12">
           <Card>

@@ -28,30 +28,34 @@ const CategoryCreateScreen = () => {
   };
 
   const handleSubmit = async (values) => {
-  const response = await ApiService.post('/api/categories',values);
-
-    // const data = await response.json();
+    const response = await ApiService.post('/api/categories',values);
 
     if (response.success) {
-      navigate('/categories');
+      // Afficher un toast de succès
+      toast.current.show({
+        severity: 'success',
+        summary: 'Succès',
+        detail: 'Catégorie créée avec succès',
+        life: 3000
+      });
+      
+      // Attendre un peu avant de naviguer pour que l'utilisateur voie le toast
+      setTimeout(() => {
+        navigate('/categories');
+      }, 1000);
+      
       return { success: true, message: 'Catégorie créée avec succès' };
     } else {
-        toast.current.show({
-      severity: 'error',
-      summary: 'Erreur',
-      detail: response.message || 'Erreur lors de la création de la catégorie',
-      life: 3000
-    });
+      toast.current.show({
+        severity: 'error',
+        summary: 'Erreur',
+        detail: response.message || 'Erreur lors de la création de la catégorie',
+        life: 3000
+      });
+      
       if (response.status === 422) {
         throw { status: 422, errors: response.errors };
       }
-      toast.current.show({
-      severity: 'error',
-      summary: 'Erreur',
-      detail: response.message || 'Erreur lors de la création de la catégorie',
-      life: 3000
-    });
-      // throw new Error(response.message || 'Erreur lors de la création');
     }
   };
 
@@ -78,6 +82,8 @@ const CategoryCreateScreen = () => {
 
   return (
     <div className="container-fluid py-4">
+      <Toast ref={toast} />
+      
       <div className="row justify-content-center">
         <div className="col-12 col-md-8 col-lg-6">
           <Card header={cardHeader}>

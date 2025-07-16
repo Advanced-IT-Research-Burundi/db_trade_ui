@@ -17,7 +17,11 @@ import CategoriesScreen from '../pages/categories/CategoriesScreen';
 import CategoryCreateScreen from '../pages/categories/CategoryCreateScreen.jsx';
 import CategoryEditScreen from '../pages/categories/CategoryEditScreen.jsx';
 
+//clients
 import ClientsScreen from '../pages/clients/ClientsScreen';
+import ClientCreateScreen from '../pages/clients/ClientCreateScreen.jsx';
+import ClientEditScreen from '../pages/clients/ClientEditScreen.jsx';
+//suppliers
 import SuppliersScreen from '../pages/suppliers/SuppliersScreen';
 import PurchasesScreen from '../pages/purchases/PurchasesScreen';
 import UsersScreen from '../pages/users/UsersScreen';
@@ -66,6 +70,10 @@ const protectedRoutes = [
   { path: '/categories/:id/edit', component: CategoryEditScreen },
   //clients
   { path: '/clients', component: ClientsScreen },
+  { path: '/clients/create', component: ClientCreateScreen },
+  { path: '/clients/:id/edit', component: ClientEditScreen },
+
+  //suppliers
   { path: '/suppliers', component: SuppliersScreen },
   { path: '/purchases', component: PurchasesScreen },
   { path: '/users', component: UsersScreen },

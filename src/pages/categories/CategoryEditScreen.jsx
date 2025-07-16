@@ -27,6 +27,7 @@ const CategoryEditScreen = () => {
     }
   };
 
+
   const loadData = async (categoryId) => {
     const response = await ApiService.get(`/api/categories/${categoryId}`);
 

@@ -300,7 +300,7 @@ const ClientCreateScreen = () => {
                 </div>
 
                 {/* Solde initial */}
-                <div className="row mb-3">
+                {/* <div className="row mb-3">
                   <div className="col-md-6">
                     <FormField
                       name="balance"
@@ -314,7 +314,7 @@ const ClientCreateScreen = () => {
                       step="0.01"
                     />
                   </div>
-                </div>
+                </div> */}
 
                 {/* Boutons d'action */}
                 <div className="d-flex justify-content-end gap-2 mt-4">

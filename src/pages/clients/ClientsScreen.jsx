@@ -201,7 +201,7 @@ const ClientScreen = () => {
                         <th>Nom/Société</th>
                         <th>NIF</th>
                         <th>Contact</th>
-                        <th>Solde</th>
+                        {/* <th>Solde</th> */}
                         <th style={{ width: '150px' }}>Actions</th>
                       </tr>
                     </thead>
@@ -242,14 +242,14 @@ const ClientScreen = () => {
                           <td>
                             <small className="text-muted">{getClientContact(client)}</small>
                           </td>
-                          <td>
-                            <span className={`badge ${client.balance >= 0 ? 'bg-success' : 'bg-danger'}`}>
+                          {/* <td> */}
+                            {/* <span className={`badge ${client.balance >= 0 ? 'bg-success' : 'bg-danger'}`}>
                               {new Intl.NumberFormat('fr-FR', { 
                                 style: 'currency', 
-                                currency: 'EUR' 
+                                currency: 'FrBU', 
                               }).format(client.balance)}
-                            </span>
-                          </td>
+                            </span> */}
+                          {/* </td> */}
                           <td>
                             <div className="btn-group btn-group-sm">
                               <button

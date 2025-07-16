@@ -1,5 +1,5 @@
-// const API_BASE_URL = 'http://192.168.0.112:8000'; // URL de l'API backend en local
-const API_BASE_URL = 'http://84.46.251.167:8203'; // URL de l'API backend en production
+const API_BASE_URL = 'http://127.0.0.1:8000'; // URL de l'API backend en local
+// const API_BASE_URL = 'http://84.46.251.167:8203'; // URL de l'API backend en production
 // const API_BASE_URL= process.env.APP_BASE_URL
 // console.log('API_BASE_URL:', API_BASE_URL);
 // return;

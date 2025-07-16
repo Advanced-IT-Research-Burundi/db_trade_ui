@@ -23,6 +23,10 @@ import ClientCreateScreen from '../pages/clients/ClientCreateScreen.jsx';
 import ClientEditScreen from '../pages/clients/ClientEditScreen.jsx';
 //suppliers
 import SuppliersScreen from '../pages/suppliers/SuppliersScreen';
+import SupplierCreateScreen from '../pages/suppliers/SupplierCreateScreen.jsx';
+import SupplierEditScreen from '../pages/suppliers/SupplierEditScreen.jsx';
+import SuppliersShowScreen from '../pages/suppliers/SuppliersShowScreen.jsx';
+//purchases
 import PurchasesScreen from '../pages/purchases/PurchasesScreen';
 import UsersScreen from '../pages/users/UsersScreen';
 import VehiclesScreen from '../pages/vehicules/VehiclesScreen.jsx';
@@ -34,6 +38,7 @@ import ReportsScreen from '../pages/reports/ReportsScreen.jsx';
 
 
 import NotFound from '../components/NotFound';
+import SuppliersCreateScreen from '../pages/suppliers/SupplierCreateScreen.jsx';
 
 // Composant pour les routes protégées
 const ProtectedRoute = ({ children }) => {
@@ -75,6 +80,10 @@ const protectedRoutes = [
 
   //suppliers
   { path: '/suppliers', component: SuppliersScreen },
+  { path: '/suppliers/create', component: SupplierCreateScreen },
+  { path: '/suppliers/:id/edit', component: SupplierEditScreen },
+  { path: '/suppliers/:id', component: SuppliersShowScreen },
+  //purchases
   { path: '/purchases', component: PurchasesScreen },
   { path: '/users', component: UsersScreen },
   { path: '/vehicles', component: VehiclesScreen },

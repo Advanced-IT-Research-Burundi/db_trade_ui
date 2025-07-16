@@ -1,23 +1,7 @@
-import React from 'react';
-import { InputText } from 'primereact/inputtext';
-import { InputTextarea } from 'primereact/inputtextarea';
-import { InputNumber } from 'primereact/inputnumber';
-import { Password } from 'primereact/password';
-import { Calendar } from 'primereact/calendar';
-import { Dropdown } from 'primereact/dropdown';
-import { MultiSelect } from 'primereact/multiselect';
-import { Checkbox } from 'primereact/checkbox';
-import { RadioButton } from 'primereact/radiobutton';
-import { InputSwitch } from 'primereact/inputswitch';
-import { FileUpload } from 'primereact/fileupload';
-import { Chips } from 'primereact/chips';
-import { ColorPicker } from 'primereact/colorpicker';
-import { Rating } from 'primereact/rating';
-import { Slider } from 'primereact/slider';
-import { AutoComplete } from 'primereact/autocomplete';
+import React, { useState, useRef } from 'react';
 
 /**
- * Composant InputField simple supportant tous types d'inputs
+ * Composant InputField avec Bootstrap supportant tous types d'inputs
  */
 const InputField = ({
   type = 'text',
@@ -37,6 +21,13 @@ const InputField = ({
   className = '',
   ...props
 }) => {
+  const [showPassword, setShowPassword] = useState(false);
+  const [suggestions, setSuggestions] = useState([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [selectedChips, setSelectedChips] = useState(value || []);
+  const [currentChip, setCurrentChip] = useState('');
+  const fileInputRef = useRef(null);
+
   const fieldId = `field-${name}`;
 
   const handleChange = (e) => {
@@ -44,31 +35,39 @@ const InputField = ({
     
     switch (type) {
       case 'checkbox':
-        newValue = e.checked;
+        newValue = e.target.checked;
         break;
       case 'switch':
-        newValue = e.value;
+        newValue = e.target.checked;
         break;
       case 'number':
-        newValue = e.value;
+      case 'range':
+        newValue = parseFloat(e.target.value) || 0;
         break;
       case 'date':
-      case 'datetime':
-        newValue = e.value;
+      case 'datetime-local':
+      case 'time':
+        newValue = e.target.value;
         break;
-      case 'dropdown':
+      case 'select':
       case 'multiselect':
-        newValue = e.value;
+        if (type === 'multiselect') {
+          const selectedOptions = Array.from(e.target.selectedOptions, option => option.value);
+          newValue = selectedOptions;
+        } else {
+          newValue = e.target.value;
+        }
+        break;
+      case 'file':
+        newValue = e.target.files;
+        break;
+      case 'color':
+        newValue = e.target.value;
         break;
       case 'chips':
-      case 'rating':
-      case 'slider':
-      case 'color':
-      case 'autocomplete':
-        newValue = e.value;
-        break;
+        return; // Géré séparément
       default:
-        newValue = e.target ? e.target.value : e;
+        newValue = e.target.value;
         break;
     }
     
@@ -77,17 +76,58 @@ const InputField = ({
 
   const handleBlur = () => {
     if (onBlur) onBlur(name);
+    setShowSuggestions(false);
+  };
+
+  const handleChipKeyDown = (e) => {
+    if (e.key === 'Enter' || e.key === ',') {
+      e.preventDefault();
+      if (currentChip.trim()) {
+        const newChips = [...selectedChips, currentChip.trim()];
+        setSelectedChips(newChips);
+        onChange(name, newChips);
+        setCurrentChip('');
+      }
+    } else if (e.key === 'Backspace' && !currentChip && selectedChips.length > 0) {
+      const newChips = selectedChips.slice(0, -1);
+      setSelectedChips(newChips);
+      onChange(name, newChips);
+    }
+  };
+
+  const removeChip = (index) => {
+    const newChips = selectedChips.filter((_, i) => i !== index);
+    setSelectedChips(newChips);
+    onChange(name, newChips);
+  };
+
+  const handleAutocomplete = (e) => {
+    const inputValue = e.target.value;
+    onChange(name, inputValue);
+    
+    if (inputValue.length > 0) {
+      const filtered = options.filter(option => 
+        option.label.toLowerCase().includes(inputValue.toLowerCase())
+      );
+      setSuggestions(filtered);
+      setShowSuggestions(true);
+    } else {
+      setShowSuggestions(false);
+    }
+  };
+
+  const selectSuggestion = (suggestion) => {
+    onChange(name, suggestion.value);
+    setShowSuggestions(false);
   };
 
   const renderInput = () => {
     const commonProps = {
       id: fieldId,
-      value: value || '',
-      onChange: handleChange,
-      onBlur: handleBlur,
+      name,
       disabled,
       placeholder,
-      className: `${error ? 'p-invalid' : ''} ${className}`,
+      className: `form-control ${error ? 'is-invalid' : ''} ${className}`,
       ...props
     };
 
@@ -96,74 +136,156 @@ const InputField = ({
       case 'email':
       case 'url':
       case 'tel':
-        return <InputText {...commonProps} type={type} />;
+        return (
+          <input
+            {...commonProps}
+            type={type}
+            value={value || ''}
+            onChange={handleChange}
+            onBlur={handleBlur}
+          />
+        );
 
       case 'password':
-        return <Password {...commonProps} feedback={false} toggleMask />;
+        return (
+          <div className="input-group">
+            <input
+              {...commonProps}
+              type={showPassword ? 'text' : 'password'}
+              value={value || ''}
+              onChange={handleChange}
+              onBlur={handleBlur}
+            />
+            <button
+              className="btn btn-outline-secondary"
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+            >
+              <i className={`bi ${showPassword ? 'bi-eye-slash' : 'bi-eye'}`}></i>
+            </button>
+          </div>
+        );
 
       case 'textarea':
-        return <InputTextarea {...commonProps} rows={4} autoResize />;
+        return (
+          <textarea
+            {...commonProps}
+            rows={4}
+            value={value || ''}
+            onChange={handleChange}
+            onBlur={handleBlur}
+          />
+        );
 
       case 'number':
-        return <InputNumber {...commonProps} showButtons />;
+        return (
+          <input
+            {...commonProps}
+            type="number"
+            value={value || ''}
+            onChange={handleChange}
+            onBlur={handleBlur}
+          />
+        );
+
+      case 'range':
+        return (
+          <div>
+            <input
+              {...commonProps}
+              type="range"
+              className="form-range"
+              value={value || 0}
+              onChange={handleChange}
+              onBlur={handleBlur}
+            />
+            <div className="mt-1">
+              <small className="text-muted">Valeur: {value || 0}</small>
+            </div>
+          </div>
+        );
 
       case 'date':
         return (
-          <Calendar 
-            {...commonProps} 
-            dateFormat="dd/mm/yy" 
-            showIcon 
-            showButtonBar 
-          />
-        );
-
-      case 'datetime':
-        return (
-          <Calendar 
-            {...commonProps} 
-            showTime 
-            dateFormat="dd/mm/yy" 
-            showIcon 
-            showButtonBar 
-          />
-        );
-
-      case 'dropdown':
-        return (
-          <Dropdown
+          <input
             {...commonProps}
-            options={options}
-            optionLabel="label"
-            optionValue="value"
-            showClear
-            filter={options.length > 10}
-            emptyMessage="Aucune option disponible"
+            type="date"
+            value={value || ''}
+            onChange={handleChange}
+            onBlur={handleBlur}
           />
+        );
+
+      case 'datetime-local':
+        return (
+          <input
+            {...commonProps}
+            type="datetime-local"
+            value={value || ''}
+            onChange={handleChange}
+            onBlur={handleBlur}
+          />
+        );
+
+      case 'time':
+        return (
+          <input
+            {...commonProps}
+            type="time"
+            value={value || ''}
+            onChange={handleChange}
+            onBlur={handleBlur}
+          />
+        );
+
+      case 'select':
+        return (
+          <select
+            {...commonProps}
+            value={value || ''}
+            onChange={handleChange}
+            onBlur={handleBlur}
+          >
+            <option value="">Sélectionner une option</option>
+            {options.map((option, index) => (
+              <option key={index} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
         );
 
       case 'multiselect':
         return (
-          <MultiSelect
+          <select
             {...commonProps}
-            options={options}
-            optionLabel="label"
-            optionValue="value"
-            display="chip"
-            showClear
-            filter={options.length > 10}
-            emptyMessage="Aucune option disponible"
-          />
+            multiple
+            value={value || []}
+            onChange={handleChange}
+            onBlur={handleBlur}
+          >
+            {options.map((option, index) => (
+              <option key={index} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
         );
 
       case 'checkbox':
         return (
-          <div className="d-flex align-items-center">
-            <Checkbox
-              {...commonProps}
+          <div className="form-check">
+            <input
+              className={`form-check-input ${error ? 'is-invalid' : ''}`}
+              type="checkbox"
+              id={fieldId}
               checked={!!value}
+              onChange={handleChange}
+              onBlur={handleBlur}
+              disabled={disabled}
             />
             {label && (
-              <label htmlFor={fieldId} className="ms-2">
+              <label className="form-check-label" htmlFor={fieldId}>
                 {label}
               </label>
             )}
@@ -174,15 +296,19 @@ const InputField = ({
         return (
           <div>
             {options.map((option, index) => (
-              <div key={index} className="d-flex align-items-center mb-2">
-                <RadioButton
-                  inputId={`${fieldId}-${index}`}
+              <div key={index} className="form-check mb-2">
+                <input
+                  className={`form-check-input ${error ? 'is-invalid' : ''}`}
+                  type="radio"
+                  id={`${fieldId}-${index}`}
+                  name={name}
                   value={option.value}
-                  onChange={handleChange}
                   checked={value === option.value}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
                   disabled={disabled}
                 />
-                <label htmlFor={`${fieldId}-${index}`} className="ms-2">
+                <label className="form-check-label" htmlFor={`${fieldId}-${index}`}>
                   {option.label}
                 </label>
               </div>
@@ -192,13 +318,18 @@ const InputField = ({
 
       case 'switch':
         return (
-          <div className="d-flex align-items-center">
-            <InputSwitch
-              {...commonProps}
+          <div className="form-check form-switch">
+            <input
+              className={`form-check-input ${error ? 'is-invalid' : ''}`}
+              type="checkbox"
+              id={fieldId}
               checked={!!value}
+              onChange={handleChange}
+              onBlur={handleBlur}
+              disabled={disabled}
             />
             {label && (
-              <label htmlFor={fieldId} className="ms-2">
+              <label className="form-check-label" htmlFor={fieldId}>
                 {label}
               </label>
             )}
@@ -207,46 +338,114 @@ const InputField = ({
 
       case 'file':
         return (
-          <FileUpload
-            {...commonProps}
-            mode="basic"
-            auto
-            chooseLabel="Choisir un fichier"
-          />
+          <div>
+            <input
+              {...commonProps}
+              type="file"
+              ref={fileInputRef}
+              onChange={handleChange}
+              onBlur={handleBlur}
+            />
+          </div>
         );
 
       case 'chips':
-        return <Chips {...commonProps} separator="," />;
+        return (
+          <div className={`form-control ${error ? 'is-invalid' : ''}`} style={{ height: 'auto', minHeight: '38px' }}>
+            <div className="d-flex flex-wrap gap-1 align-items-center">
+              {selectedChips.map((chip, index) => (
+                <span key={index} className="badge bg-primary d-flex align-items-center">
+                  {chip}
+                  <button
+                    type="button"
+                    className="btn-close btn-close-white ms-1"
+                    style={{ fontSize: '0.6rem' }}
+                    onClick={() => removeChip(index)}
+                  ></button>
+                </span>
+              ))}
+              <input
+                type="text"
+                className="border-0 outline-0 flex-grow-1"
+                style={{ minWidth: '100px', outline: 'none' }}
+                value={currentChip}
+                onChange={(e) => setCurrentChip(e.target.value)}
+                onKeyDown={handleChipKeyDown}
+                onBlur={handleBlur}
+                placeholder={selectedChips.length === 0 ? placeholder : ''}
+                disabled={disabled}
+              />
+            </div>
+          </div>
+        );
 
       case 'color':
-        return <ColorPicker {...commonProps} format="hex" />;
+        return (
+          <input
+            {...commonProps}
+            type="color"
+            value={value || '#000000'}
+            onChange={handleChange}
+            onBlur={handleBlur}
+          />
+        );
 
       case 'rating':
-        return <Rating {...commonProps} stars={5} cancel />;
-
-      case 'slider':
         return (
-          <div>
-            <Slider {...commonProps} />
-            <div className="mt-2">
-              <small className="text-muted">Valeur: {value || 0}</small>
-            </div>
+          <div className="d-flex gap-1">
+            {[1, 2, 3, 4, 5].map((star) => (
+              <button
+                key={star}
+                type="button"
+                className={`btn btn-sm ${star <= (value || 0) ? 'text-warning' : 'text-muted'}`}
+                onClick={() => onChange(name, star)}
+                disabled={disabled}
+              >
+                <i className="bi bi-star-fill"></i>
+              </button>
+            ))}
+            <span className="ms-2 text-muted small">({value || 0}/5)</span>
           </div>
         );
 
       case 'autocomplete':
         return (
-          <AutoComplete
-            {...commonProps}
-            suggestions={options}
-            completeMethod={() => {}}
-            field="label"
-            dropdown
-          />
+          <div className="position-relative">
+            <input
+              {...commonProps}
+              type="text"
+              value={value || ''}
+              onChange={handleAutocomplete}
+              onBlur={handleBlur}
+              onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
+            />
+            {showSuggestions && suggestions.length > 0 && (
+              <div className="dropdown-menu show position-absolute w-100" style={{ zIndex: 1000 }}>
+                {suggestions.map((suggestion, index) => (
+                  <button
+                    key={index}
+                    type="button"
+                    className="dropdown-item"
+                    onClick={() => selectSuggestion(suggestion)}
+                  >
+                    {suggestion.label}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         );
 
       default:
-        return <InputText {...commonProps} />;
+        return (
+          <input
+            {...commonProps}
+            type="text"
+            value={value || ''}
+            onChange={handleChange}
+            onBlur={handleBlur}
+          />
+        );
     }
   };
 
@@ -266,19 +465,19 @@ const InputField = ({
         {children ? children : renderInput()}
       </div>
 
-      {/* Messages */}
-      <div className="mt-1" style={{ minHeight: '1.25rem' }}>
+      {/* Messages d'erreur et d'aide */}
+      <div className="mt-1">
         {error && (
-          <small className="text-danger d-flex align-items-center">
-            <i className="pi pi-exclamation-circle me-1"></i>
+          <div className="invalid-feedback d-block">
+            <i className="bi bi-exclamation-circle me-1"></i>
             {error}
-          </small>
+          </div>
         )}
         {!error && helperText && (
-          <small className="text-muted d-flex align-items-center">
-            <i className="pi pi-info-circle me-1"></i>
+          <div className="form-text">
+            <i className="bi bi-info-circle me-1"></i>
             {helperText}
-          </small>
+          </div>
         )}
       </div>
     </div>

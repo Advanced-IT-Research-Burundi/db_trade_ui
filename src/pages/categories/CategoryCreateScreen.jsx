@@ -1,10 +1,8 @@
 import React from 'react';
-import { Card } from 'primereact/card';
-import { Button } from 'primereact/button';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from '../../hooks/useForm';
 import FormField from '../../components/input/FormField';
-import  ApiService from '../../services/api.js';
+import ApiService from '../../services/api.js';
 import { Toast } from 'primereact/toast';
 
 const CategoryCreateScreen = () => {
@@ -28,7 +26,7 @@ const CategoryCreateScreen = () => {
   };
 
   const handleSubmit = async (values) => {
-    const response = await ApiService.post('/api/categories',values);
+    const response = await ApiService.post('/api/categories', values);
 
     if (response.success) {
       // Afficher un toast de succès
@@ -65,77 +63,86 @@ const CategoryCreateScreen = () => {
     onSubmit: handleSubmit
   });
 
-  const cardHeader = (
-    <div className="d-flex justify-content-between align-items-center">
-      <h4 className="m-0">
-        <i className="pi pi-plus me-2"></i>
-        Nouvelle catégorie
-      </h4>
-      <Button
-        icon="pi pi-arrow-left"
-        className="p-button-text p-button-secondary"
-        tooltip="Retour à la liste"
-        onClick={() => navigate('/categories')}
-      />
-    </div>
-  );
-
   return (
     <div className="container-fluid py-4">
       <Toast ref={toast} />
       
       <div className="row justify-content-center">
         <div className="col-12 col-md-8 col-lg-6">
-          <Card header={cardHeader}>
-            <form onSubmit={form.handleSubmit}>
-              <div className="row">
-                <div className="col-12">
-                  <FormField
-                    name="name"
-                    form={form}
-                    type="text"
-                    label="Nom de la catégorie"
-                    placeholder="Saisissez le nom de la catégorie"
-                    icon="pi pi-tag"
-                    required
-                    helperText="Le nom doit contenir entre 3 et 255 caractères"
-                  />
-                </div>
-
-                <div className="col-12">
-                  <FormField
-                    name="description"
-                    form={form}
-                    type="textarea"
-                    label="Description"
-                    placeholder="Saisissez une description (optionnel)"
-                    icon="pi pi-align-left"
-                    helperText="Description optionnelle (maximum 1000 caractères)"
-                    rows={4}
-                  />
-                </div>
-              </div>
-
-              <div className="d-flex justify-content-end gap-2 mt-4">
-                <Button
+          {/* Card avec Bootstrap */}
+          <div className="card shadow-sm">
+            {/* Header de la card */}
+            <div className="card-header bg-white border-bottom">
+              <div className="d-flex justify-content-between align-items-center">
+                <h4 className="m-0 text-primary">
+                  <i className="pi pi-plus me-2"></i>
+                  Nouvelle catégorie
+                </h4>
+                <button
                   type="button"
-                  label="Annuler"
-                  icon="pi pi-times"
-                  className="p-button-secondary"
+                  className="btn btn-outline-secondary btn-sm"
+                  title="Retour à la liste"
                   onClick={() => navigate('/categories')}
-                  disabled={form.submitting}
-                />
-                <Button
-                  type="submit"
-                  label={form.submitting ? 'Création...' : 'Créer'}
-                  icon={form.submitting ? 'pi pi-spin pi-spinner' : 'pi pi-check'}
-                  className="p-button-success"
-                  disabled={!form.canSubmit}
-                  loading={form.submitting}
-                />
+                >
+                  <i className="pi pi-arrow-left"></i>
+                </button>
               </div>
-            </form>
-          </Card>
+            </div>
+
+            {/* Body de la card */}
+            <div className="card-body">
+              <form onSubmit={form.handleSubmit}>
+                <div className="row">
+                  <div className="col-12">
+                    <FormField
+                      name="name"
+                      form={form}
+                      type="text"
+                      label="Nom de la catégorie"
+                      placeholder="Saisissez le nom de la catégorie"
+                      icon="pi pi-tag"
+                      required
+                      helperText="Le nom doit contenir entre 3 et 255 caractères"
+                    />
+                  </div>
+
+                  <div className="col-12">
+                    <FormField
+                      name="description"
+                      form={form}
+                      type="textarea"
+                      label="Description"
+                      placeholder="Saisissez une description (optionnel)"
+                      icon="pi pi-align-left"
+                      helperText="Description optionnelle (maximum 1000 caractères)"
+                      rows={4}
+                    />
+                  </div>
+                </div>
+
+                {/* Boutons d'action */}
+                <div className="d-flex justify-content-end gap-2 mt-4">
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    onClick={() => navigate('/categories')}
+                    disabled={form.submitting}
+                  >
+                    <i className="pi pi-times me-2"></i>
+                    Annuler
+                  </button>
+                  <button
+                    type="submit"
+                    className="btn btn-success"
+                    disabled={!form.canSubmit}
+                  >
+                    <i className={`${form.submitting ? 'pi pi-spin pi-spinner' : 'pi pi-check'} me-2`}></i>
+                    {form.submitting ? 'Création...' : 'Créer'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
         </div>
       </div>
     </div>

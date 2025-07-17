@@ -28,7 +28,12 @@ import SupplierEditScreen from '../pages/suppliers/SupplierEditScreen.jsx';
 import SuppliersShowScreen from '../pages/suppliers/SuppliersShowScreen.jsx';
 //purchases
 import PurchasesScreen from '../pages/purchases/PurchasesScreen';
+//users
 import UsersScreen from '../pages/users/UsersScreen';
+import UsersCreateScreen from '../pages/users/UsersCreateScreen.jsx';
+import UsersEditScreen from '../pages/users/UsersEditScreen.jsx';
+import UsersShowScreen from '../pages/users/UsersShowScreen.jsx';
+//vehicles
 import VehiclesScreen from '../pages/vehicules/VehiclesScreen.jsx';
 import CashRegistersScreen from '../pages/cashregister/CashRegistersScreen';
 import TransactionsScreen from '../pages/transactions/TransactionsScreen';
@@ -85,7 +90,12 @@ const protectedRoutes = [
   { path: '/suppliers/:id', component: SuppliersShowScreen },
   //purchases
   { path: '/purchases', component: PurchasesScreen },
+  //users
   { path: '/users', component: UsersScreen },
+  { path: '/users/create', component: UsersCreateScreen },
+  { path: '/users/:id/edit', component: UsersEditScreen },
+  { path: '/users/:id', component: UsersShowScreen },
+  //vehicules
   { path: '/vehicles', component: VehiclesScreen },
   { path: '/cash-registers', component: CashRegistersScreen },
   { path: '/transactions', component: TransactionsScreen },

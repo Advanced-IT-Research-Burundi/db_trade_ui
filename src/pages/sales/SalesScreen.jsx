@@ -1,13 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Toast } from 'primereact/toast';
 import ApiService from '../../services/api.js';
+import StatCard from '../../components/shimmer/StatCard.jsx';
 
 const SalesScreen = () => {
   const [sales, setSales] = useState([]);
   const [stats, setStats] = useState({});
   const [loading, setLoading] = useState(false);
-  const [selectedSales, setSelectedSales] = useState([]);
-  const [selectAll, setSelectAll] = useState(false);
+  const [statsLoading, setStatsLoading] = useState(false);
   const [filters, setFilters] = useState({
     search: '',
     date_from: '',
@@ -17,66 +17,59 @@ const SalesScreen = () => {
   const [pagination, setPagination] = useState({
     current_page: 1,
     last_page: 1,
-    per_page: 20,
     total: 0,
     from: 0,
     to: 0
   });
   const [deleteModal, setDeleteModal] = useState({ show: false, saleId: null });
-  
   const toast = useRef(null);
 
   useEffect(() => {
     loadSales();
+    loadStats();
   }, []);
 
   const loadSales = async (page = 1) => {
     try {
       setLoading(true);
-      const params = new URLSearchParams({
-        page: page.toString(),
-        ...filters
-      });
-
-      const response = await ApiService.get(`/api/sales?${params}`);
+      const params = { page, ...filters };
+      const response = await ApiService.get('/api/sales', params);
       
       if (response.success) {
         setSales(response.data.sales.data || []);
-        setStats(response.data.stats || {});
         setPagination({
           current_page: response.data.sales.current_page,
           last_page: response.data.sales.last_page,
-          per_page: response.data.sales.per_page,
           total: response.data.sales.total,
           from: response.data.sales.from,
           to: response.data.sales.to
         });
       } else {
-        toast.current.show({
-          severity: 'error',
-          summary: 'Erreur',
-          detail: response.message || 'Erreur lors du chargement',
-          life: 3000
-        });
+        showToast('error', response.message || 'Erreur lors du chargement');
       }
     } catch (error) {
-      console.log('Erreur de connexion: ' + error.message);
-      toast.current.show({
-        severity: 'error',
-        summary: 'Erreur de connexion',
-        detail: error.message,
-        life: 3000
-      });
+      showToast('error', error.message);
     } finally {
       setLoading(false);
     }
   };
 
+  const loadStats = async () => {
+    try {
+      setStatsLoading(true);
+      const response = await ApiService.get('/api/sales');
+      if (response.success) {
+        setStats(response.data.stats || {});
+      }
+    } catch (error) {
+      console.error('Erreur stats:', error);
+    } finally {
+      setStatsLoading(false);
+    }
+  };
+
   const handleFilterChange = (name, value) => {
-    setFilters(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    setFilters(prev => ({ ...prev, [name]: value }));
   };
 
   const handleSearch = (e) => {
@@ -85,87 +78,102 @@ const SalesScreen = () => {
   };
 
   const handleReset = () => {
-    setFilters({
-      search: '',
-      date_from: '',
-      date_to: '',
-      status: ''
-    });
+    setFilters({ search: '', date_from: '', date_to: '', status: '' });
     setTimeout(() => loadSales(1), 0);
-  };
-
-  const handleSelectAll = (checked) => {
-    setSelectAll(checked);
-    if (checked) {
-      setSelectedSales(sales.map(sale => sale.id));
-    } else {
-      setSelectedSales([]);
-    }
-  };
-
-  const handleSelectSale = (saleId, checked) => {
-    if (checked) {
-      setSelectedSales(prev => [...prev, saleId]);
-    } else {
-      setSelectedSales(prev => prev.filter(id => id !== saleId));
-      setSelectAll(false);
-    }
   };
 
   const handleDeleteSale = async (saleId) => {
     try {
       const response = await ApiService.delete(`/api/sales/${saleId}`);
-      
       if (response.success) {
-        toast.current.show({
-          severity: 'success',
-          summary: 'Succès',
-          detail: 'Vente supprimée avec succès',
-          life: 3000
-        });
+        showToast('success', 'Vente supprimée avec succès');
         loadSales(pagination.current_page);
+        loadStats();
       } else {
-        toast.current.show({
-          severity: 'error',
-          summary: 'Erreur',
-          detail: response.message || 'Erreur lors de la suppression',
-          life: 3000
-        });
+        showToast('error', response.message || 'Erreur lors de la suppression');
       }
     } catch (error) {
-      toast.current.show({
-        severity: 'error',
-        summary: 'Erreur',
-        detail: error.message,
-        life: 3000
-      });
+      showToast('error', error.message);
     }
     setDeleteModal({ show: false, saleId: null });
   };
 
-  const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('fr-FR').format(amount) + ' F';
+  const showToast = (severity, detail) => {
+    toast.current?.show({ severity, summary: severity === 'error' ? 'Erreur' : 'Succès', detail, life: 3000 });
   };
 
-  const formatDate = (date) => {
-    return new Date(date).toLocaleDateString('fr-FR');
-  };
+  const formatCurrency = (amount) => new Intl.NumberFormat('fr-FR').format(amount) + ' F';
+  const formatDate = (date) => new Date(date).toLocaleDateString('fr-FR');
 
   const getStatusBadge = (sale) => {
-    if (sale.due_amount == 0) {
-      return <span className="badge bg-success"><i className="pi pi-check-circle me-1"></i>Payé</span>;
-    } else if (sale.paid_amount > 0) {
-      return <span className="badge bg-warning"><i className="pi pi-clock me-1"></i>Partiel</span>;
-    } else {
-      return <span className="badge bg-danger"><i className="pi pi-x-circle me-1"></i>Impayé</span>;
-    }
+    if (sale.due_amount == 0) return <span className="badge bg-success"><i className="pi pi-check-circle me-1"></i>Payé</span>;
+    if (sale.paid_amount > 0) return <span className="badge bg-warning"><i className="pi pi-clock me-1"></i>Partiel</span>;
+    return <span className="badge bg-danger"><i className="pi pi-x-circle me-1"></i>Impayé</span>;
+  };
+
+
+  const Pagination = () => {
+    if (pagination.last_page <= 1) return null;
+
+    const getVisiblePages = () => {
+      const current = pagination.current_page;
+      const last = pagination.last_page;
+      const pages = [];
+
+      if (last <= 7) {
+        return Array.from({ length: last }, (_, i) => i + 1);
+      }
+
+      pages.push(1);
+      if (current > 4) pages.push('...');
+      
+      const start = Math.max(2, current - 1);
+      const end = Math.min(last - 1, current + 1);
+      
+      for (let i = start; i <= end; i++) {
+        pages.push(i);
+      }
+      
+      if (current < last - 3) pages.push('...');
+      pages.push(last);
+      
+      return pages;
+    };
+
+    return (
+      <nav>
+        <ul className="pagination pagination-sm mb-0">
+          <li className={`page-item ${pagination.current_page === 1 ? 'disabled' : ''}`}>
+            <button className="page-link" onClick={() => loadSales(pagination.current_page - 1)} disabled={pagination.current_page === 1}>
+              <i className="pi pi-chevron-left"></i>
+            </button>
+          </li>
+          
+          {getVisiblePages().map((page, index) => (
+            <li key={index} className={`page-item ${page === pagination.current_page ? 'active' : ''} ${page === '...' ? 'disabled' : ''}`}>
+              {page === '...' ? (
+                <span className="page-link">...</span>
+              ) : (
+                <button className="page-link" onClick={() => loadSales(page)}>{page}</button>
+              )}
+            </li>
+          ))}
+          
+          <li className={`page-item ${pagination.current_page === pagination.last_page ? 'disabled' : ''}`}>
+            <button className="page-link" onClick={() => loadSales(pagination.current_page + 1)} disabled={pagination.current_page === pagination.last_page}>
+              <i className="pi pi-chevron-right"></i>
+            </button>
+          </li>
+        </ul>
+      </nav>
+    );
   };
 
   return (
     <div className="container-fluid">
       <Toast ref={toast} />
       
-      {/* Header Section */}
+      {/* Header */}
       <div className="row mb-4">
         <div className="col-12">
           <div className="d-flex justify-content-between align-items-center">
@@ -176,11 +184,7 @@ const SalesScreen = () => {
               <p className="text-muted mb-0">{pagination.total} vente(s) au total</p>
             </div>
             <div className="d-flex gap-2">
-              <button 
-                className="btn btn-outline-primary" 
-                onClick={() => loadSales(pagination.current_page)}
-                disabled={loading}
-              >
+              <button className="btn btn-outline-primary" onClick={() => { loadSales(pagination.current_page); loadStats(); }} disabled={loading}>
                 <i className="pi pi-arrow-clockwise me-1"></i>
                 {loading ? 'Actualisation...' : 'Actualiser'}
               </button>
@@ -194,80 +198,13 @@ const SalesScreen = () => {
 
       {/* Stats Cards */}
       <div className="row mb-4">
-        <div className="col-xl-3 col-md-6 mb-3">
-          <div className="card h-100 shadow-sm border-0">
-            <div className="card-body">
-              <div className="d-flex align-items-center">
-                <div className="flex-shrink-0">
-                  <div className="bg-primary bg-opacity-10 p-3 rounded-circle">
-                    <i className="pi pi-currency-dollar text-primary fs-4"></i>
-                  </div>
-                </div>
-                <div className="flex-grow-1 ms-3">
-                  <h6 className="text-muted mb-1">Total</h6>
-                  <h4 className="mb-0">{formatCurrency(stats.totalRevenue || 0)}</h4>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        
-        <div className="col-xl-3 col-md-6 mb-3">
-          <div className="card h-100 shadow-sm border-0">
-            <div className="card-body">
-              <div className="d-flex align-items-center">
-                <div className="flex-shrink-0">
-                  <div className="bg-success bg-opacity-10 p-3 rounded-circle">
-                    <i className="pi pi-check-circle text-success fs-4"></i>
-                  </div>
-                </div>
-                <div className="flex-grow-1 ms-3">
-                  <h6 className="text-muted mb-1">Ventes Payées</h6>
-                  <h5 className="mb-0">{stats.paidSales || 0}</h5>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        
-        <div className="col-xl-3 col-md-6 mb-3">
-          <div className="card h-100 shadow-sm border-0">
-            <div className="card-body">
-              <div className="d-flex align-items-center">
-                <div className="flex-shrink-0">
-                  <div className="bg-warning bg-opacity-10 p-3 rounded-circle">
-                    <i className="pi pi-clock text-warning fs-4"></i>
-                  </div>
-                </div>
-                <div className="flex-grow-1 ms-3">
-                  <h6 className="text-muted mb-1">Créances</h6>
-                  <h4 className="mb-0">{formatCurrency(stats.totalDue || 0)}</h4>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        
-        <div className="col-xl-3 col-md-6 mb-3">
-          <div className="card h-100 shadow-sm border-0">
-            <div className="card-body">
-              <div className="d-flex align-items-center">
-                <div className="flex-shrink-0">
-                  <div className="bg-info bg-opacity-10 p-3 rounded-circle">
-                    <i className="pi pi-calendar-day text-info fs-4"></i>
-                  </div>
-                </div>
-                <div className="flex-grow-1 ms-3">
-                  <h6 className="text-muted mb-1">Aujourd'hui</h6>
-                  <h6 className="mb-0">{stats.todaySales || 0}</h6>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+        <StatCard icon="money-bill" title="Total" value={formatCurrency(stats.totalRevenue || 0)} color="primary" loading={statsLoading} />
+        <StatCard icon="check-circle" title="Ventes Payées" value={stats.paidSales || 0} color="success" loading={statsLoading} />
+        <StatCard icon="clock" title="Créances" value={formatCurrency(stats.totalDue || 0)} color="warning" loading={statsLoading} />
+        <StatCard icon="calendar" title="Aujourd'hui" value={stats.todaySales || 0} color="info" loading={statsLoading} />
       </div>
 
-      {/* Filters Section */}
+      {/* Filters */}
       <div className="card shadow-sm border-0 mb-4">
         <div className="card-body">
           <form onSubmit={handleSearch} className="row g-3">
@@ -275,50 +212,29 @@ const SalesScreen = () => {
               <label className="form-label">Rechercher</label>
               <div className="input-group">
                 <span className="input-group-text"><i className="pi pi-search"></i></span>
-                <input 
-                  type="text" 
-                  className="form-control" 
-                  placeholder="Rechercher une vente..."
-                  value={filters.search}
-                  onChange={(e) => handleFilterChange('search', e.target.value)}
-                />
+                <input type="text" className="form-control" placeholder="Rechercher une vente..." 
+                       value={filters.search} onChange={(e) => handleFilterChange('search', e.target.value)} />
               </div>
             </div>
-            
             <div className="col-md-2">
               <label className="form-label">Date début</label>
-              <input 
-                type="date" 
-                className="form-control"
-                value={filters.date_from}
-                onChange={(e) => handleFilterChange('date_from', e.target.value)}
-              />
+              <input type="date" className="form-control" value={filters.date_from} 
+                     onChange={(e) => handleFilterChange('date_from', e.target.value)} />
             </div>
-            
             <div className="col-md-2">
               <label className="form-label">Date fin</label>
-              <input 
-                type="date" 
-                className="form-control"
-                value={filters.date_to}
-                onChange={(e) => handleFilterChange('date_to', e.target.value)}
-              />
+              <input type="date" className="form-control" value={filters.date_to} 
+                     onChange={(e) => handleFilterChange('date_to', e.target.value)} />
             </div>
-            
             <div className="col-md-2">
               <label className="form-label">Statut</label>
-              <select 
-                className="form-select"
-                value={filters.status}
-                onChange={(e) => handleFilterChange('status', e.target.value)}
-              >
+              <select className="form-select" value={filters.status} onChange={(e) => handleFilterChange('status', e.target.value)}>
                 <option value="">Tous</option>
                 <option value="paid">Payé</option>
                 <option value="partial">Partiel</option>
                 <option value="unpaid">Impayé</option>
               </select>
             </div>
-            
             <div className="col-md-3 d-flex align-items-end gap-2">
               <a href="/proformas" className="btn btn-outline-primary">
                 <i className="pi pi-file-earmark-text me-1"></i>Proforma
@@ -341,14 +257,6 @@ const SalesScreen = () => {
             <table className="table table-hover align-middle mb-0">
               <thead className="bg-light">
                 <tr>
-                  <th className="border-0 px-4 py-3">
-                    <input 
-                      type="checkbox" 
-                      className="form-check-input"
-                      checked={selectAll}
-                      onChange={(e) => handleSelectAll(e.target.checked)}
-                    />
-                  </th>
                   <th className="border-0 px-4 py-3">Vente #</th>
                   <th className="border-0 px-4 py-3">Client</th>
                   <th className="border-0 px-4 py-3">Date</th>
@@ -369,9 +277,10 @@ const SalesScreen = () => {
                       </div>
                     </td>
                   </tr>
+                 
                 ) : sales.length === 0 ? (
                   <tr>
-                    <td colSpan="10" className="text-center py-5">
+                    <td colSpan="9" className="text-center py-5">
                       <div className="text-muted">
                         <i className="pi pi-inbox display-4 d-block mb-3"></i>
                         <h5>Aucune vente trouvée</h5>
@@ -381,28 +290,17 @@ const SalesScreen = () => {
                   </tr>
                 ) : (
                   sales.map((sale) => (
-                    <tr key={sale.id} className="sale-row">
-                      <td className="px-4">
-                        <input 
-                          type="checkbox" 
-                          className="form-check-input"
-                          checked={selectedSales.includes(sale.id)}
-                          onChange={(e) => handleSelectSale(sale.id, e.target.checked)}
-                        />
-                      </td>
+                    <tr key={sale.id}>
                       <td className="px-4">
                         <div className="d-flex align-items-center">
                           <div className="bg-primary bg-opacity-10 p-2 rounded me-2">
-                            <i className="pi pi-receipt text-primary"></i>
+                            <i className="pi pi-tag text-primary"></i>
                           </div>
                           <div>
                             <strong className="text-primary">#{sale.id.toString().padStart(6, '0')}</strong>
                             <br />
                             <small className="text-muted">
-                              {new Date(sale.created_at).toLocaleTimeString('fr-FR', { 
-                                hour: '2-digit', 
-                                minute: '2-digit' 
-                              })}
+                              {new Date(sale.created_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
                             </small>
                           </div>
                         </div>
@@ -418,19 +316,11 @@ const SalesScreen = () => {
                         <div>
                           <strong>{formatDate(sale.sale_date)}</strong>
                           <br />
-                          <small className="text-muted">
-                            {new Date(sale.sale_date).toLocaleDateString('fr-FR', { 
-                              weekday: 'short' 
-                            })}
-                          </small>
+                          <small className="text-muted">{new Date(sale.sale_date).toLocaleDateString('fr-FR', { weekday: 'short' })}</small>
                         </div>
                       </td>
-                      <td className="px-4">
-                        <strong className="text-dark">{formatCurrency(sale.total_amount)}</strong>
-                      </td>
-                      <td className="px-4">
-                        <span className="text-success">{formatCurrency(sale.paid_amount)}</span>
-                      </td>
+                      <td className="px-4"><strong className="text-dark">{formatCurrency(sale.total_amount)}</strong></td>
+                      <td className="px-4"><span className="text-success">{formatCurrency(sale.paid_amount)}</span></td>
                       <td className="px-4">
                         {sale.due_amount > 0 ? (
                           <span className="text-warning">{formatCurrency(sale.due_amount)}</span>
@@ -438,34 +328,18 @@ const SalesScreen = () => {
                           <span className="text-success">0 F</span>
                         )}
                       </td>
-                      <td className="px-4">
-                        {getStatusBadge(sale)}
-                      </td>
-                      <td className="px-4">
-                        <strong>{sale.type_facture || 'Standard'}</strong>
-                      </td>
+                      <td className="px-4">{getStatusBadge(sale)}</td>
+                      <td className="px-4"><strong>{sale.type_facture || 'Standard'}</strong></td>
                       <td className="px-4">
                         <div className="btn-group" role="group">
-                          <a 
-                            href={`/sales/${sale.id}`}
-                            className="btn btn-sm btn-outline-primary"
-                            title="Voir"
-                          >
+                          <a href={`/sales/${sale.id}`} className="btn btn-sm btn-outline-primary" title="Voir">
                             <i className="pi pi-eye"></i>
                           </a>
-                          <a 
-                            href={`/sales/${sale.id}/edit`}
-                            className="btn btn-sm btn-outline-warning"
-                            title="Modifier"
-                          >
+                          <a href={`/sales/${sale.id}/edit`} className="btn btn-sm btn-outline-warning" title="Modifier">
                             <i className="pi pi-pencil"></i>
                           </a>
-                          <button 
-                            type="button"
-                            className="btn btn-sm btn-outline-danger"
-                            title="Supprimer"
-                            onClick={() => setDeleteModal({ show: true, saleId: sale.id })}
-                          >
+                          <button type="button" className="btn btn-sm btn-outline-danger" title="Supprimer"
+                                  onClick={() => setDeleteModal({ show: true, saleId: sale.id })}>
                             <i className="pi pi-trash"></i>
                           </button>
                         </div>
@@ -485,106 +359,46 @@ const SalesScreen = () => {
               <div className="text-muted small">
                 Affichage de {pagination.from} à {pagination.to} sur {pagination.total} résultats
               </div>
-              <nav>
-                <ul className="pagination pagination-sm mb-0">
-                  <li className={`page-item ${pagination.current_page === 1 ? 'disabled' : ''}`}>
-                    <button 
-                      className="page-link"
-                      onClick={() => loadSales(pagination.current_page - 1)}
-                      disabled={pagination.current_page === 1}
-                    >
-                      <i className="pi pi-chevron-left"></i>
-                    </button>
-                  </li>
-                  
-                  {Array.from({ length: pagination.last_page }, (_, i) => i + 1)
-                    .filter(page => 
-                      page === 1 || 
-                      page === pagination.last_page || 
-                      Math.abs(page - pagination.current_page) <= 2
-                    )
-                    .map((page, index, array) => (
-                      <React.Fragment key={page}>
-                        {index > 0 && array[index - 1] !== page - 1 && (
-                          <li className="page-item disabled">
-                            <span className="page-link">...</span>
-                          </li>
-                        )}
-                        <li className={`page-item ${pagination.current_page === page ? 'active' : ''}`}>
-                          <button 
-                            className="page-link"
-                            onClick={() => loadSales(page)}
-                          >
-                            {page}
-                          </button>
-                        </li>
-                      </React.Fragment>
-                    ))}
-                  
-                  <li className={`page-item ${pagination.current_page === pagination.last_page ? 'disabled' : ''}`}>
-                    <button 
-                      className="page-link"
-                      onClick={() => loadSales(pagination.current_page + 1)}
-                      disabled={pagination.current_page === pagination.last_page}
-                    >
-                      <i className="pi pi-chevron-right"></i>
-                    </button>
-                  </li>
-                </ul>
-              </nav>
+              <Pagination />
             </div>
           </div>
         )}
       </div>
 
-      {/* Delete Confirmation Modal */}
+      {/* Delete Modal */}
       {deleteModal.show && (
-        <div className="modal show d-block" tabIndex="-1">
-          <div className="modal-dialog">
-            <div className="modal-content">
-              <div className="modal-header bg-danger text-white">
-                <h5 className="modal-title">
-                  <i className="pi pi-exclamation-triangle me-2"></i>Confirmer la suppression
-                </h5>
-                <button 
-                  type="button" 
-                  className="btn-close btn-close-white"
-                  onClick={() => setDeleteModal({ show: false, saleId: null })}
-                ></button>
-              </div>
-              <div className="modal-body">
-                <p>Êtes-vous sûr de vouloir supprimer cette vente ? Cette action est irréversible.</p>
-              </div>
-              <div className="modal-footer">
-                <button 
-                  type="button" 
-                  className="btn btn-secondary"
-                  onClick={() => setDeleteModal({ show: false, saleId: null })}
-                >
-                  Annuler
-                </button>
-                <button 
-                  type="button" 
-                  className="btn btn-danger"
-                  onClick={() => handleDeleteSale(deleteModal.saleId)}
-                >
-                  <i className="pi pi-trash me-1"></i>Supprimer
-                </button>
+        <>
+          <div className="modal show d-block" tabIndex="-1">
+            <div className="modal-dialog">
+              <div className="modal-content">
+                <div className="modal-header bg-danger text-white">
+                  <h5 className="modal-title">
+                    <i className="pi pi-exclamation-triangle me-2"></i>Confirmer la suppression
+                  </h5>
+                  <button type="button" className="btn-close btn-close-white"
+                          onClick={() => setDeleteModal({ show: false, saleId: null })}></button>
+                </div>
+                <div className="modal-body">
+                  <p>Êtes-vous sûr de vouloir supprimer cette vente ? Cette action est irréversible.</p>
+                </div>
+                <div className="modal-footer">
+                  <button type="button" className="btn btn-secondary"
+                          onClick={() => setDeleteModal({ show: false, saleId: null })}>
+                    Annuler
+                  </button>
+                  <button type="button" className="btn btn-danger"
+                          onClick={() => handleDeleteSale(deleteModal.saleId)}>
+                    <i className="pi pi-trash me-1"></i>Supprimer
+                  </button>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      )}
-      
-      {/* Modal backdrop */}
-      {deleteModal.show && (
-        <div 
-          className="modal-backdrop show"
-          onClick={() => setDeleteModal({ show: false, saleId: null })}
-        ></div>
+          <div className="modal-backdrop show" onClick={() => setDeleteModal({ show: false, saleId: null })}></div>
+        </>
       )}
     </div>
   );
-}
+};
 
 export default SalesScreen;

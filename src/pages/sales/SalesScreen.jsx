@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Toast } from 'primereact/toast';
 import ApiService from '../../services/api.js';
-import StatCard from '../../components/shimmer/StatCard.jsx';
+import StatCard from '../../components/Card/StatCard.jsx';
 
 const SalesScreen = () => {
   const [sales, setSales] = useState([]);

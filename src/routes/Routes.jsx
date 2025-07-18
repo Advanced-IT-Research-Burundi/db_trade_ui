@@ -4,7 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import MainLayout from '../layouts/MainLayout';
 
 // Import des pages
-import LoginScreen from '../pages/LoginScreen';
+import LoginScreen from '../pages/Auth/LoginScreen';
 import DashboardScreen from '../pages/DashboardScreen';
 //sales
 import SalesScreen from '../pages/sales/SalesScreen';
@@ -40,6 +40,9 @@ import TransactionsScreen from '../pages/transactions/TransactionsScreen';
 import ExpensesScreen from '../pages/expenses/ExpensesScreen';
 import ExpenseTypesScreen from '../pages/expensetypes/ExpenseTypesScreen';
 import ReportsScreen from '../pages/reports/ReportsScreen.jsx';
+
+//Profil
+import ProfileScreen from '../pages/Auth/ProfileScreen.jsx';
 
 
 import NotFound from '../components/NotFound';
@@ -102,6 +105,9 @@ const protectedRoutes = [
   { path: '/expenses', component: ExpensesScreen },
   { path: '/expense-types', component: ExpenseTypesScreen },
   { path: '/reports', component: ReportsScreen },
+  { path: '/profile', component: ProfileScreen},
+
+  // Errors
   { path: '/404', component: NotFound },
 ];
 

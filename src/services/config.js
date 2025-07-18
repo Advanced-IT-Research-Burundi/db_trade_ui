@@ -13,7 +13,7 @@ export const API_CONFIG = {
     FORGOT_PASSWORD: '/api/forgot-password',
     RESET_PASSWORD: '/api/reset-password',
     REFRESH_TOKEN: '/api/refresh-token',
-    USER: '/api/user',
+    USER: '/api/profil',
     USER_PROFILE: '/api/user/profile',
     USER_AVATAR: '/api/user/avatar',
     CHANGE_PASSWORD: '/api/user/change-password',

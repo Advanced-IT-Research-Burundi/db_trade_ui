@@ -1,479 +1,519 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Toast } from 'primereact/toast';
-import { ConfirmDialog } from 'primereact/confirmdialog';
-import { Button } from 'primereact/button';
-import { InputText } from 'primereact/inputtext';
-import { Dropdown } from 'primereact/dropdown';
-import { useNavigate } from 'react-router-dom';
-
 import ApiService from '../../services/api.js';
-import { formatCurrency } from '../../utils/helpers.js';
 
 const ProductScreen = () => {
   const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [pagination, setPagination] = useState({
-    current_page: 1,
-    per_page: 10,
-    total: 0,
-    last_page: 1
-  });
+  const [loading, setLoading] = useState(false);
+  const [categories, setCategories] = useState([]);
+  const [agencies, setAgencies] = useState([]);
   const [filters, setFilters] = useState({
     search: '',
     category_id: '',
-    sort: 'name',
-    order: 'asc'
+    agency_id: ''
   });
-  const [categories, setCategories] = useState([]);
-  const [selectedProduct, setSelectedProduct] = useState(null);
-  const [deleteDialog, setDeleteDialog] = useState(false);
-  const navigate = useNavigate();
+  const [pagination, setPagination] = useState({
+    current_page: 1,
+    last_page: 1,
+    total: 0,
+    from: 0,
+    to: 0
+  });
+  const [deleteModal, setDeleteModal] = useState({ show: false, productId: null });
   const toast = useRef(null);
-  const searchTimeout = useRef(null);
 
   useEffect(() => {
-    loadCategories();
     loadProducts();
   }, []);
 
-  useEffect(() => {
-    loadProducts();
-  }, [pagination.current_page, pagination.per_page, filters]);
-
-  const loadProducts = async () => {
+  const loadProducts = async (page = 1) => {
     try {
       setLoading(true);
-      const params = new URLSearchParams({
-        page: pagination.current_page,
-        per_page: pagination.per_page,
-        ...filters
-      });
-
-      const response = await ApiService.get(`/api/products?${params}`);
+      const params = { page, ...filters };
+      const response = await ApiService.get('/api/products', params);
       
       if (response.success) {
-        const data = response.data;
-        setProducts(data.data || []);
+        setProducts(response.data.products.data || []);
+
+        setCategories(response.data.categories || []);
+        setAgencies(response.data.agencies || []);
         setPagination({
-          current_page: data.current_page,
-          per_page: data.per_page,
-          total: data.total,
-          last_page: data.last_page
+          current_page: response.data.products.current_page,
+          last_page: response.data.products.last_page,
+          total: response.data.products.total,
+          from: response.data.products.from,
+          to: response.data.products.to
         });
       } else {
-        toast.current.show({
-          severity: 'error',
-          summary: 'Erreur',
-          detail: response.message || 'Erreur lors du chargement',
-          life: 3000
-        });
+        showToast('error', response.message || 'Erreur lors du chargement');
       }
     } catch (error) {
-      toast.current.show({
-        severity: 'error',
-        summary: 'Erreur de connexion',
-        detail: error.message,
-        life: 3000
-      });
+      showToast('error', error.message);
     } finally {
       setLoading(false);
     }
   };
 
-  const loadCategories = async () => {
+
+  const handleFilterChange = (name, value) => {
+    setFilters(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleSearch = (e) => {
+    e.preventDefault();
+    loadProducts(1);
+  };
+
+  const handleReset = () => {
+    setFilters({ search: '', category_id: '', agency_id: '' });
+    setTimeout(() => loadProducts(1), 0);
+  };
+
+  const handleDeleteProduct = async (productId) => {
     try {
-      const response = await ApiService.get('/api/categories');
+      const response = await ApiService.delete(`/api/products/${productId}`);
       if (response.success) {
-        setCategories(response.data.data || []);
-      }
-    } catch (error) {
-      console.log('Erreur lors du chargement des catégories');
-    }
-  };
-
-  const handleSearch = (value) => {
-    if (searchTimeout.current) {
-      clearTimeout(searchTimeout.current);
-    }
-    
-    searchTimeout.current = setTimeout(() => {
-      setFilters(prev => ({ ...prev, search: value }));
-      setPagination(prev => ({ ...prev, current_page: 1 }));
-    }, 500);
-  };
-
-  const handleSort = (field) => {
-    setFilters(prev => ({
-      ...prev,
-      sort: field,
-      order: prev.sort === field && prev.order === 'asc' ? 'desc' : 'asc'
-    }));
-    setPagination(prev => ({ ...prev, current_page: 1 }));
-  };
-
-  const handlePageChange = (page) => {
-    setPagination(prev => ({ ...prev, current_page: page }));
-  };
-
-  const handlePerPageChange = (perPage) => {
-    setPagination(prev => ({ ...prev, per_page: perPage, current_page: 1 }));
-  };
-
-  const confirmDeleteProduct = (product) => {
-    setSelectedProduct(product);
-    setDeleteDialog(true);
-  };
-
-  const deleteProduct = async () => {
-    try {
-      const response = await ApiService.delete(`/api/products/${selectedProduct.id}`);
-      
-      if (response.success) {
-        loadProducts();
-        toast.current.show({
-          severity: 'success',
-          summary: 'Succès',
-          detail: 'Produit supprimé avec succès',
-          life: 3000
-        });
+        showToast('success', 'Produit supprimé avec succès');
+        loadProducts(pagination.current_page);
       } else {
-        toast.current.show({
-          severity: 'error',
-          summary: 'Erreur',
-          detail: response.message || 'Erreur lors de la suppression',
-          life: 3000
-        });
+        showToast('error', response.message || 'Erreur lors de la suppression');
       }
     } catch (error) {
-      toast.current.show({
-        severity: 'error',
-        summary: 'Erreur de connexion',
-        detail: error.message,
-        life: 3000
-      });
-    } finally {
-      setDeleteDialog(false);
-      setSelectedProduct(null);
+      showToast('error', error.message);
     }
+    setDeleteModal({ show: false, productId: null });
   };
 
-  const getSortIcon = (field) => {
-    if (filters.sort !== field) return 'pi pi-sort';
-    return filters.order === 'asc' ? 'pi pi-sort-up' : 'pi pi-sort-down';
+  const showToast = (severity, detail) => {
+    toast.current?.show({ 
+      severity, 
+      summary: severity === 'error' ? 'Erreur' : 'Succès', 
+      detail, 
+      life: 3000 
+    });
   };
 
-  const renderPagination = () => {
-    const pages = [];
-    const maxVisiblePages = 5;
-    const startPage = Math.max(1, pagination.current_page - Math.floor(maxVisiblePages / 2));
-    const endPage = Math.min(pagination.last_page, startPage + maxVisiblePages - 1);
+  const formatDate = (date) => new Date(date).toLocaleDateString('fr-FR');
 
-    // Bouton précédent
-    pages.push(
-      <li key="prev" className={`page-item ${pagination.current_page === 1 ? 'disabled' : ''}`}>
-        <button 
-          className="page-link" 
-          onClick={() => handlePageChange(pagination.current_page - 1)}
-          disabled={pagination.current_page === 1}
-        >
-          <i className="pi pi-chevron-left"></i>
-        </button>
-      </li>
-    );
+  const formatCurrency = (amount) => {
+    return new Intl.NumberFormat('fr-FR', {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    }).format(amount) + ' FBU';
+  };
 
-    // Pages numérotées
-    for (let i = startPage; i <= endPage; i++) {
-      pages.push(
-        <li key={i} className={`page-item ${i === pagination.current_page ? 'active' : ''}`}>
-          <button 
-            className="page-link" 
-            onClick={() => handlePageChange(i)}
-          >
-            {i}
-          </button>
-        </li>
-      );
-    }
+  const truncateText = (text, maxLength = 30) => {
+    if (!text) return '';
+    return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
+  };
 
-    // Bouton suivant
-    pages.push(
-      <li key="next" className={`page-item ${pagination.current_page === pagination.last_page ? 'disabled' : ''}`}>
-        <button 
-          className="page-link" 
-          onClick={() => handlePageChange(pagination.current_page + 1)}
-          disabled={pagination.current_page === pagination.last_page}
-        >
-          <i className="pi pi-chevron-right"></i>
-        </button>
-      </li>
-    );
+  const getImageUrl = (imagePath) => {
+    if (!imagePath) return null;
+    return imagePath.startsWith('http') ? imagePath : `/storage/${imagePath}`;
+  };
+
+  const Pagination = () => {
+    if (pagination.last_page <= 1) return null;
+
+    const getVisiblePages = () => {
+      const current = pagination.current_page;
+      const last = pagination.last_page;
+      const pages = [];
+
+      if (last <= 7) {
+        return Array.from({ length: last }, (_, i) => i + 1);
+      }
+
+      pages.push(1);
+      if (current > 4) pages.push('...');
+      
+      const start = Math.max(2, current - 1);
+      const end = Math.min(last - 1, current + 1);
+      
+      for (let i = start; i <= end; i++) {
+        pages.push(i);
+      }
+      
+      if (current < last - 3) pages.push('...');
+      pages.push(last);
+      
+      return pages;
+    };
 
     return (
       <nav>
-        <ul className="pagination justify-content-center mb-0">
-          {pages}
+        <ul className="pagination pagination-sm mb-0">
+          <li className={`page-item ${pagination.current_page === 1 ? 'disabled' : ''}`}>
+            <button 
+              className="page-link" 
+              onClick={() => loadProducts(pagination.current_page - 1)} 
+              disabled={pagination.current_page === 1}
+            >
+              <i className="pi pi-chevron-left"></i>
+            </button>
+          </li>
+          
+          {getVisiblePages().map((page, index) => (
+            <li key={index} className={`page-item ${page === pagination.current_page ? 'active' : ''} ${page === '...' ? 'disabled' : ''}`}>
+              {page === '...' ? (
+                <span className="page-link">...</span>
+              ) : (
+                <button className="page-link" onClick={() => loadProducts(page)}>
+                  {page}
+                </button>
+              )}
+            </li>
+          ))}
+          
+          <li className={`page-item ${pagination.current_page === pagination.last_page ? 'disabled' : ''}`}>
+            <button 
+              className="page-link" 
+              onClick={() => loadProducts(pagination.current_page + 1)} 
+              disabled={pagination.current_page === pagination.last_page}
+            >
+              <i className="pi pi-chevron-right"></i>
+            </button>
+          </li>
         </ul>
       </nav>
     );
   };
 
   return (
-    <div className="container-fluid py-4">
+    <div className="container-fluid">
       <Toast ref={toast} />
       
-      <div className="row">
+      {/* Header */}
+      <div className="row mb-4">
         <div className="col-12">
-          <div className="card">
-            <div className="card-header">
-              <div className="d-flex justify-content-between align-items-center">
-                <h4 className="mb-0">
-                  <i className="pi pi-box me-2"></i>
-                  Liste des produits
-                  <span className="badge bg-primary ms-2">{pagination.total}</span>
-                </h4>
-                <div className="d-flex gap-2">
-                  <Button
-                    label="Nouveau"
-                    icon="pi pi-plus"
-                    className="p-button-success p-button-sm"
-                    onClick={() => navigate('/products/create')}
-                  />
-                  <Button
-                    label="Actualiser"
-                    icon="pi pi-refresh"
-                    className="p-button-info p-button-sm"
-                    onClick={loadProducts}
-                  />
-                </div>
-              </div>
+          <div className="d-flex justify-content-between align-items-center">
+            <div>
+              <h2 className="text-primary mb-1">
+                <i className="pi pi-box me-2"></i>Gestion des Produits
+              </h2>
+              <p className="text-muted mb-0">{pagination.total} produit(s) au total</p>
             </div>
-
-            <div className="card-body">
-              {/* Filtres */}
-              <div className="row mb-3">
-                <div className="col-md-6">
-                  <div className="input-group">
-                    <span className="input-group-text">
-                      <i className="pi pi-search"></i>
-                    </span>
-                    <input
-                      type="text"
-                      className="form-control"
-                      placeholder="Rechercher par nom ou code..."
-                      onChange={(e) => handleSearch(e.target.value)}
-                    />
-                  </div>
-                </div>
-                <div className="col-md-3">
-                  <select
-                    className="form-select"
-                    value={filters.category_id}
-                    onChange={(e) => setFilters(prev => ({ ...prev, category_id: e.target.value }))}
-                  >
-                    <option value="">Toutes les catégories</option>
-                    {categories.map(cat => (
-                      <option key={cat.id} value={cat.id}>{cat.name}</option>
-                    ))}
-                  </select>
-                </div>
-                <div className="col-md-3">
-                  <select
-                    className="form-select"
-                    value={pagination.per_page}
-                    onChange={(e) => handlePerPageChange(parseInt(e.target.value))}
-                  >
-                    <option value="5">5 par page</option>
-                    <option value="10">10 par page</option>
-                    <option value="25">25 par page</option>
-                    <option value="50">50 par page</option>
-                  </select>
-                </div>
-              </div>
-
-              {/* Table */}
-              <div className="table-responsive">
-                <table className="table table-striped table-hover">
-                  <thead className="table-primary">
-                    <tr>
-                      <th style={{ width: '60px' }}>
-                        <button 
-                          className="btn btn-sm btn-link text-dark p-0"
-                          onClick={() => handleSort('id')}
-                        >
-                          Code<i className={getSortIcon('id')}></i>
-                        </button>
-                      </th>
-                      <th style={{ width: '70px' }}>Image</th>
-                      <th>
-                        <button 
-                          className="btn btn-sm btn-link text-dark p-0"
-                          onClick={() => handleSort('name')}
-                        >
-                          Nom <i className={getSortIcon('name')}></i>
-                        </button>
-                      </th>
-                      <th style={{ width: '120px' }}>Catégorie</th>
-                      <th style={{ width: '80px' }}>
-                        <button 
-                          className="btn btn-sm btn-link text-dark p-0"
-                          onClick={() => handleSort('unit')}
-                        >
-                          Unité <i className={getSortIcon('unit')}></i>
-                        </button>
-                      </th>
-                      <th style={{ width: '120px' }}>
-                        <button 
-                          className="btn btn-sm btn-link text-dark p-0"
-                          onClick={() => handleSort('sale_price_ttc')}
-                        >
-                          Prix <i className={getSortIcon('sale_price_ttc')}></i>
-                        </button>
-                      </th>
-                      <th style={{ width: '100px' }}>Stock</th>
-                      <th style={{ width: '130px' }}>Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {loading ? (
-                      <tr>
-                        <td colSpan="8" className="text-center py-4">
-                          <div className="spinner-border text-primary" role="status">
-                            <span className="visually-hidden">Chargement...</span>
-                          </div>
-                        </td>
-                      </tr>
-                    ) : products.length === 0 ? (
-                      <tr>
-                        <td colSpan="8" className="text-center py-4 text-muted">
-                          <i className="pi pi-inbox me-2"></i>
-                          Aucun produit trouvé
-                        </td>
-                      </tr>
-                    ) : (
-                      products.map(product => (
-                        <tr key={product.id}>
-                          <td className="fw-bold text-primary">{product.code}</td>
-                          <td className="text-center">
-                            {product.image ? (
-                              <img 
-                                src={product.image} 
-                                alt={product.name}
-                                className="rounded"
-                                style={{ width: '40px', height: '40px', objectFit: 'cover' }}
-                              />
-                            ) : (
-                              <div 
-                                className="bg-light rounded d-flex align-items-center justify-content-center"
-                                style={{ width: '40px', height: '40px' }}
-                              >
-                                <i className="pi pi-image text-muted"></i>
-                              </div>
-                            )}
-                          </td>
-                          <td>
-                            <div className="fw-bold">{product.name}</div>
-                            {product.code && (
-                              <small className="text-muted">Code: {product.code}</small>
-                            )}
-                          </td>
-                          <td>
-                            <span className="badge bg-info">
-                              {product.category?.name || 'Non classé'}
-                            </span>
-                          </td>
-                          <td>{product.unit}</td>
-                          <td>
-                            <div className="fw-bold text-success">
-                              {formatCurrency(product.sale_price_ttc || 0)}
-                            </div>
-                            {product.purchase_price && (
-                              <small className="text-muted">
-                                Achat: {formatCurrency(product.purchase_price)}
-                              </small>
-                            )}
-                          </td>
-                          <td className="text-center">
-                            {(() => {
-                              const stock = product.current_stock || product.stock || 0;
-                              const alert = product.alert_quantity || 0;
-                              const isAlert = stock <= alert;
-                              
-                              return (
-                                <div>
-                                  <span className={`badge ${isAlert ? 'bg-danger' : 'bg-success'}`}>
-                                    {stock}
-                                  </span>
-                                  {isAlert && (
-                                    <div className="text-danger mt-1">
-                                      <small>
-                                        <i className="pi pi-exclamation-triangle me-1"></i>
-                                        Alerte: {alert}
-                                      </small>
-                                    </div>
-                                  )}
-                                </div>
-                              );
-                            })()}
-                          </td>
-                          <td>
-                            <div className="d-flex gap-1">
-                              <button
-                                className="btn btn-info btn-sm"
-                                title="Voir"
-                                onClick={() => navigate(`/products/${product.id}`)}
-                              >
-                                <i className="pi pi-eye"></i>
-                              </button>
-                              <button
-                                className="btn btn-success btn-sm"
-                                title="Modifier"
-                                onClick={() => navigate(`/products/${product.id}/edit`)}
-                              >
-                                <i className="pi pi-pencil"></i>
-                              </button>
-                              <button
-                                className="btn btn-danger btn-sm"
-                                title="Supprimer"
-                                onClick={() => confirmDeleteProduct(product)}
-                              >
-                                <i className="pi pi-trash"></i>
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
-              </div>
-
-              {/* Pagination */}
-              {!loading && pagination.total > 0 && (
-                <div className="d-flex justify-content-between align-items-center mt-3">
-                  <div className="text-muted">
-                    Affichage de {((pagination.current_page - 1) * pagination.per_page) + 1} à {' '}
-                    {Math.min(pagination.current_page * pagination.per_page, pagination.total)} sur {pagination.total} produits
-                  </div>
-                  {renderPagination()}
-                </div>
-              )}
+            <div className="d-flex gap-2">
+              <button 
+                className="btn btn-outline-primary" 
+                onClick={() => loadProducts(pagination.current_page)} 
+                disabled={loading}
+              >
+                <i className="pi pi-refresh me-1"></i>
+                {loading ? 'Actualisation...' : 'Actualiser'}
+              </button>
+              <a href="/products/create" className="btn btn-primary">
+                <i className="pi pi-plus-circle me-1"></i>Nouveau Produit
+              </a>
             </div>
           </div>
         </div>
       </div>
 
-      <ConfirmDialog
-        visible={deleteDialog}
-        onHide={() => setDeleteDialog(false)}
-        message={`Êtes-vous sûr de vouloir supprimer le produit "${selectedProduct?.name}" ?`}
-        header="Confirmer la suppression"
-        icon="pi pi-exclamation-triangle"
-        accept={deleteProduct}
-        reject={() => setDeleteDialog(false)}
-        acceptLabel="Oui, supprimer"
-        rejectLabel="Annuler"
-        acceptClassName="p-button-danger"
-      />
+      {/* Filters */}
+      <div className="card shadow-sm border-0 mb-4">
+        <div className="card-header bg-light">
+          <h6 className="mb-0">
+            <i className="pi pi-filter me-2"></i>Filtres de recherche
+          </h6>
+        </div>
+        <div className="card-body">
+          <form onSubmit={handleSearch} className="row g-3">
+            <div className="col-md-4">
+              <label className="form-label">Recherche</label>
+              <div className="input-group">
+                <span className="input-group-text">
+                  <i className="pi pi-search"></i>
+                </span>
+                <input 
+                  type="text" 
+                  className="form-control" 
+                  placeholder="Nom, description ou unité..."
+                  value={filters.search} 
+                  onChange={(e) => handleFilterChange('search', e.target.value)} 
+                />
+              </div>
+            </div>
+            
+            <div className="col-md-3">
+              <label className="form-label">Catégorie</label>
+              <select 
+                className="form-select" 
+                value={filters.category_id} 
+                onChange={(e) => handleFilterChange('category_id', e.target.value)}
+              >
+                <option value="">Toutes</option>
+                {categories.map(category => (
+                  <option key={category.id} value={category.id}>
+                    {category.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            
+            <div className="col-md-3">
+              <label className="form-label">Agence</label>
+              <select 
+                className="form-select" 
+                value={filters.agency_id} 
+                onChange={(e) => handleFilterChange('agency_id', e.target.value)}
+              >
+                <option value="">Toutes</option>
+                {agencies.map(agency => (
+                  <option key={agency.id} value={agency.id}>
+                    {agency.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            
+            <div className="col-md-2 d-flex align-items-end gap-2">
+              <button type="submit" className="btn btn-primary" disabled={loading}>
+                <i className="pi pi-search me-1"></i>Rechercher
+              </button>
+              <button type="button" className="btn btn-outline-secondary" onClick={handleReset}>
+                <i className="pi pi-refresh me-1"></i>Reset
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      {/* Products Table */}
+      <div className="card shadow-sm border-0">
+        <div className="card-header bg-white d-flex justify-content-between align-items-center">
+          <h5 className="mb-0">
+            <i className="pi pi-list me-2"></i>Liste des Produits
+          </h5>
+        </div>
+        <div className="card-body p-0">
+          <div className="table-responsive">
+            <table className="table table-hover align-middle mb-0">
+              <thead className="bg-light">
+                <tr>
+                  <th className="border-0 px-4 py-3">Image</th>
+                  <th className="border-0 px-4 py-3">Code</th>
+                  <th className="border-0 px-4 py-3">Nom</th>
+                  <th className="border-0 px-4 py-3">Catégorie</th>
+                  <th className="border-0 px-4 py-3">Prix d'Achat</th>
+                  <th className="border-0 px-4 py-3">Prix de Vente</th>
+                  <th className="border-0 px-4 py-3">Unité</th>
+                  <th className="border-0 px-4 py-3">Seuil d'Alerte</th>
+                  <th className="border-0 px-4 py-3">Agence</th>
+                  <th className="border-0 px-4 py-3">Créé par</th>
+                  <th className="border-0 px-4 py-3">Créé le</th>
+                  <th className="border-0 px-4 py-3">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {loading ? (
+                  <tr>
+                    <td colSpan="12" className="text-center py-5">
+                      <div className="spinner-border text-primary" role="status">
+                        <span className="visually-hidden">Chargement...</span>
+                      </div>
+                    </td>
+                  </tr>
+                ) : products.length === 0 ? (
+                  <tr>
+                    <td colSpan="12" className="text-center py-5">
+                      <div className="text-muted">
+                        <i className="pi pi-inbox display-4 d-block mb-3"></i>
+                        <h5>Aucun produit trouvé</h5>
+                        <p className="mb-0">Essayez de modifier vos critères de recherche ou créez un nouveau produit</p>
+                      </div>
+                    </td>
+                  </tr>
+                ) : (
+                  products.map((product) => (
+                    <tr key={product.id}>
+                      <td className="px-4">
+                        {getImageUrl(product.image) ? (
+                          <img 
+                            src={getImageUrl(product.image)} 
+                            alt={product.name}
+                            className="rounded"
+                            style={{ width: '40px', height: '40px', objectFit: 'cover' }}
+                            onError={(e) => {
+                              e.target.style.display = 'none';
+                              e.target.nextSibling.style.display = 'flex';
+                            }}
+                          />
+                        ) : null}
+                        <div 
+                          className="bg-light rounded d-flex align-items-center justify-content-center"
+                          style={{ 
+                            width: '40px', 
+                            height: '40px',
+                            display: getImageUrl(product.image) ? 'none' : 'flex'
+                          }}
+                        >
+                          <i className="pi pi-image text-muted"></i>
+                        </div>
+                      </td>
+                      <td className="px-4">
+                        <span className="badge bg-info text-white">{product.code}</span>
+                      </td>
+                      <td className="px-4">
+                        <div className="d-flex align-items-center">
+                          <div className="bg-primary bg-opacity-10 p-2 rounded me-3">
+                            <i className="pi pi-box text-primary"></i>
+                          </div>
+                          <div>
+                            <strong className="text-primary">{product.name}</strong>
+                            {product.description && (
+                              <>
+                                <br />
+                                <small className="text-muted" title={product.description}>
+                                  {truncateText(product.description, 30)}
+                                </small>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-4">
+                        {product.category ? (
+                          <span className="badge bg-secondary">{product.category.name}</span>
+                        ) : (
+                          <span className="text-muted">Non catégorisé</span>
+                        )}
+                      </td>
+                      <td className="px-4">
+                        <span className="text-success fw-bold">
+                          {formatCurrency(product.purchase_price)}
+                        </span>
+                      </td>
+                      <td className="px-4">
+                        <span className="text-primary fw-bold">
+                          {formatCurrency(product.sale_price)}
+                        </span>
+                      </td>
+                      <td className="px-4">
+                        <span className="badge bg-info text-white">{product.unit}</span>
+                      </td>
+                      <td className="px-4">
+                        <span className="badge bg-warning text-dark">{product.alert_quantity}</span>
+                      </td>
+                      <td className="px-4">
+                        {product.agency ? (
+                          <div className="d-flex align-items-center">
+                            <i className="pi pi-building text-info me-2"></i>
+                            {product.agency.name}
+                          </div>
+                        ) : (
+                          <span className="text-muted">Non assigné</span>
+                        )}
+                      </td>
+                      <td className="px-4">
+                        <div className="d-flex align-items-center">
+                          <i className="pi pi-user-check text-success me-2"></i>
+                          {product.created_by?.last_name || product.created_by?.name || 'N/A'}
+                        </div>
+                      </td>
+                      <td className="px-4">
+                        <div>
+                          <strong>{formatDate(product.created_at)}</strong>
+                          <br />
+                          <small className="text-muted">
+                            {new Date(product.created_at).toLocaleTimeString('fr-FR', { 
+                              hour: '2-digit', 
+                              minute: '2-digit' 
+                            })}
+                          </small>
+                        </div>
+                      </td>
+                      <td className="px-4">
+                        <div className="btn-group" role="group">
+                          <a 
+                            href={`/products/${product.id}`} 
+                            className="btn btn-sm btn-outline-info" 
+                            title="Voir"
+                          >
+                            <i className="pi pi-eye"></i>
+                          </a>
+                          <a 
+                            href={`/products/${product.id}/edit`} 
+                            className="btn btn-sm btn-outline-warning" 
+                            title="Modifier"
+                          >
+                            <i className="pi pi-pencil"></i>
+                          </a>
+                          <button 
+                            type="button" 
+                            className="btn btn-sm btn-outline-danger" 
+                            title="Supprimer"
+                            onClick={() => setDeleteModal({ show: true, productId: product.id })}
+                          >
+                            <i className="pi pi-trash"></i>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* Pagination */}
+        {pagination.last_page > 1 && (
+          <div className="card-footer bg-transparent border-0">
+            <div className="d-flex justify-content-between align-items-center">
+              <div className="text-muted small">
+                Affichage de {pagination.from} à {pagination.to} sur {pagination.total} résultats
+              </div>
+              <Pagination />
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Delete Modal */}
+      {deleteModal.show && (
+        <>
+          <div className="modal show d-block" tabIndex="-1">
+            <div className="modal-dialog">
+              <div className="modal-content">
+                <div className="modal-header bg-danger text-white">
+                  <h5 className="modal-title">
+                    <i className="pi pi-exclamation-triangle me-2"></i>Confirmer la suppression
+                  </h5>
+                  <button 
+                    type="button" 
+                    className="btn-close btn-close-white"
+                    onClick={() => setDeleteModal({ show: false, productId: null })}
+                  ></button>
+                </div>
+                <div className="modal-body">
+                  <p>Êtes-vous sûr de vouloir supprimer ce produit ? Cette action est irréversible.</p>
+                </div>
+                <div className="modal-footer">
+                  <button 
+                    type="button" 
+                    className="btn btn-secondary"
+                    onClick={() => setDeleteModal({ show: false, productId: null })}
+                  >
+                    Annuler
+                  </button>
+                  <button 
+                    type="button" 
+                    className="btn btn-danger"
+                    onClick={() => handleDeleteProduct(deleteModal.productId)}
+                  >
+                    <i className="pi pi-trash me-1"></i>Supprimer
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div 
+            className="modal-backdrop show" 
+            onClick={() => setDeleteModal({ show: false, productId: null })}
+          ></div>
+        </>
+      )}
     </div>
   );
 };

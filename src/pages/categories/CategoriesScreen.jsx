@@ -1,393 +1,456 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Toast } from 'primereact/toast';
-import { ConfirmDialog } from 'primereact/confirmdialog';
-import { Button } from 'primereact/button';
-import { useNavigate } from 'react-router-dom';
-
 import ApiService from '../../services/api.js';
 
 const CategoryScreen = () => {
   const [categories, setCategories] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [pagination, setPagination] = useState({
-    current_page: 1,
-    per_page: 10,
-    total: 0,
-    last_page: 1
-  });
+  const [loading, setLoading] = useState(false);
+  const [agencies, setAgencies] = useState([]);
+  const [creators, setCreators] = useState([]);
   const [filters, setFilters] = useState({
     search: '',
-    sort: 'name',
-    order: 'asc'
+    agency_id: '',
+    created_by: ''
   });
-  const [selectedCategory, setSelectedCategory] = useState(null);
-  const [deleteDialog, setDeleteDialog] = useState(false);
-  const navigate = useNavigate();
+  const [pagination, setPagination] = useState({
+    current_page: 1,
+    last_page: 1,
+    total: 0,
+    from: 0,
+    to: 0
+  });
+  const [deleteModal, setDeleteModal] = useState({ show: false, categoryId: null });
   const toast = useRef(null);
-  const searchTimeout = useRef(null);
 
   useEffect(() => {
     loadCategories();
   }, []);
 
-  useEffect(() => {
-    loadCategories();
-  }, [pagination.current_page, pagination.per_page, filters]);
-
-  const loadCategories = async () => {
+  const loadCategories = async (page = 1) => {
     try {
       setLoading(true);
-      const params = new URLSearchParams({
-        page: pagination.current_page,
-        per_page: pagination.per_page,
-        ...filters
-      });
-
-      const response = await ApiService.get(`/api/categories?${params}`);
+      const params = { page, ...filters };
+      const response = await ApiService.get('/api/categories', params);
       
       if (response.success) {
-        const data = response.data;
-        setCategories(data.data || []);
+        setCategories(response.data.categories.data || []);
+
+        setAgencies(response.data.agencies || []);
+        setCreators(response.data.creators || []);
+
         setPagination({
-          current_page: data.current_page,
-          per_page: data.per_page,
-          total: data.total,
-          last_page: data.last_page
+          current_page: response.data.categories.current_page,
+          last_page: response.data.categories.last_page,
+          total: response.data.categories.total,
+          from: response.data.categories.from,
+          to: response.data.categories.to
         });
       } else {
-        toast.current.show({
-          severity: 'error',
-          summary: 'Erreur',
-          detail: response.message || 'Erreur lors du chargement',
-          life: 3000
-        });
+        showToast('error', response.message || 'Erreur lors du chargement');
       }
     } catch (error) {
-      toast.current.show({
-        severity: 'error',
-        summary: 'Erreur de connexion',
-        detail: error.message,
-        life: 3000
-      });
+      showToast('error', error.message);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleSearch = (value) => {
-    if (searchTimeout.current) {
-      clearTimeout(searchTimeout.current);
-    }
-    
-    searchTimeout.current = setTimeout(() => {
-      setFilters(prev => ({ ...prev, search: value }));
-      setPagination(prev => ({ ...prev, current_page: 1 }));
-    }, 500);
+
+
+  const handleFilterChange = (name, value) => {
+    setFilters(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleSort = (field) => {
-    setFilters(prev => ({
-      ...prev,
-      sort: field,
-      order: prev.sort === field && prev.order === 'asc' ? 'desc' : 'asc'
-    }));
-    setPagination(prev => ({ ...prev, current_page: 1 }));
+  const handleSearch = (e) => {
+    e.preventDefault();
+    loadCategories(1);
   };
 
-  const handlePageChange = (page) => {
-    setPagination(prev => ({ ...prev, current_page: page }));
+  const handleReset = () => {
+    setFilters({ search: '', agency_id: '', created_by: '' });
+    setTimeout(() => loadCategories(1), 0);
   };
 
-  const handlePerPageChange = (perPage) => {
-    setPagination(prev => ({ ...prev, per_page: perPage, current_page: 1 }));
-  };
-
-  const confirmDeleteCategory = (category) => {
-    setSelectedCategory(category);
-    setDeleteDialog(true);
-  };
-
-  const deleteCategory = async () => {
+  const handleDeleteCategory = async (categoryId) => {
     try {
-      const response = await ApiService.delete(`/api/categories/${selectedCategory.id}`);
-      
+      const response = await ApiService.delete(`/api/categories/${categoryId}`);
       if (response.success) {
-        loadCategories();
-        toast.current.show({
-          severity: 'success',
-          summary: 'Succès',
-          detail: 'Catégorie supprimée avec succès',
-          life: 3000
-        });
+        showToast('success', 'Catégorie supprimée avec succès');
+        loadCategories(pagination.current_page);
       } else {
-        toast.current.show({
-          severity: 'error',
-          summary: 'Erreur',
-          detail: response.message || 'Erreur lors de la suppression',
-          life: 3000
-        });
+        showToast('error', response.message || 'Erreur lors de la suppression');
       }
     } catch (error) {
-      toast.current.show({
-        severity: 'error',
-        summary: 'Erreur de connexion',
-        detail: error.message,
-        life: 3000
-      });
-    } finally {
-      setDeleteDialog(false);
-      setSelectedCategory(null);
+      showToast('error', error.message);
     }
+    setDeleteModal({ show: false, categoryId: null });
   };
 
-  const getSortIcon = (field) => {
-    if (filters.sort !== field) return 'pi pi-sort';
-    return filters.order === 'asc' ? 'pi pi-sort-up' : 'pi pi-sort-down';
+  const showToast = (severity, detail) => {
+    toast.current?.show({ 
+      severity, 
+      summary: severity === 'error' ? 'Erreur' : 'Succès', 
+      detail, 
+      life: 3000 
+    });
   };
 
-  const renderPagination = () => {
-    const pages = [];
-    const maxVisiblePages = 5;
-    const startPage = Math.max(1, pagination.current_page - Math.floor(maxVisiblePages / 2));
-    const endPage = Math.min(pagination.last_page, startPage + maxVisiblePages - 1);
+  const formatDate = (date) => new Date(date).toLocaleDateString('fr-FR');
 
-    // Bouton précédent
-    pages.push(
-      <li key="prev" className={`page-item ${pagination.current_page === 1 ? 'disabled' : ''}`}>
-        <button 
-          className="page-link" 
-          onClick={() => handlePageChange(pagination.current_page - 1)}
-          disabled={pagination.current_page === 1}
-        >
-          <i className="pi pi-chevron-left"></i>
-        </button>
-      </li>
-    );
+  const truncateText = (text, maxLength = 50) => {
+    if (!text) return '';
+    return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
+  };
 
-    // Pages numérotées
-    for (let i = startPage; i <= endPage; i++) {
-      pages.push(
-        <li key={i} className={`page-item ${i === pagination.current_page ? 'active' : ''}`}>
-          <button 
-            className="page-link" 
-            onClick={() => handlePageChange(i)}
-          >
-            {i}
-          </button>
-        </li>
-      );
-    }
+  const Pagination = () => {
+    if (pagination.last_page <= 1) return null;
 
-    // Bouton suivant
-    pages.push(
-      <li key="next" className={`page-item ${pagination.current_page === pagination.last_page ? 'disabled' : ''}`}>
-        <button 
-          className="page-link" 
-          onClick={() => handlePageChange(pagination.current_page + 1)}
-          disabled={pagination.current_page === pagination.last_page}
-        >
-          <i className="pi pi-chevron-right"></i>
-        </button>
-      </li>
-    );
+    const getVisiblePages = () => {
+      const current = pagination.current_page;
+      const last = pagination.last_page;
+      const pages = [];
+
+      if (last <= 7) {
+        return Array.from({ length: last }, (_, i) => i + 1);
+      }
+
+      pages.push(1);
+      if (current > 4) pages.push('...');
+      
+      const start = Math.max(2, current - 1);
+      const end = Math.min(last - 1, current + 1);
+      
+      for (let i = start; i <= end; i++) {
+        pages.push(i);
+      }
+      
+      if (current < last - 3) pages.push('...');
+      pages.push(last);
+      
+      return pages;
+    };
 
     return (
       <nav>
-        <ul className="pagination justify-content-center mb-0">
-          {pages}
+        <ul className="pagination pagination-sm mb-0">
+          <li className={`page-item ${pagination.current_page === 1 ? 'disabled' : ''}`}>
+            <button 
+              className="page-link" 
+              onClick={() => loadCategories(pagination.current_page - 1)} 
+              disabled={pagination.current_page === 1}
+            >
+              <i className="pi pi-chevron-left"></i>
+            </button>
+          </li>
+          
+          {getVisiblePages().map((page, index) => (
+            <li key={index} className={`page-item ${page === pagination.current_page ? 'active' : ''} ${page === '...' ? 'disabled' : ''}`}>
+              {page === '...' ? (
+                <span className="page-link">...</span>
+              ) : (
+                <button className="page-link" onClick={() => loadCategories(page)}>
+                  {page}
+                </button>
+              )}
+            </li>
+          ))}
+          
+          <li className={`page-item ${pagination.current_page === pagination.last_page ? 'disabled' : ''}`}>
+            <button 
+              className="page-link" 
+              onClick={() => loadCategories(pagination.current_page + 1)} 
+              disabled={pagination.current_page === pagination.last_page}
+            >
+              <i className="pi pi-chevron-right"></i>
+            </button>
+          </li>
         </ul>
       </nav>
     );
   };
 
   return (
-    <div className="container-fluid py-4">
+    <div className="container-fluid">
       <Toast ref={toast} />
       
-      <div className="row">
+      {/* Header */}
+      <div className="row mb-4">
         <div className="col-12">
-          <div className="card">
-            <div className="card-header">
-              <div className="d-flex justify-content-between align-items-center">
-                <h4 className="mb-0">
-                  <i className="pi pi-list me-2"></i>
-                  Liste des catégories
-                  <span className="badge bg-primary ms-2">{pagination.total}</span>
-                </h4>
-                <div className="d-flex gap-2">
-                  <Button
-                    label="Nouvelle"
-                    icon="pi pi-plus"
-                    className="p-button-success p-button-sm"
-                    onClick={() => navigate('/categories/create')}
-                  />
-                  <Button
-                    label="Actualiser"
-                    icon="pi pi-refresh"
-                    className="p-button-info p-button-sm"
-                    onClick={loadCategories}
-                  />
-                </div>
-              </div>
+          <div className="d-flex justify-content-between align-items-center">
+            <div>
+              <h2 className="text-primary mb-1">
+                <i className="pi pi-tags me-2"></i>Gestion des Catégories
+              </h2>
+              <p className="text-muted mb-0">{pagination.total} catégorie(s) au total</p>
             </div>
-
-            <div className="card-body">
-              {/* Filtres */}
-              <div className="row mb-3">
-                <div className="col-md-6">
-                  <div className="input-group">
-                    <span className="input-group-text">
-                      <i className="pi pi-search"></i>
-                    </span>
-                    <input
-                      type="text"
-                      className="form-control"
-                      placeholder="Rechercher par nom ou description..."
-                      onChange={(e) => handleSearch(e.target.value)}
-                    />
-                  </div>
-                </div>
-                <div className="col-md-6">
-                  <select
-                    className="form-select"
-                    value={pagination.per_page}
-                    onChange={(e) => handlePerPageChange(parseInt(e.target.value))}
-                  >
-                    <option value="5">5 par page</option>
-                    <option value="10">10 par page</option>
-                    <option value="25">25 par page</option>
-                    <option value="50">50 par page</option>
-                  </select>
-                </div>
-              </div>
-
-              {/* Table */}
-              <div className="table-responsive">
-                <table className="table table-striped table-hover">
-                  <thead className="table-primary">
-                    <tr>
-                      <th style={{ width: '60px' }}>
-                        <button 
-                          className="btn btn-sm btn-link text-dark p-0"
-                          onClick={() => handleSort('id')}
-                        >
-                          ID <i className={getSortIcon('id')}></i>
-                        </button>
-                      </th>
-                      <th>
-                        <button 
-                          className="btn btn-sm btn-link text-dark p-0"
-                          onClick={() => handleSort('name')}
-                        >
-                          Nom <i className={getSortIcon('name')}></i>
-                        </button>
-                      </th>
-                      <th>Description</th>
-                      <th style={{ width: '100px' }}>
-                        <button 
-                          className="btn btn-sm btn-link text-dark p-0"
-                          onClick={() => handleSort('created_at')}
-                        >
-                          Créé le <i className={getSortIcon('created_at')}></i>
-                        </button>
-                      </th>
-                      <th style={{ width: '130px' }}>Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {loading ? (
-                      <tr>
-                        <td colSpan="5" className="text-center py-4">
-                          <div className="spinner-border text-primary" role="status">
-                            <span className="visually-hidden">Chargement...</span>
-                          </div>
-                        </td>
-                      </tr>
-                    ) : categories.length === 0 ? (
-                      <tr>
-                        <td colSpan="5" className="text-center py-4 text-muted">
-                          <i className="pi pi-inbox me-2"></i>
-                          Aucune catégorie trouvée
-                        </td>
-                      </tr>
-                    ) : (
-                      categories.map(category => (
-                        <tr key={category.id}>
-                          <td className="fw-bold text-primary">{category.id}</td>
-                          <td>
-                            <div className="fw-bold">{category.name}</div>
-                          </td>
-                          <td>
-                            <div className="text-truncate" style={{ maxWidth: '300px' }}>
-                              {category.description || (
-                                <em className="text-muted">Aucune description</em>
-                              )}
-                            </div>
-                          </td>
-                          <td>
-                            <small className="text-muted">
-                              {category.created_at ? new Date(category.created_at).toLocaleDateString('fr-FR') : '-'}
-                            </small>
-                          </td>
-                          <td>
-                            <div className="d-flex gap-1">
-                              <button
-                                className="btn btn-info btn-sm"
-                                title="Voir"
-                                onClick={() => navigate(`/categories/${category.id}`)}
-                              >
-                                <i className="pi pi-eye"></i>
-                              </button>
-                              <button
-                                className="btn btn-success btn-sm"
-                                title="Modifier"
-                                onClick={() => navigate(`/categories/${category.id}/edit`)}
-                              >
-                                <i className="pi pi-pencil"></i>
-                              </button>
-                              <button
-                                className="btn btn-danger btn-sm"
-                                title="Supprimer"
-                                onClick={() => confirmDeleteCategory(category)}
-                              >
-                                <i className="pi pi-trash"></i>
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
-              </div>
-
-              {/* Pagination */}
-              {!loading && pagination.total > 0 && (
-                <div className="d-flex justify-content-between align-items-center mt-3">
-                  <div className="text-muted">
-                    Affichage de {((pagination.current_page - 1) * pagination.per_page) + 1} à {' '}
-                    {Math.min(pagination.current_page * pagination.per_page, pagination.total)} sur {pagination.total} catégories
-                  </div>
-                  {renderPagination()}
-                </div>
-              )}
+            <div className="d-flex gap-2">
+              <button 
+                className="btn btn-outline-primary" 
+                onClick={() => loadCategories(pagination.current_page)} 
+                disabled={loading}
+              >
+                <i className="pi pi-refresh me-1"></i>
+                {loading ? 'Actualisation...' : 'Actualiser'}
+              </button>
+              <a href="/categories/create" className="btn btn-primary">
+                <i className="pi pi-plus-circle me-1"></i>Nouvelle Catégorie
+              </a>
             </div>
           </div>
         </div>
       </div>
 
-      <ConfirmDialog
-        visible={deleteDialog}
-        onHide={() => setDeleteDialog(false)}
-        message={`Êtes-vous sûr de vouloir supprimer la catégorie "${selectedCategory?.name}" ?`}
-        header="Confirmer la suppression"
-        icon="pi pi-exclamation-triangle"
-        accept={deleteCategory}
-        reject={() => setDeleteDialog(false)}
-        acceptLabel="Oui, supprimer"
-        rejectLabel="Annuler"
-        acceptClassName="p-button-danger"
-      />
+      {/* Filters */}
+      <div className="card shadow-sm border-0 mb-4">
+        <div className="card-header bg-light">
+          <h6 className="mb-0">
+            <i className="pi pi-filter me-2"></i>Filtres de recherche
+          </h6>
+        </div>
+        <div className="card-body">
+          <form onSubmit={handleSearch} className="row g-3">
+            <div className="col-md-4">
+              <label className="form-label">Recherche</label>
+              <div className="input-group">
+                <span className="input-group-text">
+                  <i className="pi pi-search"></i>
+                </span>
+                <input 
+                  type="text" 
+                  className="form-control" 
+                  placeholder="Nom ou description..."
+                  value={filters.search} 
+                  onChange={(e) => handleFilterChange('search', e.target.value)} 
+                />
+              </div>
+            </div>
+            
+            <div className="col-md-3">
+              <label className="form-label">Agence</label>
+              <select 
+                className="form-select" 
+                value={filters.agency_id} 
+                onChange={(e) => handleFilterChange('agency_id', e.target.value)}
+              >
+                <option value="">Toutes</option>
+                {agencies.map(agency => (
+                  <option key={agency.id} value={agency.id}>
+                    {agency.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            
+            <div className="col-md-3">
+              <label className="form-label">Créé par</label>
+              <select 
+                className="form-select" 
+                value={filters.created_by} 
+                onChange={(e) => handleFilterChange('created_by', e.target.value)}
+              >
+                <option value="">Tous</option>
+                {creators.map(creator => (
+                  <option key={creator.id} value={creator.id}>
+                    {creator.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            
+            <div className="col-md-2 d-flex align-items-end gap-2">
+              <button type="submit" className="btn btn-primary" disabled={loading}>
+                <i className="pi pi-search me-1"></i>Rechercher
+              </button>
+              <button type="button" className="btn btn-outline-secondary" onClick={handleReset}>
+                <i className="pi pi-refresh me-1"></i>Reset
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      {/* Categories Table */}
+      <div className="card shadow-sm border-0">
+        <div className="card-header bg-white d-flex justify-content-between align-items-center">
+          <h5 className="mb-0">
+            <i className="pi pi-list me-2"></i>Liste des Catégories
+          </h5>
+        </div>
+        <div className="card-body p-0">
+          <div className="table-responsive">
+            <table className="table table-hover align-middle mb-0">
+              <thead className="bg-light">
+                <tr>
+                  <th className="border-0 px-4 py-3">Nom</th>
+                  <th className="border-0 px-4 py-3">Description</th>
+                  <th className="border-0 px-4 py-3">Agence</th>
+                  <th className="border-0 px-4 py-3">Créé par</th>
+                  <th className="border-0 px-4 py-3">Créé le</th>
+                  <th className="border-0 px-4 py-3">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {loading ? (
+                  <tr>
+                    <td colSpan="6" className="text-center py-5">
+                      <div className="spinner-border text-primary" role="status">
+                        <span className="visually-hidden">Chargement...</span>
+                      </div>
+                    </td>
+                  </tr>
+                ) : categories.length === 0 ? (
+                  <tr>
+                    <td colSpan="6" className="text-center py-5">
+                      <div className="text-muted">
+                        <i className="pi pi-inbox display-4 d-block mb-3"></i>
+                        <h5>Aucune catégorie trouvée</h5>
+                        <p className="mb-0">Essayez de modifier vos critères de recherche ou créez une nouvelle catégorie</p>
+                      </div>
+                    </td>
+                  </tr>
+                ) : (
+                  categories.map((category) => (
+                    <tr key={category.id}>
+                      <td className="px-4">
+                        <div className="d-flex align-items-center">
+                          <div className="bg-primary bg-opacity-10 p-2 rounded me-3">
+                            <i className="pi pi-tag text-primary"></i>
+                          </div>
+                          <strong className="text-primary">{category.name}</strong>
+                        </div>
+                      </td>
+                      <td className="px-4">
+                        {category.description ? (
+                          <span title={category.description}>
+                            {truncateText(category.description, 50)}
+                          </span>
+                        ) : (
+                          <span className="text-muted">Aucune description</span>
+                        )}
+                      </td>
+                      <td className="px-4">
+                        {category.agency ? (
+                          <div className="d-flex align-items-center">
+                            <i className="pi pi-building text-info me-2"></i>
+                            {category.agency.name}
+                          </div>
+                        ) : (
+                          <span className="text-muted">Non assigné</span>
+                        )}
+                      </td>
+                      <td className="px-4">
+                        <div className="d-flex align-items-center">
+                          <i className="pi pi-user-check text-success me-2"></i>
+                          {category.created_by?.full_name || category.created_by?.name || 'N/A'}
+                        </div>
+                      </td>
+                      <td className="px-4">
+                        <div>
+                          <strong>{formatDate(category.created_at)}</strong>
+                          <br />
+                          <small className="text-muted">
+                            {new Date(category.created_at).toLocaleTimeString('fr-FR', { 
+                              hour: '2-digit', 
+                              minute: '2-digit' 
+                            })}
+                          </small>
+                        </div>
+                      </td>
+                      <td className="px-4">
+                        <div className="btn-group" role="group">
+                          <a 
+                            href={`/categories/${category.id}`} 
+                            className="btn btn-sm btn-outline-info" 
+                            title="Voir"
+                          >
+                            <i className="pi pi-eye"></i>
+                          </a>
+                          <a 
+                            href={`/categories/${category.id}/edit`} 
+                            className="btn btn-sm btn-outline-warning" 
+                            title="Modifier"
+                          >
+                            <i className="pi pi-pencil"></i>
+                          </a>
+                          <button 
+                            type="button" 
+                            className="btn btn-sm btn-outline-danger" 
+                            title="Supprimer"
+                            onClick={() => setDeleteModal({ show: true, categoryId: category.id })}
+                          >
+                            <i className="pi pi-trash"></i>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* Pagination */}
+        {pagination.last_page > 1 && (
+          <div className="card-footer bg-transparent border-0">
+            <div className="d-flex justify-content-between align-items-center">
+              <div className="text-muted small">
+                Affichage de {pagination.from} à {pagination.to} sur {pagination.total} résultats
+              </div>
+              <Pagination />
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Delete Modal */}
+      {deleteModal.show && (
+        <>
+          <div className="modal show d-block" tabIndex="-1">
+            <div className="modal-dialog">
+              <div className="modal-content">
+                <div className="modal-header bg-danger text-white">
+                  <h5 className="modal-title">
+                    <i className="pi pi-exclamation-triangle me-2"></i>Confirmer la suppression
+                  </h5>
+                  <button 
+                    type="button" 
+                    className="btn-close btn-close-white"
+                    onClick={() => setDeleteModal({ show: false, categoryId: null })}
+                  ></button>
+                </div>
+                <div className="modal-body">
+                  <p>Êtes-vous sûr de vouloir supprimer cette catégorie ? Cette action est irréversible.</p>
+                  <div className="alert alert-warning mt-3">
+                    <i className="pi pi-info-circle me-2"></i>
+                    <strong>Attention :</strong> La suppression de cette catégorie pourrait affecter les produits associés.
+                  </div>
+                </div>
+                <div className="modal-footer">
+                  <button 
+                    type="button" 
+                    className="btn btn-secondary"
+                    onClick={() => setDeleteModal({ show: false, categoryId: null })}
+                  >
+                    Annuler
+                  </button>
+                  <button 
+                    type="button" 
+                    className="btn btn-danger"
+                    onClick={() => handleDeleteCategory(deleteModal.categoryId)}
+                  >
+                    <i className="pi pi-trash me-1"></i>Supprimer
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div 
+            className="modal-backdrop show" 
+            onClick={() => setDeleteModal({ show: false, categoryId: null })}
+          ></div>
+        </>
+      )}
     </div>
   );
 };

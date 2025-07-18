@@ -3,6 +3,8 @@ import { useAuth } from '../contexts/AuthContext';
 import { Badge } from 'primereact/badge';
 import { Button } from 'primereact/button';
 import { Avatar } from 'primereact/avatar';
+//imprt useNavigate
+
 
 const Header = ({ onSidebarToggle, pageTitle = 'Tableau de bord' }) => {
   const { user, logout, isLoading, getUserInfo } = useAuth();

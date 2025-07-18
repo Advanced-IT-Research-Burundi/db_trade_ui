@@ -4,7 +4,7 @@ import { Badge } from 'primereact/badge';
 import { Button } from 'primereact/button';
 import { Avatar } from 'primereact/avatar';
 //imprt useNavigate
-
+import { useNavigate } from 'react-router-dom';
 
 const Header = ({ onSidebarToggle, pageTitle = 'Tableau de bord' }) => {
   const { user, logout, isLoading, getUserInfo } = useAuth();
@@ -14,8 +14,9 @@ const Header = ({ onSidebarToggle, pageTitle = 'Tableau de bord' }) => {
   const [isNotificationMenuOpen, setIsNotificationMenuOpen] = React.useState(false);
 
 
+    const navigate = useNavigate();
+
   useEffect(() => {
-    console.log('User:', user);
     const handleClickOutside = (event) => {
       if (userMenuRef.current && !userMenuRef.current.contains(event.target)) {
         setIsUserMenuOpen(false);
@@ -41,10 +42,7 @@ const Header = ({ onSidebarToggle, pageTitle = 'Tableau de bord' }) => {
     setIsUserMenuOpen(false);
   };
 
-  const handleProfileClick = () => {
-    window.location.href = '/profile';
-    setIsUserMenuOpen(false);
-  };
+  
 
   const handleSettingsClick = () => {
     window.location.href = '/settings';
@@ -201,7 +199,9 @@ const Header = ({ onSidebarToggle, pageTitle = 'Tableau de bord' }) => {
                 </div> */}
                 <button
                   className="dropdown-item d-flex align-items-center px-3 py-2 hover-bg-light"
-                  onClick={handleProfileClick}
+                   onClick={() => {
+                    setIsUserMenuOpen(false);
+                    navigate('/profile')}}
                 >
                   <i className="pi pi-user me-2 text-muted"></i>
                   <span>Profile</span>

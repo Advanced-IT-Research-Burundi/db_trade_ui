@@ -2,31 +2,9 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Toast } from 'primereact/toast';
 import ApiService from '../../services/api.js';
 
-const StatCard = ({ icon, title, value, color, loading }) => (
-  <div className="col-xl-3 col-md-6 mb-3">
-    <div className="card border-0 shadow-sm h-100">
-      <div className="card-body">
-        <div className="d-flex align-items-center">
-          <div className="flex-shrink-0">
-            <div className={`p-3 bg-${color} bg-opacity-10 rounded-circle`}>
-              {loading ? (
-                <div className="spinner-border spinner-border-sm text-muted" role="status">
-                  <span className="visually-hidden">Chargement...</span>
-                </div>
-              ) : (
-                <i className={`pi pi-${icon} text-${color} fs-4`}></i>
-              )}
-            </div>
-          </div>
-          <div className="flex-grow-1 ms-3">
-            <h6 className="text-muted mb-1">{title}</h6>
-            <h4 className="mb-0">{loading ? '...' : value}</h4>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-);
+import StatCard from '../../components/Card/StatCard.jsx';
+
+
 
 const ProformaScreen = () => {
   const [proformas, setProformas] = useState([]);

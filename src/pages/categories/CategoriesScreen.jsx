@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Toast } from 'primereact/toast';
 import ApiService from '../../services/api.js';
+import { useNavigate } from 'react-router-dom';
 
 const CategoryScreen = () => {
   const [categories, setCategories] = useState([]);
@@ -21,6 +22,8 @@ const CategoryScreen = () => {
   });
   const [deleteModal, setDeleteModal] = useState({ show: false, categoryId: null });
   const toast = useRef(null);
+
+    const navigate = useNavigate();
 
   useEffect(() => {
     loadCategories();
@@ -192,7 +195,7 @@ const CategoryScreen = () => {
                 <i className="pi pi-refresh me-1"></i>
                 {loading ? 'Actualisation...' : 'Actualiser'}
               </button>
-              <a href="/categories/create" className="btn btn-primary">
+              <a onClick={()=>navigate('/categories/create')} className="btn btn-primary">
                 <i className="pi pi-plus-circle me-1"></i>Nouvelle Catégorie
               </a>
             </div>

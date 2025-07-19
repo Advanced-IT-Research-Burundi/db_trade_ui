@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Toast } from 'primereact/toast';
-import { useCart } from './CartContext';
+import { useCart } from '../../contexts/cartReducer.jsx';
 import ApiService from '../../services/api.js';
 
 const SalesCreateScreen = () => {
@@ -72,7 +72,7 @@ const SalesCreateScreen = () => {
         }
       }
     } catch (error) {
-      showToast('error', 'Erreur lors du chargement des données');
+      showToast('error', 'Erreur lors du chargement des données: '+error.message);
     } finally {
       setLoading(false);
     }
@@ -85,7 +85,7 @@ const SalesCreateScreen = () => {
     try {
       const response = await ApiService.get(`/api/sales/categories/${selectedStock}`);
       if (response.success) {
-        setCategories(response.data.categories || []);
+        setCategories(response.data.categories || {});
       }
     } catch (error) {
       console.error('Erreur lors du chargement des catégories:', error);
@@ -288,6 +288,8 @@ const SalesCreateScreen = () => {
   const setQuickAmount = (amount) => {
     setPaidAmount(amount);
   };
+
+  const paymentStatus = getPaymentStatus();
 
   return (
     <div className="container-fluid">
@@ -536,7 +538,7 @@ const SalesCreateScreen = () => {
                     {products.map(product => (
                       <div key={product.id} className="col-md-6">
                         <div 
-                          className="card h-100 product-card" 
+                          className="card h-100 product-card border-0 shadow-sm" 
                           style={{ cursor: 'pointer' }}
                           onClick={() => handleAddProduct(product)}
                         >
@@ -555,13 +557,13 @@ const SalesCreateScreen = () => {
                                 </div>
                               )}
                               <div className="flex-grow-1">
-                                <h6 className="card-title mb-1">{product.name}</h6>
+                                <h6 className="card-title mb-1 fw-semibold">{product.name}</h6>
                                 <p className="mb-1 text-muted small">
                                   {formatCurrency(product.sale_price_ttc)}
                                 </p>
                                 <div className="d-flex justify-content-between align-items-center">
                                   <span className={`badge ${product.quantity_disponible <= 2 ? 'bg-warning' : 'bg-success'}`}>
-                                    Stock: {product.quantity_disponible}
+                                    {product.code} - Stock: {product.quantity_disponible}
                                   </span>
                                   <i className="pi pi-plus-circle text-primary"></i>
                                 </div>
@@ -596,17 +598,348 @@ const SalesCreateScreen = () => {
                   Panier {items.length > 0 && <span className="badge bg-light text-info ms-2">{items.length}</span>}
                 </h6>
                 {items.length > 0 && (
-                  <button
-                    type="button"
-                    className="btn btn-outline-light btn-sm"
-                    onClick={clearCart}
-                  >
-                    <i className="pi pi-trash me-1"></i>Vider
-                  </button>
+                  <div className="d-flex gap-2">
+                    <button
+                      type="button"
+                      className="btn btn-primary btn-sm"
+                      onClick={handleSave}
+                      disabled={saving || !selectedClient || stockErrors.length > 0}
+                    >
+                      {saving ? (
+                        <>
+                          <div className="spinner-border spinner-border-sm me-1" role="status"></div>
+                          Enregistrement...
+                        </>
+                      ) : (
+                        <>
+                          <i className="pi pi-check me-1"></i>Valider
+                        </>
+                      )}
+                    </button>
+                    <button
+                      type="button"
+                      className="btn btn-outline-light btn-sm"
+                      onClick={clearCart}
+                      disabled={saving}
+                    >
+                      <i className="pi pi-trash me-1"></i>Vider
+                    </button>
+                  </div>
                 )}
               </div>
             </div>
             
             <div className="card-body p-0">
               {items.length === 0 ? (
-                <div className="text-center py-5"></div>
+                <div className="text-center py-5">
+                  <div className="mb-3">
+                    <i className="pi pi-shopping-cart display-4 text-muted opacity-25"></i>
+                  </div>
+                  <h6 className="mb-2">Panier vide</h6>
+                  <p className="mb-0 small text-muted">Ajoutez des produits pour commencer</p>
+                </div>
+              ) : (
+                <>
+                  <div className="table-responsive">
+                    <table className="table table-sm mb-0">
+                      <thead className="table-light">
+                        <tr>
+                          <th style={{ width: '40px' }}></th>
+                          <th>Produit</th>
+                          <th className="text-center" style={{ width: '100px' }}>Quantité</th>
+                          <th className="text-center" style={{ width: '100px' }}>Prix</th>
+                          <th className="text-center" style={{ width: '80px' }}>Remise(%)</th>
+                          <th className="text-center" style={{ width: '120px' }}>Total</th>
+                          <th style={{ width: '40px' }}></th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {items.map(item => {
+                          const quantity = parseFloat(item.quantity) || 0;
+                          const price = parseFloat(item.sale_price) || 0;
+                          const discount = parseFloat(item.discount) || 0;
+                          const subtotal = quantity * price;
+                          const discountAmount = (subtotal * discount) / 100;
+                          const finalAmount = subtotal - discountAmount;
+                          const availableStock = item.available_stock || 0;
+                          const isOverStock = quantity > availableStock;
+
+                          return (
+                            <tr key={item.product_id} className={isOverStock ? 'table-danger' : ''}>
+                              <td className="text-center">
+                                {item.image ? (
+                                  <img 
+                                    src={`/storage/${item.image}`} 
+                                    alt="Product"
+                                    className="rounded"
+                                    style={{ width: '40px', height: '40px', objectFit: 'cover' }}
+                                  />
+                                ) : (
+                                  <div className="bg-primary bg-opacity-10 rounded d-flex align-items-center justify-content-center" style={{ width: '40px', height: '40px' }}>
+                                    <i className="pi pi-box text-primary"></i>
+                                  </div>
+                                )}
+                              </td>
+                              <td>
+                                <div>
+                                  <div className="fw-semibold">{item.name}</div>
+                                  <small className="text-muted">#{item.code}</small>
+                                  <div className="d-flex gap-1 mt-1">
+                                    <span className={`badge badge-sm ${availableStock <= 2 ? 'bg-warning' : 'bg-success'}`}>
+                                      Stock: {availableStock}
+                                    </span>
+                                    {isOverStock && (
+                                      <span className="badge bg-danger badge-sm">
+                                        <i className="pi pi-exclamation-triangle me-1"></i>
+                                        Dépassé
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+                              </td>
+                              <td className="text-center">
+                                <input
+                                  type="number"
+                                  className={`form-control form-control-sm text-center ${isOverStock ? 'is-invalid' : ''}`}
+                                  value={item.quantity}
+                                  onChange={(e) => updateQuantity(item.product_id, parseFloat(e.target.value) || 0)}
+                                  min="0.01"
+                                  max={availableStock}
+                                  step="0.01"
+                                  style={{ width: '80px' }}
+                                />
+                              </td>
+                              <td className="text-center">
+                                <input
+                                  type="number"
+                                  className="form-control form-control-sm text-center"
+                                  value={item.sale_price}
+                                  onChange={(e) => updatePrice(item.product_id, parseFloat(e.target.value) || 0)}
+                                  min="0"
+                                  step="0.01"
+                                  style={{ width: '90px' }}
+                                />
+                              </td>
+                              <td className="text-center">
+                                <input
+                                  type="number"
+                                  className="form-control form-control-sm text-center"
+                                  value={item.discount || 0}
+                                  onChange={(e) => updateDiscount(item.product_id, parseFloat(e.target.value) || 0)}
+                                  min="0"
+                                  max="100"
+                                  step="0.01"
+                                  style={{ width: '70px' }}
+                                />
+                              </td>
+                              <td className="text-center">
+                                <div className="d-flex flex-column align-items-center">
+                                  <span className={`fw-bold ${isOverStock ? 'text-danger' : 'text-success'}`}>
+                                    {formatCurrency(finalAmount)}
+                                  </span>
+                                  {discount > 0 && (
+                                    <small className="text-muted text-decoration-line-through">
+                                      {formatCurrency(subtotal)}
+                                    </small>
+                                  )}
+                                </div>
+                              </td>
+                              <td className="text-center">
+                                <button
+                                  type="button"
+                                  className="btn btn-outline-danger btn-sm"
+                                  onClick={() => handleRemoveItem(item.product_id)}
+                                  title="Supprimer"
+                                >
+                                  <i className="pi pi-trash"></i>
+                                </button>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {/* Alerte globale pour les stocks insuffisants */}
+                  {stockErrors.length > 0 && (
+                    <div className="alert alert-danger mx-3 mt-3 mb-0">
+                      <div className="d-flex align-items-center">
+                        <i className="pi pi-exclamation-triangle me-2"></i>
+                        <div>
+                          <strong>Attention!</strong>
+                          Certains produits ont une quantité supérieure au stock disponible.
+                          <br />
+                          <small>Veuillez ajuster les quantités avant de procéder à la vente.</small>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Totaux */}
+                  <div className="p-3 border-top bg-light">
+                    <div className="d-flex justify-content-between mb-2">
+                      <span className="small">Sous-total:</span>
+                      <span className="fw-semibold">{formatCurrency(totals.subtotal)}</span>
+                    </div>
+                    {totals.totalDiscount > 0 && (
+                      <div className="d-flex justify-content-between mb-2">
+                        <span className="small">Remise:</span>
+                        <span className="fw-semibold text-warning">-{formatCurrency(totals.totalDiscount)}</span>
+                      </div>
+                    )}
+                    <hr className="my-2" />
+                    <div className="d-flex justify-content-between">
+                      <span className="fw-bold">Total:</span>
+                      <span className="fw-bold text-success">{formatCurrency(totals.totalAmount)}</span>
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+
+          {/* Section Paiement */}
+          <div className="card shadow-sm border-0 mb-4">
+            <div className="card-header bg-warning text-white">
+              <h6 className="mb-0">
+                <i className="pi pi-credit-card me-2"></i>Paiement
+              </h6>
+            </div>
+            <div className="card-body">
+              <div className="mb-3">
+                <label className="form-label fw-semibold">
+                  Montant payé <span className="text-danger">*</span>
+                </label>
+                <div className="input-group">
+                  <input
+                    type="number"
+                    className="form-control"
+                    value={paidAmount}
+                    onChange={(e) => setPaidAmount(parseFloat(e.target.value) || 0)}
+                    min="0"
+                    step="0.01"
+                    placeholder="0"
+                    disabled={paymentStatus.type === 'success'}
+                  />
+                  <span className="input-group-text">FBU</span>
+                </div>
+              </div>
+
+              {totals.totalAmount > 0 && (
+                <div className={`alert alert-${paymentStatus.type === 'success' ? 'success' : paymentStatus.type === 'info' ? 'info' : 'warning'} border-0`}>
+                  <div className="d-flex align-items-center">
+                    <i className={`pi ${paymentStatus.type === 'success' ? 'pi-check-circle' : paymentStatus.type === 'info' ? 'pi-info-circle' : 'pi-exclamation-triangle'} me-2`}></i>
+                    <small>{paymentStatus.message}</small>
+                  </div>
+                </div>
+              )}
+
+              {/* Boutons de montant rapide */}
+              {totals.totalAmount > 0 && (
+                <div className="mb-3">
+                  <label className="form-label fw-semibold small">Montant rapide:</label>
+                  <div className="d-flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      className="btn btn-outline-secondary btn-sm"
+                      onClick={() => setQuickAmount(totals.totalAmount)}
+                    >
+                      Exact
+                    </button>
+                    {[
+                      Math.ceil(totals.totalAmount / 1000) * 1000,
+                      Math.ceil(totals.totalAmount / 5000) * 5000,
+                      Math.ceil(totals.totalAmount / 10000) * 10000
+                    ].filter((amount, index, arr) => 
+                      amount > totals.totalAmount && arr.indexOf(amount) === index
+                    ).slice(0, 3).map((amount, index) => (
+                      <button
+                        key={index}
+                        type="button"
+                        className="btn btn-outline-secondary btn-sm"
+                        onClick={() => setQuickAmount(amount)}
+                      >
+                        {formatCurrency(amount)}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div className="mb-3">
+                <label className="form-label fw-semibold">Note (optionnel)</label>
+                <textarea
+                  className="form-control"
+                  value={note}
+                  onChange={(e) => setNote(e.target.value)}
+                  rows="3"
+                  placeholder="Commentaires sur cette vente..."
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Actions */}
+          <div className="card shadow-sm border-0">
+            <div className="card-body">
+              <div className="d-grid gap-2">
+                <button
+                  type="button"
+                  className="btn btn-success btn-lg"
+                  onClick={handleSave}
+                  disabled={saving || !selectedClient || items.length === 0 || stockErrors.length > 0}
+                >
+                  {saving ? (
+                    <>
+                      <div className="spinner-border spinner-border-sm me-2" role="status"></div>
+                      Enregistrement...
+                    </>
+                  ) : (
+                    <>
+                      <i className="pi pi-check-circle me-2"></i>
+                      {stockErrors.length > 0 ? 'Corriger les stocks avant de sauvegarder' : 'Enregistrer la vente'}
+                    </>
+                  )}
+                </button>
+
+                <div className="row g-2">
+                  <div className="col-6">
+                    <a href="/sales" className="btn btn-outline-secondary w-100">
+                      <i className="pi pi-arrow-left me-1"></i>Retour
+                    </a>
+                  </div>
+                  <div className="col-6">
+                    <button
+                      type="button"
+                      className="btn btn-outline-warning w-100"
+                      onClick={clearCart}
+                      disabled={items.length === 0 || saving}
+                    >
+                      <i className="pi pi-trash me-1"></i>Vider
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Messages d'aide */}
+              {(!selectedClient || items.length === 0 || stockErrors.length > 0) && (
+                <div className="alert alert-warning mt-3 border-0">
+                  <small>
+                    <i className="pi pi-info-circle me-1"></i>
+                    {!selectedClient && items.length === 0 && 'Sélectionnez un client et ajoutez des produits pour continuer'}
+                    {!selectedClient && items.length > 0 && 'Sélectionnez un client pour continuer'}
+                    {selectedClient && items.length === 0 && 'Ajoutez des produits pour continuer'}
+                    {stockErrors.length > 0 && 'Corrigez les quantités supérieures au stock disponible avant de continuer'}
+                  </small>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default SalesCreateScreen;

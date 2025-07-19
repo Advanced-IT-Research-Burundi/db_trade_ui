@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Toast } from 'primereact/toast';
 import ApiService from '../../services/api.js';
 import StatCard from '../../components/Card/StatCard.jsx';
+import { useNavigate } from 'react-router-dom';
 
 const SalesScreen = () => {
   const [sales, setSales] = useState([]);
@@ -23,6 +24,7 @@ const SalesScreen = () => {
   });
   const [deleteModal, setDeleteModal] = useState({ show: false, saleId: null });
   const toast = useRef(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     loadSales();
@@ -188,9 +190,9 @@ const SalesScreen = () => {
                 <i className="pi pi-arrow-clockwise me-1"></i>
                 {loading ? 'Actualisation...' : 'Actualiser'}
               </button>
-              <a href="/sales/create" className="btn btn-primary">
+              <button  onClick={()=>navigate('/sales/create')} className="btn btn-primary">
                 <i className="pi pi-plus-circle me-1"></i>Nouvelle Vente
-              </a>
+              </button>
             </div>
           </div>
         </div>

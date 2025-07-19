@@ -27,7 +27,6 @@ const ExpenseScreen = () => {
 
   useEffect(() => {
     loadExpenses();
-    loadFilterData();
   }, []);
 
   const loadExpenses = async (page = 1) => {
@@ -38,6 +37,10 @@ const ExpenseScreen = () => {
       
       if (response.success) {
         setExpenses(response.data.expenses.data || []);
+
+        setExpenseTypes(response.data.expense_types || []);
+        setAgencies(response.data.agencies || []);
+        setUsers(response.data.users || []);
         setPagination({
           current_page: response.data.expenses.current_page,
           last_page: response.data.expenses.last_page,
@@ -55,18 +58,6 @@ const ExpenseScreen = () => {
     }
   };
 
-  const loadFilterData = async () => {
-    try {
-      const response = await ApiService.get('/api/expenses/filter-data');
-      if (response.success) {
-        setExpenseTypes(response.data.expense_types || []);
-        setAgencies(response.data.agencies || []);
-        setUsers(response.data.users || []);
-      }
-    } catch (error) {
-      console.error('Erreur lors du chargement des données de filtrage:', error);
-    }
-  };
 
   const handleFilterChange = (name, value) => {
     setFilters(prev => ({ ...prev, [name]: value }));

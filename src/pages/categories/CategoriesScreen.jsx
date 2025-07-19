@@ -27,6 +27,7 @@ const CategoryScreen = () => {
 
   useEffect(() => {
     loadCategories();
+   
   }, []);
 
   const loadCategories = async (page = 1) => {

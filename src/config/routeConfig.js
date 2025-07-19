@@ -13,6 +13,12 @@ export const routesConfig = [
     component: 'SalesScreen'
   },
   {
+    path: '/proforma',
+    icon: 'pi pi-file',
+    label: 'Proforma',
+    component: 'SalesScreen'
+  },
+  {
     path: '/stocks',
     icon: 'pi pi-box',
     label: 'Stocks',

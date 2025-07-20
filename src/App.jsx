@@ -6,9 +6,12 @@ import AppRoutes from './routes/Routes.jsx';
 
 import { CartProvider } from './contexts/cartReducer';
 import './App.css';
+import { Provider } from 'react-redux';
+import store from './stores/index';
 
 function App() {
   return (
+    <Provider store={store}>
     <CartProvider>
     <AuthProvider>
       <Router>
@@ -16,6 +19,7 @@ function App() {
       </Router>
     </AuthProvider>
     </CartProvider>
+    </Provider>
   );
 }
 

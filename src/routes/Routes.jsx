@@ -8,9 +8,6 @@ import LoginScreen from '../pages/Auth/LoginScreen';
 import DashboardScreen from '../pages/DashboardScreen';
 //sales
 import SalesScreen from '../pages/sales/SalesScreen';
-import SalesCreateScreen from '../pages/sales/SalesCreateScreen.jsx';
-
-import ProformaScreen from '../pages/profoma/ProformaScreen'
 //stocks
 import StocksScreen from '../pages/stocks/StocksScreen';
 //products
@@ -76,9 +73,6 @@ const protectedRoutes = [
   { path: '/dashboard', component: DashboardScreen },
   //sales
   { path: '/sales', component: SalesScreen },
-  { path: '/sales/create', component: SalesCreateScreen},
-  //proforma
-  { path: '/proforma',component : ProformaScreen},
   //stocks
   { path: '/stocks', component: StocksScreen },
   //products

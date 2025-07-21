@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Toast } from 'primereact/toast';
 import ApiService from '../../services/api.js';
+import { useNavigate } from 'react-router-dom';
 
 const StockScreen = () => {
   const [stocks, setStocks] = useState([]);
@@ -23,6 +24,7 @@ const StockScreen = () => {
   });
   const [deleteModal, setDeleteModal] = useState({ show: false, stockId: null });
   const toast = useRef(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     loadStocks();
@@ -194,10 +196,10 @@ const StockScreen = () => {
                 <i className="pi pi-refresh me-1"></i>
                 {loading ? 'Actualisation...' : 'Actualiser'}
               </button>
-              <a href="/stocks/transfer" className="btn btn-outline-info">
+              <a onClick={() => navigate('/stocks/transfer')} className="btn btn-outline-info">
                 <i className="pi pi-sync me-1"></i>Transfert Entre Stock
               </a>
-              <a href="/stocks/create" className="btn btn-primary">
+              <a onClick={() => navigate('/stocks/create')} className="btn btn-primary">
                 <i className="pi pi-plus-circle me-1"></i>Nouveau Stock
               </a>
             </div>

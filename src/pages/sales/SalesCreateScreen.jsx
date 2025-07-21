@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Toast } from 'primereact/toast';
 import { useCart } from '../../contexts/cartReducer.jsx';
 import ApiService from '../../services/api.js';
+import { useNavigate } from 'react-router-dom';
 
 const SalesCreateScreen = () => {
   const { 
@@ -48,6 +49,8 @@ const SalesCreateScreen = () => {
   const toast = useRef(null);
   const clientSearchRef = useRef(null);
   const productSearchRef = useRef(null);
+
+  const navigate = useNavigate()
 
   useEffect(() => {
     loadInitialData();
@@ -225,7 +228,7 @@ const SalesCreateScreen = () => {
         }))
       };
 
-      const response = await ApiService.post('/api/sales', saleData);
+      const response = await ApiService.post('/api/sales/store', saleData);
       
       if (response.success) {
         showToast('success', 'Vente enregistrée avec succès');
@@ -233,8 +236,8 @@ const SalesCreateScreen = () => {
         
         // Redirection ou reset du formulaire
         setTimeout(() => {
-          window.location.href = '/sales';
-        }, 2000);
+          navigate('/sales');
+        }, 1000);
       } else {
         showToast('error', response.message || 'Erreur lors de l\'enregistrement');
       }
@@ -306,7 +309,9 @@ const SalesCreateScreen = () => {
               <p className="text-muted mb-0">Créer une nouvelle vente</p>
             </div>
             <div className="d-flex gap-2">
-              <a href="/sales" className="btn btn-outline-secondary">
+              <a onClick={()=>{
+                navigate('/sales')
+              }} className="btn btn-outline-secondary">
                 <i className="pi pi-arrow-left me-1"></i>Retour
               </a>
             </div>
@@ -360,7 +365,9 @@ const SalesCreateScreen = () => {
                 <h6 className="mb-0">
                   <i className="pi pi-user me-2"></i>Client
                 </h6>
-                <a href="/clients/create" className="btn btn-outline-light btn-sm">
+                <a onClick={()=>{
+                  navigate('/clients/create')
+                }} className="btn btn-outline-light btn-sm">
                   <i className="pi pi-plus me-1"></i>Nouveau
                 </a>
               </div>

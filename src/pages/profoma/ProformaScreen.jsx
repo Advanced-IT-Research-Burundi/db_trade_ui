@@ -427,7 +427,7 @@ const ProformaScreen = () => {
                         <td className="px-4">
                           <div className="d-flex align-items-center">
                             <div className="bg-primary bg-opacity-10 p-2 rounded me-2">
-                              <i className="pi pi-file-text text-primary"></i>
+                              <i className="pi pi-file text-primary"></i>
                             </div>
                             <div>
                               <strong className="text-primary">

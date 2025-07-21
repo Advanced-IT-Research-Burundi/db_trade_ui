@@ -13,6 +13,7 @@ import SalesCreateScreen from '../pages/sales/SalesCreateScreen.jsx';
 import ProformaScreen from '../pages/profoma/ProformaScreen'
 //stocks
 import StocksScreen from '../pages/stocks/StocksScreen';
+import StockTransferScreen from '../pages/stocks/StockTransferScreen.jsx';
 //products
 import ProductsScreen from '../pages/products/ProductsScreen';
 //category
@@ -81,6 +82,7 @@ const protectedRoutes = [
   { path: '/proforma',component : ProformaScreen},
   //stocks
   { path: '/stocks', component: StocksScreen },
+  { path: '/stocks/transfer', component: StockTransferScreen }, 
   //products
   { path: '/products', component: ProductsScreen },
   //category

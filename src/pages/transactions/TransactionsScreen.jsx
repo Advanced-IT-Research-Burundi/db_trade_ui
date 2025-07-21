@@ -2,11 +2,27 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Toast } from 'primereact/toast';
 import ApiService from '../../services/api.js';
 import StatCard from '../../components/Card/StatCard.jsx';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchApiData } from '../../stores/slicer/apiDataSlicer.js';
+import { API_CONFIG } from '../../services/config.js';
 
 
 const TransactionScreen = () => {
+  const dispatch = useDispatch();
+
+  const { data, loading, error } = useSelector((state) => ({
+    data: state.apiData?.data?.transactions,
+    loading: state.apiData.loading,
+    error: state.apiData.error
+  }));
+
+  useEffect(() => {
+    loadTransactions();
+  }, []);
+
+
+  
   const [transactions, setTransactions] = useState([]);
-  const [loading, setLoading] = useState(false);
   const [stats, setStats] = useState({});
   const [cashRegisters, setCashRegisters] = useState([]);
   const [agencies, setAgencies] = useState([]);
@@ -39,33 +55,30 @@ const TransactionScreen = () => {
 
   const loadTransactions = async (page = 1) => {
     try {
-      setLoading(true);
       const params = { page, ...filters };
-      const response = await ApiService.get('/api/cash-transactions', params);
+      dispatch(fetchApiData({
+        url: API_CONFIG.ENDPOINTS.CASH_TRANSACTIONS,
+        itemKey: 'transactions',
+        params
+      }));  
       
-      if (response.success) {
-        setTransactions(response.data.transactions.data || []);
+        setTransactions(data?.transactions?.data || []);
 
-        setCashRegisters(response.data.cashRegisters || []);
-        setAgencies(response.data.agencies || []);
-        setUsers(response.data.users || []);
+        setCashRegisters(data?.cashRegisters || []);
+        setAgencies(data?.agencies || []);
+        setUsers(data?.users || []);
 
-        setStats(response.data.stats || {});
+        setStats(data?.stats || {});
         setPagination({
-          current_page: response.data.transactions.current_page,
-          last_page: response.data.transactions.last_page,
-          total: response.data.transactions.total,
-          from: response.data.transactions.from,
-          to: response.data.transactions.to
+          current_page: data?.transactions?.current_page,
+          last_page: data?.transactions?.last_page,
+          total: data?.transactions?.total,
+          from: data?.transactions?.from,
+          to: data?.transactions?.to
         });
-      } else {
-        showToast('error', response.message || 'Erreur lors du chargement');
-      }
     } catch (error) {
       showToast('error', error.message);
-    } finally {
-      setLoading(false);
-    }
+    } 
   };
 
 
@@ -211,6 +224,9 @@ const TransactionScreen = () => {
       return pages;
     };
 
+    if (loading && !data) return <LoadingComponent />;
+    if (error) return <ErrorComponent error={error} />;
+
     return (
       <nav>
         <ul className="pagination pagination-sm mb-0">
@@ -268,10 +284,9 @@ const TransactionScreen = () => {
               <button 
                 className="btn btn-outline-primary" 
                 onClick={() => { loadTransactions(pagination.current_page);  }} 
-                disabled={loading}
               >
                 <i className="pi pi-refresh me-1"></i>
-                {loading ? 'Actualisation...' : 'Actualiser'}
+                Actualiser
               </button>
               <a href="/cash-transactions/create" className="btn btn-primary">
                 <i className="pi pi-plus me-1"></i>Nouvelle Transaction
@@ -288,28 +303,28 @@ const TransactionScreen = () => {
           title="Total Transactions" 
           value={stats.total_count || 0} 
           color="primary" 
-          loading={loading} 
+      
         />
         <StatCard 
           icon="arrow-down" 
           title="Total Entrées" 
           value={formatCurrency(stats.total_in || 0)} 
           color="success" 
-          loading={loading} 
+
         />
         <StatCard 
           icon="arrow-up" 
           title="Total Sorties" 
           value={formatCurrency(stats.total_out || 0)} 
           color="danger" 
-          loading={loading} 
+
         />
         <StatCard 
           icon="calendar" 
           title="Aujourd'hui" 
           value={stats.today_count || 0} 
           color="info" 
-          loading={loading} 
+
         />
       </div>
 
@@ -442,7 +457,7 @@ const TransactionScreen = () => {
             </div>
             
             <div className="col-md-2 d-flex align-items-end gap-2">
-              <button type="submit" className="btn btn-primary" disabled={loading}>
+              <button type="submit" className="btn btn-primary" >
                 <i className="pi pi-search"></i>
               </button>
               <button type="button" className="btn btn-outline-secondary" onClick={handleReset}>
@@ -481,15 +496,7 @@ const TransactionScreen = () => {
                 </tr>
               </thead>
               <tbody>
-                {loading ? (
-                  <tr>
-                    <td colSpan="10" className="text-center py-5">
-                      <div className="spinner-border text-primary" role="status">
-                        <span className="visually-hidden">Chargement...</span>
-                      </div>
-                    </td>
-                  </tr>
-                ) : transactions.length === 0 ? (
+                {transactions.length === 0 ? (
                   <tr>
                     <td colSpan="10" className="text-center py-5">
                       <div className="text-muted">

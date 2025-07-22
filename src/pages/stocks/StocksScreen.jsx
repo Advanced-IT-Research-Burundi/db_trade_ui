@@ -404,7 +404,7 @@ const StockScreen = () => {
                       <td className="px-4">
                         <div className="btn-group" role="group">
                           <a 
-                            href={`/stocks/${stock.id}`} 
+                             onClick={() => navigate(`/stocks/${stock.id}`)}
                             className="btn btn-sm btn-outline-info" 
                             title="Voir"
                           >

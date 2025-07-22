@@ -13,7 +13,9 @@ import SalesCreateScreen from '../pages/sales/SalesCreateScreen.jsx';
 import ProformaScreen from '../pages/profoma/ProformaScreen'
 //stocks
 import StocksScreen from '../pages/stocks/StocksScreen';
+import StockShowScreen from '../pages/stocks/StockShowScreen.jsx';
 import StockTransferScreen from '../pages/stocks/StockTransferScreen.jsx';
+import StockMovementScreen from '../pages/stocks/StockMovementScreen.jsx';
 //products
 import ProductsScreen from '../pages/products/ProductsScreen';
 //category
@@ -82,7 +84,9 @@ const protectedRoutes = [
   { path: '/proforma',component : ProformaScreen},
   //stocks
   { path: '/stocks', component: StocksScreen },
-  { path: '/stocks/transfer', component: StockTransferScreen }, 
+  { path: '/stocks/:id', component: StockShowScreen },
+  { path: '/stocks/transfer', component: StockTransferScreen },
+  { path: '/stocks/movements/:id', component: StockMovementScreen },
   //products
   { path: '/products', component: ProductsScreen },
   //category

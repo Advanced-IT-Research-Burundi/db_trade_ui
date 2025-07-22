@@ -118,8 +118,6 @@ const CategoryScreen = () => {
     return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
   };
 
-  if (loading && !data) return <LoadingComponent />;
-  if (error) return <ErrorComponent error={error} />;
 
   return (
     <Container fluid>

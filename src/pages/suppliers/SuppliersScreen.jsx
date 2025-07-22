@@ -111,9 +111,7 @@ const SupplierScreen = () => {
   // Helper functions
   const formatDate = (date) => new Date(date).toLocaleDateString('fr-FR');
 
-  if (loading && !data) return <LoadingComponent />;
-  if (error) return <ErrorComponent error={error} />;
-
+ 
   return (
     <Container fluid>
       <Toast ref={toast} />

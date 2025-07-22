@@ -8,11 +8,13 @@ import { CartProvider } from './contexts/cartReducer';
 import './App.css';
 import { Provider } from 'react-redux';
 import store from './stores/index';
+import LoadingComponent from './pages/component/LoadingComponent';
 
 function App() {
   return (
     <Provider store={store}>
-    <CartProvider>
+      <CartProvider>
+        <LoadingComponent />
     <AuthProvider>
       <Router>
         <AppRoutes />

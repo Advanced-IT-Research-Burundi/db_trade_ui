@@ -27,10 +27,9 @@ const UserScreen = () => {
   const [deleteModal, setDeleteModal] = useState({ show: false, userId: null });
   
   // Get data from Redux store
-  const { data, loading, error } = useSelector((state) => ({
+  const { data, loading } = useSelector((state) => ({
     data: state.apiData?.data?.users,
     loading: state.apiData.loading,
-    error: state.apiData.error
   }));
   
   // Extract data from API response
@@ -164,8 +163,6 @@ const UserScreen = () => {
     return formatDate(lastLogin);
   };
 
-  if (loading && !data) return <LoadingComponent />;
-  if (error) return <ErrorComponent error={error} />;
 
   return (
     <Container fluid>

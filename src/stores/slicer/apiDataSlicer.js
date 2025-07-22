@@ -1,12 +1,18 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import ApiService from "../../services/api";
 
-export const fetchApiData = createAsyncThunk('apiData/fetchApiData', async ({url , itemKey ,  params = {}}) => {
-    const response = await ApiService.get(url, params)
-    //console.log("itemKey", itemKey , "response", url , params)
-    return {
-        clef : itemKey,
-        data : response.data
+export const fetchApiData = createAsyncThunk('apiData/fetchApiData', async ({ url, itemKey, params = {} }) => {
+    
+    try {
+        const response = await ApiService.get(url, params)
+        //console.log("itemKey", itemKey , "response", url , params)
+        return {
+            clef : itemKey,
+            data : response.data
+        }
+    } catch (error) {
+        console.error("Error fetching data:", error);
+        throw error
     }
 })
 
@@ -19,6 +25,9 @@ const apiDataSlice = createSlice({
         error: null
     },
     reducers: {
+        setLoading: (state, action) => {
+            state.loading = action.payload
+        }
        
     },
     extraReducers: (builder) => {
@@ -38,6 +47,6 @@ const apiDataSlice = createSlice({
     }
 })
 
-//export const {  } = apiDataSlice.actions
+export const { setLoading } = apiDataSlice.actions
 
 export default apiDataSlice.reducer

@@ -224,8 +224,7 @@ const TransactionScreen = () => {
       return pages;
     };
 
-    if (loading && !data) return <LoadingComponent />;
-    if (error) return <ErrorComponent error={error} />;
+
 
     return (
       <nav>

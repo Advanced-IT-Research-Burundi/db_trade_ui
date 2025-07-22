@@ -127,8 +127,6 @@ const ProductScreen = () => {
     return imagePath.startsWith('http') ? imagePath : `/storage/${imagePath}`;
   };
 
-  if (loading && !data) return <LoadingComponent />;
-  if (error) return <ErrorComponent error={error} />;
 
   return (
     <Container fluid>

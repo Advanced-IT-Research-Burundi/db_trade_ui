@@ -3,7 +3,6 @@ import { useDispatch, useSelector } from 'react-redux';
 import { fetchApiData } from '../../stores/slicer/apiDataSlicer';
 import { API_CONFIG } from '../../services/config';
 import LoadingComponent from '../component/LoadingComponent';
-import ErrorComponent from '../component/ErrorComponent';
 import GlobalPagination from '../component/GlobalPagination';
 import { Card, Table, Container, Row, Col, Form, InputGroup, Button } from 'react-bootstrap';
 import { FaEdit, FaEye, FaSearch, FaTimes, FaTrash } from 'react-icons/fa';
@@ -14,8 +13,6 @@ const StockScreen = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [searchTimeout, setSearchTimeout] = useState(null);
  
-    const apiData = useSelector((state) => state.apiData);
-    const error = useSelector((state) => state.apiData.error);
     const stocksData = useSelector((state) => state.apiData?.data?.stocks?.stocks);
     const stocks = stocksData?.data || [];
     const pagination = stocksData ? {
@@ -67,14 +64,8 @@ const StockScreen = () => {
         fetchStocks(1, '');
     };
 
-    if (apiData.loading && !stocksData) {
-        return <LoadingComponent />;
-    }
 
-    if (error) {
-        return <ErrorComponent error={error} />;
-    }
-
+   
     return (
         <Container fluid>
             <Row>
@@ -83,6 +74,8 @@ const StockScreen = () => {
                         <Card.Header>
                             <Card.Title as="h4" className="d-flex justify-content-between align-items-center">
                                 <span>Liste des Stocks</span>
+
+                                <LoadingComponent />
                                 <div className="search-wrapper">
                                     <InputGroup style={{ maxWidth: '300px' }}>
                                         <Form.Control

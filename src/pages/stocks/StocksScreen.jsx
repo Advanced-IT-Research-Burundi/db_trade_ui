@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Toast } from 'primereact/toast';
-import ApiService from '../../services/api.js';
 import { useNavigate } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchApiData } from '../../stores/slicer/apiDataSlicer.js';
+import { API_CONFIG } from '../../services/config.js';
 
 const StockScreen = () => {
   const [stocks, setStocks] = useState([]);
@@ -26,31 +28,37 @@ const StockScreen = () => {
   const toast = useRef(null);
   const navigate = useNavigate();
 
+  const dispatch = useDispatch();
+  const { data } = useSelector(state => state.apiData);
+
   useEffect(() => {
     loadStocks();
   }, []);
 
-  const loadStocks = async (page = 1) => {
+  useEffect(() => {
+    if (data) {
+      setStocks(data?.stocks?.stocks?.data || []);
+      setAgencies(data?.stocks?.agencies || []);
+      setCreators(data?.stocks?.creators || []);
+      setUsers(data?.stocks?.users || []);
+    }
+  }, [data]);
+
+  async function loadStocks(page = 1) {
     try {
       setLoading(true);
       const params = { page, ...filters };
-      const response = await ApiService.get('/api/stocks', params);
-      
-      if (response.success) {
-        setStocks(response.data.stocks.data || []);
-
-        setAgencies(response.data.agencies || []);
-        setCreators(response.data.creators || []);
-        setUsers(response.data.users || []);
-        setPagination({
-          current_page: response.data.stocks.current_page,
-          last_page: response.data.stocks.last_page,
-          total: response.data.stocks.total,
-          from: response.data.stocks.from,
-          to: response.data.stocks.to
+      dispatch(fetchApiData({ url: API_CONFIG.ENDPOINTS.STOCKS, itemKey: 'stocks', params }));
+      if (data) {
+          setPagination({
+          current_page: data?.stocks?.stocks?.current_page,
+          last_page: data?.stocks?.stocks?.last_page,
+          total: data?.stocks?.stocks?.total,
+          from: data?.stocks?.stocks?.from,
+          to: data?.stocks?.stocks?.to
         });
       } else {
-        showToast('error', response.message || 'Erreur lors du chargement');
+        showToast('error', 'Erreur lors du chargement');
       }
     } catch (error) {
       showToast('error', error.message);
@@ -77,12 +85,12 @@ const StockScreen = () => {
 
   const handleDeleteStock = async (stockId) => {
     try {
-      const response = await ApiService.delete(`/api/stocks/${stockId}`);
-      if (response.success) {
+      dispatch(fetchApiData({ url: API_CONFIG.ENDPOINTS.STOCKS + `/${stockId}`, itemKey: 'stocks', method: 'DELETE' }));
+      if (data) {
         showToast('success', 'Stock supprimé avec succès');
         loadStocks(pagination.current_page);
       } else {
-        showToast('error', response.message || 'Erreur lors de la suppression');
+        showToast('error', 'Erreur lors de la suppression');
       }
     } catch (error) {
       showToast('error', error.message);

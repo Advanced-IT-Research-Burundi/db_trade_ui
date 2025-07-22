@@ -40,7 +40,7 @@ import TransactionsScreen from '../pages/transactions/TransactionsScreen';
 import ExpensesScreen from '../pages/expenses/ExpensesScreen';
 import ExpenseTypesScreen from '../pages/expensetypes/ExpenseTypesScreen';
 import ReportsScreen from '../pages/reports/ReportsScreen.jsx';
-
+import StocksShowScreen from '../pages/stocks/StocksShowScreen.jsx';
 //Profil
 import ProfileScreen from '../pages/Auth/ProfileScreen.jsx';
 
@@ -75,6 +75,7 @@ const protectedRoutes = [
   { path: '/sales', component: SalesScreen },
   //stocks
   { path: '/stocks', component: StocksScreen },
+  { path: '/stocks/:id', component: StocksShowScreen },
   //products
   { path: '/products', component: ProductsScreen },
   //category

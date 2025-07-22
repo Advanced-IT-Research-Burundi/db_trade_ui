@@ -10,8 +10,10 @@ import { Provider } from 'react-redux';
 import store from './stores/index';
 import LoadingComponent from './pages/component/LoadingComponent';
 
+
 function App() {
   return (
+    
     <Provider store={store}>
       <CartProvider>
         <LoadingComponent />

@@ -6,6 +6,7 @@ import LoadingComponent from '../component/LoadingComponent';
 import GlobalPagination from '../component/GlobalPagination';
 import { Card, Table, Container, Row, Col, Form, InputGroup, Button } from 'react-bootstrap';
 import { FaEdit, FaEye, FaSearch, FaTimes, FaTrash } from 'react-icons/fa';
+import { Link } from 'react-router-dom';
 
 const StockScreen = () => {
     const dispatch = useDispatch();
@@ -74,7 +75,6 @@ const StockScreen = () => {
                         <Card.Header>
                             <Card.Title as="h4" className="d-flex justify-content-between align-items-center">
                                 <span>Liste des Stocks</span>
-
                                 <LoadingComponent />
                                 <div className="search-wrapper">
                                     <InputGroup style={{ maxWidth: '300px' }}>
@@ -128,12 +128,15 @@ const StockScreen = () => {
                                                     <Button variant="primary" size="sm">
                                                         <FaEdit />
                                                      </Button>
-                                                    <Button variant="warning" size="sm">
+                                                    <Link to={`/stocks/${stock.id}`}>
+                                                    <Button variant="warning" size="sm" >
                                                         <FaEye />
-                                                     </Button>
-                                                    <Button variant="danger" size="sm">
+                                                    </Button>
+                                                    </Link>
+                                                    
+                                                  {/*   <Button variant="danger" size="sm">
                                                         <FaTrash />
-                                                     </Button>
+                                                     </Button> */}
                                                 </td>
                                             </tr>
                                         ))

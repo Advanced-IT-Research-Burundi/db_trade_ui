@@ -3,6 +3,7 @@ import { Toast } from 'primereact/toast';
 import { Chart, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, Filler } from 'chart.js';
 import { Line } from 'react-chartjs-2';
 import ApiService from '../services/api.js';
+import { useNavigate } from 'react-router-dom';
 
 Chart.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, Filler);
 
@@ -12,6 +13,7 @@ const DashboardScreen = () => {
   const [period, setPeriod] = useState('30');
   const [agencyId, setAgencyId] = useState('');
   const toast = useRef(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     loadDashboard();
@@ -345,7 +347,7 @@ const DashboardScreen = () => {
                 <div className="flex-shrink-0 me-3">
                   <div className="d-flex align-items-center justify-content-center rounded-circle" 
                        style={{ width: '50px', height: '50px', background: 'linear-gradient(135deg, #28a745 0%, #20c997 100%)' }}>
-                    <i className="pi pi-currency-dollar text-white fs-4"></i>
+                    <i className="pi pi-dollar text-white fs-4"></i>
                   </div>
                 </div>
                 <div className="flex-grow-1">
@@ -369,7 +371,7 @@ const DashboardScreen = () => {
                 <div className="flex-shrink-0 me-3">
                   <div className="d-flex align-items-center justify-content-center rounded-circle" 
                        style={{ width: '50px', height: '50px', backgroundColor: '#2E7DB8' }}>
-                    <i className="pi pi-cart-check text-white fs-4"></i>
+                    <i className="pi pi-cart-plus text-white fs-4"></i>
                   </div>
                 </div>
                 <div className="flex-grow-1">
@@ -378,7 +380,7 @@ const DashboardScreen = () => {
                     {formatCurrency(dashboardData.stats.today_sales.amount)}
                   </h3>
                   <small className="text-info">
-                    <i className="pi pi-graph-up"></i> {dashboardData.stats.today_sales.count} transactions
+                    <i className="pi pi-arrow-up"></i> {dashboardData.stats.today_sales.count} transactions
                   </small>
                 </div>
               </div>
@@ -394,7 +396,7 @@ const DashboardScreen = () => {
                 <div className="flex-shrink-0 me-3">
                   <div className="d-flex align-items-center justify-content-center rounded-circle" 
                        style={{ width: '50px', height: '50px', background: 'linear-gradient(135deg, #6f42c1 0%, #8a63d2 100%)' }}>
-                    <i className="pi pi-box-seam text-white fs-4"></i>
+                    <i className="pi pi-box text-white fs-4"></i>
                   </div>
                 </div>
                 <div className="flex-grow-1">
@@ -419,7 +421,7 @@ const DashboardScreen = () => {
                 <div className="flex-shrink-0 me-3">
                   <div className="d-flex align-items-center justify-content-center rounded-circle" 
                        style={{ width: '50px', height: '50px', background: 'linear-gradient(135deg, #fd7e14 0%, #ff8c42 100%)' }}>
-                    <i className="pi pi-people text-white fs-4"></i>
+                    <i className="pi pi-users text-white fs-4"></i>
                   </div>
                 </div>
                 <div className="flex-grow-1">
@@ -428,7 +430,7 @@ const DashboardScreen = () => {
                     {dashboardData.stats.clients.active}
                   </h3>
                   <small className="text-info">
-                    <i className="pi pi-person-plus"></i> +{dashboardData.stats.clients.new} nouveaux
+                    <i className="pi pi-user-plus"></i> +{dashboardData.stats.clients.new} nouveaux
                   </small>
                 </div>
               </div>
@@ -490,25 +492,25 @@ const DashboardScreen = () => {
             <div className="card-body">
               <div className="row g-3">
                 <div className="col-6">
-                  <a href="/sales/create" className="btn btn-primary w-100 d-flex flex-column align-items-center py-3">
+                  <a onClick={() => navigate('/sales/create')} className="btn btn-primary w-100 d-flex flex-column align-items-center py-3">
                     <i className="pi pi-plus-circle fs-2 mb-2"></i>
                     Nouvelle vente
                   </a>
                 </div>
                 <div className="col-6">
-                  <a href="/purchases/create" className="btn btn-info w-100 d-flex flex-column align-items-center py-3">
+                  <a onClick={() => navigate('/purchases/create')} className="btn btn-info w-100 d-flex flex-column align-items-center py-3">
                     <i className="pi pi-cart-plus fs-2 mb-2"></i>
                     Nouvel achat
                   </a>
                 </div>
                 <div className="col-6">
-                  <a href="/products/create" className="btn btn-success w-100 d-flex flex-column align-items-center py-3">
+                  <a onClick={() => navigate('/products/create')} className="btn btn-success w-100 d-flex flex-column align-items-center py-3">
                     <i className="pi pi-box-seam fs-2 mb-2"></i>
                     Nouveau produit
                   </a>
                 </div>
                 <div className="col-6">
-                  <a href="/clients/create" className="btn btn-warning w-100 d-flex flex-column align-items-center py-3">
+                  <a onClick={() => navigate('/clients/create')} className="btn btn-warning w-100 d-flex flex-column align-items-center py-3">
                     <i className="pi pi-person-plus fs-2 mb-2"></i>
                     Nouveau client
                   </a>

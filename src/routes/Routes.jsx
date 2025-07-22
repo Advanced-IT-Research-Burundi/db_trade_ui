@@ -16,8 +16,10 @@ import StocksScreen from '../pages/stocks/StocksScreen';
 import StockShowScreen from '../pages/stocks/StockShowScreen.jsx';
 import StockTransferScreen from '../pages/stocks/StockTransferScreen.jsx';
 import StockMovementScreen from '../pages/stocks/StockMovementScreen.jsx';
+
 //products
 import ProductsScreen from '../pages/products/ProductsScreen';
+import AddProductScreen from '../pages/stocks/AddProductScreen.jsx';
 //category
 import CategoriesScreen from '../pages/categories/CategoriesScreen';
 import CategoryCreateScreen from '../pages/categories/CategoryCreateScreen.jsx';
@@ -89,6 +91,7 @@ const protectedRoutes = [
   { path: '/stocks/movements/:id', component: StockMovementScreen },
   //products
   { path: '/products', component: ProductsScreen },
+  { path: '/add/product/:id', component: AddProductScreen },
   //category
   { path: '/categories', component: CategoriesScreen },
   { path: '/categories/create', component: CategoryCreateScreen },

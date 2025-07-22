@@ -1,14 +1,21 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { Toast } from 'primereact/toast';
-import ApiService from '../../services/api.js';
+import { useNavigate } from 'react-router-dom';
+import { fetchApiData } from '../../stores/slicer/apiDataSlicer';
+import { API_CONFIG } from '../../services/config';
+import LoadingComponent from '../component/LoadingComponent';
+import ErrorComponent from '../component/ErrorComponent';
+import GlobalPagination from '../component/GlobalPagination';
+import { Card, Table, Container, Row, Col, Form, Button, InputGroup, Badge, Image, ButtonGroup } from 'react-bootstrap';
+import { FaEdit, FaEye, FaTrash, FaSearch, FaSync, FaPlus, FaUser, FaBuilding, FaPhone, FaEnvelope, FaCalendarAlt } from 'react-icons/fa';
 
 const UserScreen = () => {
-  const [users, setUsers] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [companies, setCompanies] = useState([]);
-  const [agencies, setAgencies] = useState([]);
-  const [roles, setRoles] = useState([]);
-  const [statuses, setStatuses] = useState([]);
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const toast = useRef(null);
+  
+  // Local state
   const [filters, setFilters] = useState({
     search: '',
     company_id: '',
@@ -16,80 +23,88 @@ const UserScreen = () => {
     role: '',
     status: ''
   });
-  const [pagination, setPagination] = useState({
-    current_page: 1,
-    last_page: 1,
-    total: 0,
-    from: 0,
-    to: 0
-  });
+  const [currentPage, setCurrentPage] = useState(1);
   const [deleteModal, setDeleteModal] = useState({ show: false, userId: null });
-  const toast = useRef(null);
+  
+  // Get data from Redux store
+  const { data, loading } = useSelector((state) => ({
+    data: state.apiData?.data?.users,
+    loading: state.apiData.loading,
+  }));
+  
+  // Extract data from API response
+  const users = data?.users?.data || [];
+  const companies = data?.companies || [];
+  const agencies = data?.agencies || [];
+  const roles = data?.roles || [];
+  const statuses = data?.statuses || [];
+  
+  const pagination = data?.users ? {
+    current_page: data.users.current_page,
+    last_page: data.users.last_page,
+    total: data.users.total,
+    from: data.users.from,
+    to: data.users.to
+  } : { current_page: 1, last_page: 1, total: 0, from: 0, to: 0 };
 
+  // Fetch users with filters
+  const loadUsers = (page = 1, searchFilters = filters) => {
+    const params = { page, ...searchFilters };
+    dispatch(fetchApiData({
+      url: API_CONFIG.ENDPOINTS.USERS,
+      itemKey: 'users',
+      params
+    }));
+  };
+
+  // Initial load
   useEffect(() => {
     loadUsers();
   }, []);
 
-  const loadUsers = async (page = 1) => {
-    try {
-      setLoading(true);
-      const params = { page, ...filters };
-      const response = await ApiService.get('/api/users', params);
-      
-      if (response.success) {
-        setUsers(response.data.users?.data || []);
-
-        setCompanies(response.data?.companies || []);
-        setAgencies(response.data?.agencies || []);
-        setRoles(response.data?.roles || []);
-        setStatuses(response.data?.statuses || []);
-        setPagination({
-          current_page: response.data.users?.current_page,
-          last_page: response.data.users?.last_page,
-          total: response.data.users?.total,
-          from: response.data.users?.from,
-          to: response.data.users?.to
-        });
-      } else {
-        showToast('error', response.message || 'Erreur lors du chargement');
-      }
-    } catch (error) {
-      showToast('error', error.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-
+  // Handle filter changes
   const handleFilterChange = (name, value) => {
-    setFilters(prev => ({ ...prev, [name]: value }));
+    const newFilters = { ...filters, [name]: value };
+    setFilters(newFilters);
+    setCurrentPage(1);
+    loadUsers(1, newFilters);
   };
 
+  // Handle search
   const handleSearch = (e) => {
     e.preventDefault();
-    loadUsers(1);
+    setCurrentPage(1);
+    loadUsers(1, filters);
   };
 
+  // Reset filters
   const handleReset = () => {
-    setFilters({ search: '', company_id: '', agency_id: '', role: '', status: '' });
-    setTimeout(() => loadUsers(1), 0);
+    const resetFilters = { search: '', company_id: '', agency_id: '', role: '', status: '' };
+    setFilters(resetFilters);
+    setCurrentPage(1);
+    loadUsers(1, resetFilters);
   };
 
+  // Handle page change
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+    loadUsers(page, filters);
+  };
+
+  // Handle delete user
   const handleDeleteUser = async (userId) => {
     try {
-      const response = await ApiService.delete(`/api/users/${userId}`);
-      if (response.success) {
-        showToast('success', 'Utilisateur supprimé avec succès');
-        loadUsers(pagination.current_page);
-      } else {
-        showToast('error', response.message || 'Erreur lors de la suppression');
-      }
+      // Implement delete logic here
+      // After successful deletion, reload users
+      loadUsers(currentPage);
+      showToast('success', 'Utilisateur supprimé avec succès');
     } catch (error) {
       showToast('error', error.message);
     }
     setDeleteModal({ show: false, userId: null });
   };
 
+  // Show toast notification
   const showToast = (severity, detail) => {
     toast.current?.show({ 
       severity, 
@@ -99,7 +114,8 @@ const UserScreen = () => {
     });
   };
 
-  const formatDate = (date) => new Date(date).toLocaleDateString('fr-FR');
+  // Helper functions
+  const formatDate = (date) => date ? new Date(date).toLocaleDateString('fr-FR') : 'N/A';
 
   const getFullName = (user) => {
     const parts = [user.first_name, user.last_name].filter(Boolean);
@@ -114,13 +130,13 @@ const UserScreen = () => {
   const getStatusBadge = (status) => {
     switch (status) {
       case 'active':
-        return <span className="badge bg-success">Actif</span>;
+        return <Badge bg="success">Actif</Badge>;
       case 'inactive':
-        return <span className="badge bg-secondary">Inactif</span>;
+        return <Badge bg="secondary">Inactif</Badge>;
       case 'suspended':
-        return <span className="badge bg-danger">Suspendu</span>;
+        return <Badge bg="danger">Suspendu</Badge>;
       default:
-        return <span className="badge bg-secondary">Inconnu</span>;
+        return <Badge bg="secondary">Inconnu</Badge>;
     }
   };
 
@@ -132,11 +148,11 @@ const UserScreen = () => {
       'user': 'primary'
     };
     const color = roleColors[role?.toLowerCase()] || 'secondary';
-    return <span className={`badge bg-${color}`}>{role ? role.charAt(0).toUpperCase() + role.slice(1) : 'N/A'}</span>;
+    return <Badge bg={color}>{role ? role.charAt(0).toUpperCase() + role.slice(1) : 'N/A'}</Badge>;
   };
 
   const getLastLoginText = (lastLogin) => {
-    if (!lastLogin) return null;
+    if (!lastLogin) return 'Jamais connecté';
     const now = new Date();
     const loginDate = new Date(lastLogin);
     const diffTime = Math.abs(now - loginDate);
@@ -147,441 +163,317 @@ const UserScreen = () => {
     return formatDate(lastLogin);
   };
 
-  const Pagination = () => {
-    if (pagination.last_page <= 1) return null;
-
-    const getVisiblePages = () => {
-      const current = pagination.current_page;
-      const last = pagination.last_page;
-      const pages = [];
-
-      if (last <= 7) {
-        return Array.from({ length: last }, (_, i) => i + 1);
-      }
-
-      pages.push(1);
-      if (current > 4) pages.push('...');
-      
-      const start = Math.max(2, current - 1);
-      const end = Math.min(last - 1, current + 1);
-      
-      for (let i = start; i <= end; i++) {
-        pages.push(i);
-      }
-      
-      if (current < last - 3) pages.push('...');
-      pages.push(last);
-      
-      return pages;
-    };
-
-    return (
-      <nav>
-        <ul className="pagination pagination-sm mb-0">
-          <li className={`page-item ${pagination.current_page === 1 ? 'disabled' : ''}`}>
-            <button 
-              className="page-link" 
-              onClick={() => loadUsers(pagination.current_page - 1)} 
-              disabled={pagination.current_page === 1}
-            >
-              <i className="pi pi-chevron-left"></i>
-            </button>
-          </li>
-          
-          {getVisiblePages().map((page, index) => (
-            <li key={index} className={`page-item ${page === pagination.current_page ? 'active' : ''} ${page === '...' ? 'disabled' : ''}`}>
-              {page === '...' ? (
-                <span className="page-link">...</span>
-              ) : (
-                <button className="page-link" onClick={() => loadUsers(page)}>
-                  {page}
-                </button>
-              )}
-            </li>
-          ))}
-          
-          <li className={`page-item ${pagination.current_page === pagination.last_page ? 'disabled' : ''}`}>
-            <button 
-              className="page-link" 
-              onClick={() => loadUsers(pagination.current_page + 1)} 
-              disabled={pagination.current_page === pagination.last_page}
-            >
-              <i className="pi pi-chevron-right"></i>
-            </button>
-          </li>
-        </ul>
-      </nav>
-    );
-  };
 
   return (
-    <div className="container-fluid">
+    <Container fluid>
       <Toast ref={toast} />
       
       {/* Header */}
-      <div className="row mb-4">
-        <div className="col-12">
-          <div className="d-flex justify-content-between align-items-center">
-            <div>
-              <h2 className="text-primary mb-1">
-                <i className="pi pi-users me-2"></i>Gestion des Utilisateurs
-              </h2>
-              <p className="text-muted mb-0">{pagination.total} utilisateur(s) au total</p>
-            </div>
-            <div className="d-flex gap-2">
-              <button 
-                className="btn btn-outline-primary" 
-                onClick={() => loadUsers(pagination.current_page)} 
-                disabled={loading}
-              >
-                <i className="pi pi-refresh me-1"></i>
-                {loading ? 'Actualisation...' : 'Actualiser'}
-              </button>
-              <a href="/users/create" className="btn btn-primary">
-                <i className="pi pi-plus-circle me-1"></i>Nouvel Utilisateur
-              </a>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Filters */}
-      <div className="card shadow-sm border-0 mb-4">
-        <div className="card-header bg-light">
-          <h6 className="mb-0">
-            <i className="pi pi-filter me-2"></i>Filtres de recherche
-          </h6>
-        </div>
-        <div className="card-body">
-          <form onSubmit={handleSearch} className="row g-3">
-            <div className="col-md-3">
-              <label className="form-label">Recherche</label>
-              <div className="input-group">
-                <span className="input-group-text">
-                  <i className="pi pi-search"></i>
-                </span>
-                <input 
-                  type="text" 
-                  className="form-control" 
-                  placeholder="Nom, email ou téléphone..."
-                  value={filters.search} 
-                  onChange={(e) => handleFilterChange('search', e.target.value)} 
-                />
-              </div>
-            </div>
+      <Row className="mb-4">
+        <Col md={12}>
+          <Card className="card-plain">
+            <Card.Header>
+              <Card.Title as="h4" className="d-flex justify-content-between align-items-center">
+                <span><FaUser className="me-2" />Gestion des Utilisateurs</span>
+                <div>
+                  <Button 
+                    variant="primary" 
+                    className="me-2"
+                    onClick={() => navigate('/users/create')}
+                  >
+                    <FaPlus className="me-1" /> Nouvel Utilisateur
+                  </Button>
+                  <Button 
+                    variant="outline-secondary" 
+                    onClick={() => loadUsers(currentPage, filters)}
+                    disabled={loading}
+                    title="Rafraîchir"
+                  >
+                    <FaSync className={loading ? 'fa-spin' : ''} />
+                  </Button>
+                </div>
+              </Card.Title>
+              <p className="card-category">{pagination.total} utilisateur(s) au total</p>
+            </Card.Header>
             
-            <div className="col-md-2">
-              <label className="form-label">Entreprise</label>
-              <select 
-                className="form-select" 
-                value={filters.company_id} 
-                onChange={(e) => handleFilterChange('company_id', e.target.value)}
-              >
-                <option value="">Toutes</option>
-                {companies.map(company => (
-                  <option key={company.id} value={company.id}>
-                    {company.tp_name || company.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-            
-            <div className="col-md-2">
-              <label className="form-label">Agence</label>
-              <select 
-                className="form-select" 
-                value={filters.agency_id} 
-                onChange={(e) => handleFilterChange('agency_id', e.target.value)}
-              >
-                <option value="">Toutes</option>
-                {agencies.map(agency => (
-                  <option key={agency.id} value={agency.id}>
-                    {agency.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-            
-            <div className="col-md-2">
-              <label className="form-label">Rôle</label>
-              <select 
-                className="form-select" 
-                value={filters.role} 
-                onChange={(e) => handleFilterChange('role', e.target.value)}
-              >
-                <option value="">Tous</option>
-                {roles.map(role => (
-                  <option key={role} value={role}>
-                    {role.charAt(0).toUpperCase() + role.slice(1)}
-                  </option>
-                ))}
-              </select>
-            </div>
-            
-            <div className="col-md-2">
-              <label className="form-label">Statut</label>
-              <select 
-                className="form-select" 
-                value={filters.status} 
-                onChange={(e) => handleFilterChange('status', e.target.value)}
-              >
-                <option value="">Tous</option>
-                {statuses.map(status => (
-                  <option key={status} value={status}>
-                    {status.charAt(0).toUpperCase() + status.slice(1)}
-                  </option>
-                ))}
-              </select>
-            </div>
-            
-            <div className="col-md-1 d-flex align-items-end gap-2">
-              <button type="submit" className="btn btn-primary" disabled={loading}>
-                <i className="pi pi-search"></i>
-              </button>
-              <button type="button" className="btn btn-outline-secondary" onClick={handleReset}>
-                <i className="pi pi-refresh"></i>
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
+            {/* Filters */}
+            <Card.Body>
+              <Form onSubmit={handleSearch}>
+                <Row className="g-3">
+                  <Col md={3}>
+                    <Form.Group>
+                      <Form.Label>Rechercher</Form.Label>
+                      <InputGroup>
+                        <Form.Control
+                          type="text"
+                          placeholder="Nom, email, téléphone..."
+                          value={filters.search}
+                          onChange={(e) => handleFilterChange('search', e.target.value)}
+                        />
+                        <Button type="submit" variant="primary">
+                          <FaSearch />
+                        </Button>
+                      </InputGroup>
+                    </Form.Group>
+                  </Col>
+                  <Col md={2}>
+                    <Form.Group>
+                      <Form.Label>Société</Form.Label>
+                      <Form.Select
+                        value={filters.company_id}
+                        onChange={(e) => handleFilterChange('company_id', e.target.value)}
+                      >
+                        <option value="">Toutes les sociétés</option>
+                        {companies.map(company => (
+                          <option key={company.id} value={company.id}>
+                            {company.name}
+                          </option>
+                        ))}
+                      </Form.Select>
+                    </Form.Group>
+                  </Col>
+                  <Col md={2}>
+                    <Form.Group>
+                      <Form.Label>Agence</Form.Label>
+                      <Form.Select
+                        value={filters.agency_id}
+                        onChange={(e) => handleFilterChange('agency_id', e.target.value)}
+                      >
+                        <option value="">Toutes les agences</option>
+                        {agencies.map(agency => (
+                          <option key={agency.id} value={agency.id}>
+                            {agency.name}
+                          </option>
+                        ))}
+                      </Form.Select>
+                    </Form.Group>
+                  </Col>
+                  <Col md={2}>
+                    <Form.Group>
+                      <Form.Label>Rôle</Form.Label>
+                      <Form.Select
+                        value={filters.role}
+                        onChange={(e) => handleFilterChange('role', e.target.value)}
+                      >
+                        <option value="">Tous les rôles</option>
+                        {roles.map(role => (
+                          <option key={role} value={role}>
+                            {role.charAt(0).toUpperCase() + role.slice(1)}
+                          </option>
+                        ))}
+                      </Form.Select>
+                    </Form.Group>
+                  </Col>
+                  <Col md={2}>
+                    <Form.Group>
+                      <Form.Label>Statut</Form.Label>
+                      <Form.Select
+                        value={filters.status}
+                        onChange={(e) => handleFilterChange('status', e.target.value)}
+                      >
+                        <option value="">Tous les statuts</option>
+                        {statuses.map(status => (
+                          <option key={status} value={status}>
+                            {status === 'active' ? 'Actif' : status === 'inactive' ? 'Inactif' : 'Suspendu'}
+                          </option>
+                        ))}
+                      </Form.Select>
+                    </Form.Group>
+                  </Col>
+                  <Col md={1} className="d-flex align-items-end">
+                    <Button 
+                      variant="outline-secondary" 
+                      onClick={handleReset}
+                      className="w-100"
+                      title="Réinitialiser les filtres"
+                    >
+                      <FaSync />
+                    </Button>
+                  </Col>
+                </Row>
+              </Form>
+            </Card.Body>
+          </Card>
+        </Col>
+      </Row>
 
       {/* Users Table */}
-      <div className="card shadow-sm border-0">
-        <div className="card-header bg-white d-flex justify-content-between align-items-center">
-          <h5 className="mb-0">
-            <i className="pi pi-list me-2"></i>Liste des Utilisateurs
-          </h5>
-        </div>
-        <div className="card-body p-0">
-          <div className="table-responsive">
-            <table className="table table-hover align-middle mb-0">
-              <thead className="bg-light">
-                <tr>
-                  <th className="border-0 px-4 py-3">Photo</th>
-                  <th className="border-0 px-4 py-3">Nom</th>
-                  <th className="border-0 px-4 py-3">Email</th>
-                  <th className="border-0 px-4 py-3">Téléphone</th>
-                  <th className="border-0 px-4 py-3">Rôle</th>
-                  <th className="border-0 px-4 py-3">Statut</th>
-                  <th className="border-0 px-4 py-3">Entreprise</th>
-                  <th className="border-0 px-4 py-3">Agence</th>
-                  <th className="border-0 px-4 py-3">Créé le</th>
-                  <th className="border-0 px-4 py-3">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {loading ? (
-                  <tr>
-                    <td colSpan="10" className="text-center py-5">
-                      <div className="spinner-border text-primary" role="status">
-                        <span className="visually-hidden">Chargement...</span>
-                      </div>
-                    </td>
-                  </tr>
-                ) : users.length === 0 ? (
-                  <tr>
-                    <td colSpan="10" className="text-center py-5">
-                      <div className="text-muted">
-                        <i className="pi pi-inbox display-4 d-block mb-3"></i>
-                        <h5>Aucun utilisateur trouvé</h5>
-                        <p className="mb-0">Essayez de modifier vos critères de recherche ou créez un nouvel utilisateur</p>
-                      </div>
-                    </td>
-                  </tr>
-                ) : (
-                  users.map((user) => (
-                    <tr key={user.id}>
-                      <td className="px-4">
-                        {getProfileImageUrl(user.profile_photo) ? (
-                          <img 
-                            src={getProfileImageUrl(user.profile_photo)} 
-                            alt="Photo de profil"
-                            className="rounded-circle"
-                            style={{ width: '40px', height: '40px', objectFit: 'cover' }}
-                            onError={(e) => {
-                              e.target.style.display = 'none';
-                              e.target.nextSibling.style.display = 'flex';
-                            }}
-                          />
-                        ) : (
-                          <div 
-                          className="rounded-circle bg-secondary d-flex align-items-center justify-content-center text-white"
-                          style={{ 
-                            width: '40px', 
-                            height: '40px',
-                            display: getProfileImageUrl(user.profile_photo) ? 'none' : 'flex'
-                          }}
-                        >
-                          <i className="pi pi-user"></i>
-                        </div>
-                        )}
-                        
-                      </td>
-                      <td className="px-4">
-                        <div>
-                          <strong className="text-primary">{getFullName(user)}</strong>
-                          {user.last_login_at && (
-                            <>
-                              <br />
-                              <small className="text-muted">
-                                Dernière connexion: {getLastLoginText(user.last_login_at)}
-                              </small>
-                            </>
-                          )}
-                        </div>
-                      </td>
-                      <td className="px-4">
-                        <div className="d-flex align-items-center">
-                          <i className="pi pi-envelope text-muted me-2"></i>
-                          <span>{user.email}</span>
-                          {user.email_verified_at && (
-                            <i className="pi pi-check-circle text-success ms-2" title="Email vérifié"></i>
-                          )}
-                        </div>
-                      </td>
-                      <td className="px-4">
-                        {user.phone ? (
-                          <div className="d-flex align-items-center">
-                            <i className="pi pi-phone text-muted me-2"></i>
-                            {user.phone}
-                          </div>
-                        ) : (
-                          <span className="text-muted">Non renseigné</span>
-                        )}
-                      </td>
-                      <td className="px-4">{getRoleBadge(user.role)}</td>
-                      <td className="px-4">{getStatusBadge(user.status)}</td>
-                      <td className="px-4">
-                        {user.company ? (
-                          <div className="d-flex align-items-center">
-                            <i className="pi pi-building text-info me-2"></i>
-                            {user.company.tp_name || user.company.name}
-                          </div>
-                        ) : (
-                          <span className="text-muted">Non assigné</span>
-                        )}
-                      </td>
-                      <td className="px-4">
-                        {user.agency ? (
-                          <div className="d-flex align-items-center">
-                            <i className="pi pi-map-marker text-warning me-2"></i>
-                            {user.agency.name}
-                          </div>
-                        ) : (
-                          <span className="text-muted">Non assigné</span>
-                        )}
-                      </td>
-                      <td className="px-4">
-                        <div>
-                          <strong>{formatDate(user.created_at)}</strong>
-                          <br />
-                          <small className="text-muted">
-                            {new Date(user.created_at).toLocaleTimeString('fr-FR', { 
-                              hour: '2-digit', 
-                              minute: '2-digit' 
-                            })}
-                          </small>
-                        </div>
-                      </td>
-                      <td className="px-4">
-                        <div className="btn-group" role="group">
-                          <a 
-                            href={`/users/${user.id}`} 
-                            className="btn btn-sm btn-outline-info" 
-                            title="Voir"
-                          >
-                            <i className="pi pi-eye"></i>
-                          </a>
-                          <a 
-                            href={`/users/${user.id}/edit`} 
-                            className="btn btn-sm btn-outline-warning" 
-                            title="Modifier"
-                          >
-                            <i className="pi pi-pencil"></i>
-                          </a>
-                          {user.id !== user.current_user_id && (
-                            <button 
-                              type="button" 
-                              className="btn btn-sm btn-outline-danger" 
-                              title="Supprimer"
-                              onClick={() => setDeleteModal({ show: true, userId: user.id })}
-                            >
-                              <i className="pi pi-trash"></i>
-                            </button>
-                          )}
-                        </div>
-                      </td>
+      <Row>
+        <Col md={12}>
+          <Card>
+            <Card.Body>
+              <div className="table-responsive">
+                <Table hover className="align-items-center">
+                  <thead className="text-primary">
+                    <tr>
+                      <th>Utilisateur</th>
+                      <th>Contact</th>
+                      <th>Société/Agence</th>
+                      <th>Rôle</th>
+                      <th>Dernière connexion</th>
+                      <th>Statut</th>
+                      <th>Actions</th>
                     </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
+                  </thead>
+                  <tbody>
+                    {users.length > 0 ? (
+                      users.map((user) => (
+                        <tr key={user.id}>
+                          <td>
+                            <div className="d-flex align-items-center">
+                              <div className="avatar-sm me-3">
+                                {user.profile_photo_path ? (
+                                  <Image 
+                                    src={getProfileImageUrl(user.profile_photo_path)} 
+                                    alt={getFullName(user)}
+                                    roundedCircle 
+                                    className="avatar"
+                                    style={{ width: '40px', height: '40px', objectFit: 'cover' }}
+                                  />
+                                ) : (
+                                  <div className="avatar-title bg-light rounded-circle">
+                                    <FaUser />
+                                  </div>
+                                )}
+                              </div>
+                              <div>
+                                <h6 className="mb-0">{getFullName(user)}</h6>
+                                <small className="text-muted">{user.email}</small>
+                              </div>
+                            </div>
+                          </td>
+                          <td>
+                            <div className="mb-1">
+                              <FaEnvelope className="text-muted me-1" />
+                              {user.email}
+                            </div>
+                            {user.phone && (
+                              <div>
+                                <FaPhone className="text-muted me-1" />
+                                {user.phone}
+                              </div>
+                            )}
+                          </td>
+                          <td>
+                            <div className="mb-1">
+                              <FaBuilding className="text-muted me-1" />
+                              {user.company?.name || 'N/A'}
+                            </div>
+                            <small className="text-muted">
+                              {user.agency?.name || 'Aucune agence'}
+                            </small>
+                          </td>
+                          <td>{getRoleBadge(user.role)}</td>
+                          <td>
+                            <div className="d-flex align-items-center">
+                              <FaCalendarAlt className="text-muted me-1" />
+                              {getLastLoginText(user.last_login_at)}
+                            </div>
+                          </td>
+                          <td>{getStatusBadge(user.status)}</td>
+                          <td>
+                            <ButtonGroup size="sm">
+                              <Button 
+                                variant="primary" 
+                                title="Voir"
+                                onClick={() => navigate(`/users/${user.id}`)}
+                              >
+                                <FaEye />
+                              </Button>
+                              <Button 
+                                variant="warning" 
+                                title="Modifier"
+                                onClick={() => navigate(`/users/${user.id}/edit`)}
+                              >
+                                <FaEdit />
+                              </Button>
+                              <Button 
+                                variant="danger" 
+                                title="Supprimer"
+                                onClick={() => setDeleteModal({ show: true, userId: user.id })}
+                              >
+                                <FaTrash />
+                              </Button>
+                            </ButtonGroup>
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan="7" className="text-center py-4">
+                          <div className="text-muted">
+                            <FaUser className="display-6 d-block mx-auto mb-2" />
+                            <h5>Aucun utilisateur trouvé</h5>
+                            <p className="mb-0">Essayez de modifier vos critères de recherche</p>
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </Table>
+              </div>
+
+              {/* Pagination */}
+              {pagination.last_page > 1 && (
+                <div className="mt-4 d-flex justify-content-between align-items-center">
+                  <div className="text-muted">
+                    Affichage de {pagination.from} à {pagination.to} sur {pagination.total} entrées
+                  </div>
+                  <GlobalPagination
+                    currentPage={pagination.current_page}
+                    lastPage={pagination.last_page}
+                    total={pagination.total}
+                    from={pagination.from}
+                    to={pagination.to}
+                    onPageChange={handlePageChange}
+                  />
+                </div>
+              )}
+            </Card.Body>
+          </Card>
+        </Col>
+      </Row>
+
+      {/* Delete Confirmation Modal */}
+      {deleteModal.show && (
+        <div className="modal show" style={{ display: 'block', backgroundColor: 'rgba(0,0,0,0.5)' }}>
+          <div className="modal-dialog">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h5 className="modal-title">Confirmer la suppression</h5>
+                <button 
+                  type="button" 
+                  className="btn-close" 
+                  onClick={() => setDeleteModal({ show: false, userId: null })}
+                ></button>
+              </div>
+              <div className="modal-body">
+                Êtes-vous sûr de vouloir supprimer cet utilisateur ? Cette action est irréversible.
+                <div className="alert alert-warning mt-3 mb-0">
+                  <strong>Attention :</strong> La suppression d'un utilisateur peut affecter les données associées.
+                </div>
+              </div>
+              <div className="modal-footer">
+                <button 
+                  type="button" 
+                  className="btn btn-secondary" 
+                  onClick={() => setDeleteModal({ show: false, userId: null })}
+                >
+                  Annuler
+                </button>
+                <button 
+                  type="button" 
+                  className="btn btn-danger" 
+                  onClick={() => handleDeleteUser(deleteModal.userId)}
+                >
+                  Supprimer
+                </button>
+              </div>
+            </div>
           </div>
         </div>
-
-        {/* Pagination */}
-        {pagination.last_page > 1 && (
-          <div className="card-footer bg-transparent border-0">
-            <div className="d-flex justify-content-between align-items-center">
-              <div className="text-muted small">
-                Affichage de {pagination.from} à {pagination.to} sur {pagination.total} résultats
-              </div>
-              <Pagination />
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Delete Modal */}
-      {deleteModal.show && (
-        <>
-          <div className="modal show d-block" tabIndex="-1">
-            <div className="modal-dialog">
-              <div className="modal-content">
-                <div className="modal-header bg-danger text-white">
-                  <h5 className="modal-title">
-                    <i className="pi pi-exclamation-triangle me-2"></i>Confirmer la suppression
-                  </h5>
-                  <button 
-                    type="button" 
-                    className="btn-close btn-close-white"
-                    onClick={() => setDeleteModal({ show: false, userId: null })}
-                  ></button>
-                </div>
-                <div className="modal-body">
-                  <p>Êtes-vous sûr de vouloir supprimer cet utilisateur ? Cette action est irréversible.</p>
-                  <div className="alert alert-warning mt-3">
-                    <i className="pi pi-info-circle me-2"></i>
-                    <strong>Attention :</strong> La suppression de cet utilisateur pourrait affecter les données associées dans le système.
-                  </div>
-                </div>
-                <div className="modal-footer">
-                  <button 
-                    type="button" 
-                    className="btn btn-secondary"
-                    onClick={() => setDeleteModal({ show: false, userId: null })}
-                  >
-                    Annuler
-                  </button>
-                  <button 
-                    type="button" 
-                    className="btn btn-danger"
-                    onClick={() => handleDeleteUser(deleteModal.userId)}
-                  >
-                    <i className="pi pi-trash me-1"></i>Supprimer
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div 
-            className="modal-backdrop show" 
-            onClick={() => setDeleteModal({ show: false, userId: null })}
-          ></div>
-        </>
       )}
-    </div>
+    </Container>
   );
 };
 

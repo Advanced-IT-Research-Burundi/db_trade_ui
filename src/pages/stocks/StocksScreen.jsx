@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Toast } from 'primereact/toast';
 import ApiService from '../../services/api.js';
-import { useNavigate } from 'react-router-dom';
 
 const StockScreen = () => {
   const [stocks, setStocks] = useState([]);
@@ -24,7 +23,6 @@ const StockScreen = () => {
   });
   const [deleteModal, setDeleteModal] = useState({ show: false, stockId: null });
   const toast = useRef(null);
-  const navigate = useNavigate();
 
   useEffect(() => {
     loadStocks();
@@ -65,75 +63,30 @@ const StockScreen = () => {
     setFilters(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleSearch = (e) => {
-    e.preventDefault();
-    loadStocks(1);
-  };
-
-  const handleReset = () => {
-    setFilters({ search: '', agency_id: '', created_by: '', user_id: '' });
-    setTimeout(() => loadStocks(1), 0);
-  };
-
-  const handleDeleteStock = async (stockId) => {
-    try {
-      const response = await ApiService.delete(`/api/stocks/${stockId}`);
-      if (response.success) {
-        showToast('success', 'Stock supprimé avec succès');
-        loadStocks(pagination.current_page);
-      } else {
-        showToast('error', response.message || 'Erreur lors de la suppression');
-      }
-    } catch (error) {
-      showToast('error', error.message);
-    }
-    setDeleteModal({ show: false, stockId: null });
-  };
-
-  const showToast = (severity, detail) => {
-    toast.current?.show({ 
-      severity, 
-      summary: severity === 'error' ? 'Erreur' : 'Succès', 
-      detail, 
-      life: 3000 
-    });
-  };
-
-  const formatDate = (date) => new Date(date).toLocaleDateString('fr-FR');
-
-  const truncateText = (text, maxLength = 50) => {
-    if (!text) return '';
-    return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
-  };
-
-  const Pagination = () => {
-    if (pagination.last_page <= 1) return null;
-
-    const getVisiblePages = () => {
-      const current = pagination.current_page;
-      const last = pagination.last_page;
-      const pages = [];
-
-      if (last <= 7) {
-        return Array.from({ length: last }, (_, i) => i + 1);
-      }
-
-      pages.push(1);
-      if (current > 4) pages.push('...');
-      
-      const start = Math.max(2, current - 1);
-      const end = Math.min(last - 1, current + 1);
-      
-      for (let i = start; i <= end; i++) {
-        pages.push(i);
-      }
-      
-      if (current < last - 3) pages.push('...');
-      pages.push(last);
-      
-      return pages;
+    const handleSearch = (e) => {
+        const value = e.target.value;
+        setSearchTerm(value);
+        
+        // Clear previous timeout
+        if (searchTimeout) clearTimeout(searchTimeout);
+        
+        // Set a new timeout
+        setSearchTimeout(
+            setTimeout(() => {
+                setCurrentPage(1); // Reset to first page on new search
+                fetchStocks(1, value);
+            }, 500) // 500ms delay before searching
+        );
     };
 
+    const clearSearch = () => {
+        setSearchTerm('');
+        setCurrentPage(1);
+        fetchStocks(1, '');
+    };
+
+
+   
     return (
       <nav>
         <ul className="pagination pagination-sm mb-0">
@@ -196,10 +149,10 @@ const StockScreen = () => {
                 <i className="pi pi-refresh me-1"></i>
                 {loading ? 'Actualisation...' : 'Actualiser'}
               </button>
-              <a onClick={() => navigate('/stocks/transfer')} className="btn btn-outline-info">
+              <a href="/stocks/transfer" className="btn btn-outline-info">
                 <i className="pi pi-sync me-1"></i>Transfert Entre Stock
               </a>
-              <a onClick={() => navigate('/stocks/create')} className="btn btn-primary">
+              <a href="/stocks/create" className="btn btn-primary">
                 <i className="pi pi-plus-circle me-1"></i>Nouveau Stock
               </a>
             </div>
@@ -404,7 +357,7 @@ const StockScreen = () => {
                       <td className="px-4">
                         <div className="btn-group" role="group">
                           <a 
-                             onClick={() => navigate(`/stocks/${stock.id}`)}
+                            href={`/stocks/${stock.id}`} 
                             className="btn btn-sm btn-outline-info" 
                             title="Voir"
                           >

@@ -1,5 +1,6 @@
 import React, { useRef, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { useCart } from '../contexts/cartReducer.jsx';
 import { Badge } from 'primereact/badge';
 import { Button } from 'primereact/button';
 import { Avatar } from 'primereact/avatar';
@@ -8,6 +9,7 @@ import { useNavigate } from 'react-router-dom';
 
 const Header = ({ onSidebarToggle, pageTitle = 'Tableau de bord' }) => {
   const { user, logout, isLoading, getUserInfo } = useAuth();
+  const { getTotalQuantity } = useCart();
   const userMenuRef = useRef(null);
   const notificationMenuRef = useRef(null);
   const [isUserMenuOpen, setIsUserMenuOpen] = React.useState(false);
@@ -87,7 +89,9 @@ const Header = ({ onSidebarToggle, pageTitle = 'Tableau de bord' }) => {
         {/* Section droite */}
         <div className="d-flex align-items-center">
           {/* Panier */}
-          <div className="position-relative me-3">
+          <div 
+          onClick={() => navigate('/sales/create')}
+          className="position-relative me-3">
             <Button
               icon="pi pi-shopping-cart"
               className="p-button-text p-button-rounded"
@@ -95,7 +99,7 @@ const Header = ({ onSidebarToggle, pageTitle = 'Tableau de bord' }) => {
               tooltipOptions={{ position: 'bottom' }}
             />
             <Badge
-              value="0"
+              value={getTotalQuantity()}
               severity="danger"
               className="position-absolute top-0 start-100 translate-middle"
               style={{ fontSize: '0.65rem' }}

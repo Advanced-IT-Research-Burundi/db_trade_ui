@@ -17,11 +17,11 @@ function App() {
     <Provider store={store}>
       <CartProvider>
         <LoadingComponent />
-    <AuthProvider>
-      <Router>
-        <AppRoutes />
-      </Router>
-    </AuthProvider>
+      <AuthProvider>
+        <Router>
+          <AppRoutes />
+        </Router>
+      </AuthProvider>
     </CartProvider>
     </Provider>
   );

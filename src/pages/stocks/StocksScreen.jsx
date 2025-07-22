@@ -7,7 +7,6 @@ import { API_CONFIG } from '../../services/config.js';
 
 const StockScreen = () => {
   const [stocks, setStocks] = useState([]);
-  const [loading, setLoading] = useState(false);
   const [agencies, setAgencies] = useState([]);
   const [creators, setCreators] = useState([]);
   const [users, setUsers] = useState([]);
@@ -29,7 +28,7 @@ const StockScreen = () => {
   const navigate = useNavigate();
 
   const dispatch = useDispatch();
-  const { data } = useSelector(state => state.apiData);
+  const { data , loading} = useSelector(state => state.apiData);
 
   useEffect(() => {
     loadStocks();
@@ -41,30 +40,24 @@ const StockScreen = () => {
       setAgencies(data?.stocks?.agencies || []);
       setCreators(data?.stocks?.creators || []);
       setUsers(data?.stocks?.users || []);
-    }
-  }, [data]);
-
-  async function loadStocks(page = 1) {
-    try {
-      setLoading(true);
-      const params = { page, ...filters };
-      dispatch(fetchApiData({ url: API_CONFIG.ENDPOINTS.STOCKS, itemKey: 'stocks', params }));
-      if (data) {
-          setPagination({
+      setPagination({
           current_page: data?.stocks?.stocks?.current_page,
           last_page: data?.stocks?.stocks?.last_page,
           total: data?.stocks?.stocks?.total,
           from: data?.stocks?.stocks?.from,
           to: data?.stocks?.stocks?.to
         });
-      } else {
-        showToast('error', 'Erreur lors du chargement');
-      }
+    }
+  }, [data]);
+
+  async function loadStocks(page = 1) {
+    try {
+      const params = { page, ...filters };
+      dispatch(fetchApiData({ url: API_CONFIG.ENDPOINTS.STOCKS, itemKey: 'stocks', params }));
+     
     } catch (error) {
       showToast('error', error.message);
-    } finally {
-      setLoading(false);
-    }
+    } 
   };
 
 
@@ -192,6 +185,8 @@ const StockScreen = () => {
             <div>
               <h2 className="text-primary mb-1">
                 <i className="pi pi-box me-2"></i>Gestion des Stocks
+
+               
               </h2>
               <p className="text-muted mb-0">{pagination.total} stock(s) au total</p>
             </div>
@@ -323,7 +318,7 @@ const StockScreen = () => {
                 </tr>
               </thead>
               <tbody>
-                {loading ? (
+                { stocks.length === 0 && loading ? (
                   <tr>
                     <td colSpan="8" className="text-center py-5">
                       <div className="spinner-border text-primary" role="status">
@@ -331,7 +326,7 @@ const StockScreen = () => {
                       </div>
                     </td>
                   </tr>
-                ) : stocks.length === 0 ? (
+                ) : data.stocks == undefined && stocks.length === 0 ? (
                   <tr>
                     <td colSpan="8" className="text-center py-5">
                       <div className="text-muted">

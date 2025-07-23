@@ -63,9 +63,7 @@ const SalesScreen = () => {
     try {
       setStatsLoading(true);
       dispatch(fetchApiData({ url: '/api/sales', itemKey: 'sales', method: 'GET' }));
-      if (saleStore?.sales?.stats?.success) {
         setStats(saleStore?.sales?.stats || {});
-      }
     } catch (error) {
       console.error('Erreur stats:', error);
     } finally {

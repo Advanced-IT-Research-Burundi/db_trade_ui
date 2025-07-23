@@ -23,23 +23,22 @@ const ProductScreen = () => {
   const [deleteModal, setDeleteModal] = useState({ show: false, productId: null });
   
   // Get data from Redux store
-  const { data, loading, error } = useSelector((state) => ({
+  const { data, loading    } = useSelector((state) => ({
     data: state.apiData?.data?.products,
     loading: state.apiData.loading,
-    error: state.apiData.error
-  }));
+  }))
   
+  const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [agencies, setAgencies] = useState([]);
+  const [pagination, setPagination] = useState({
+    current_page: 1,
+    last_page: 1,
+    total: 0,
+    from: 0,
+    to: 0
+  });
   // Extract data from API response
-  const products = data?.products?.data || [];
-  const categories = data?.categories || [];
-  const agencies = data?.agencies || [];
-  const pagination = data?.products ? {
-    current_page: data.products.current_page,
-    last_page: data.products.last_page,
-    total: data.products.total,
-    from: data.products.from,
-    to: data.products.to
-  } : { current_page: 1, last_page: 1, total: 0, from: 0, to: 0 };
 
   // Fetch products with filters
   const loadProducts = (page = 1, searchFilters = filters) => {
@@ -49,6 +48,18 @@ const ProductScreen = () => {
       itemKey: 'products',
       params
     }));
+
+    setProducts(data.products.data || []);
+    setCategories(data.categories || []);
+    setAgencies(data.agencies || []);
+    setPagination({
+      current_page: data.products.current_page,
+      last_page: data.products.last_page,
+      total: data.products.total,
+      from: data.products.from,
+      to: data.products.to
+    });
+
   };
 
   // Initial load

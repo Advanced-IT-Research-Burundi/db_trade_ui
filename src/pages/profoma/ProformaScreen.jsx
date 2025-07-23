@@ -4,6 +4,7 @@ import ApiService from '../../services/api.js';
 import StatCard from '../../components/Card/StatCard.jsx';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchApiData } from '../../stores/slicer/apiDataSlicer.js';
+import { Link } from 'react-router-dom';
 
 
 const ProformaScreen = () => {
@@ -260,9 +261,9 @@ const ProformaScreen = () => {
                 <i className="pi pi-refresh me-1"></i>
                 {loading ? 'Actualisation...' : 'Actualiser'}
               </button>
-              <a href="/sales/create" className="btn btn-primary">
+              <Link to="/sales/create" className="btn btn-primary">
                 <i className="pi pi-plus-circle me-1"></i>Nouveau Proforma
-              </a>
+              </Link>
             </div>
           </div>
         </div>

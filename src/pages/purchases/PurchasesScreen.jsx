@@ -2,7 +2,9 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Toast } from 'primereact/toast';
 import ApiService from '../../services/api.js';
 import StatCard from '../../components/Card/StatCard.jsx';
-
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchApiData } from '../../stores/slicer/apiDataSlicer.js';
+import { API_CONFIG } from '../../services/config.js';
 
 const PurchaseScreen = () => {
   const [purchases, setPurchases] = useState([]);
@@ -23,6 +25,14 @@ const PurchaseScreen = () => {
   const [deleteModal, setDeleteModal] = useState({ show: false, purchaseId: null });
   const toast = useRef(null);
 
+  const dispatch = useDispatch();
+
+  const { data } = useSelector((state) => ({
+    data: state.apiData?.data?.purchases,
+    loading: state.apiData.loading,
+  }))
+
+
   useEffect(() => {
     loadPurchases();
   }, []);
@@ -31,22 +41,23 @@ const PurchaseScreen = () => {
     try {
       setLoading(true);
       const params = { page, ...filters };
-      const response = await ApiService.get('/api/purchases', params);
-      
-      if (response.success) {
-        setPurchases(response.data.purchases.data || []);
 
-        setStats(response.data.stats || {});
-        setPagination({
-          current_page: response.data.purchases.current_page,
-          last_page: response.data.purchases.last_page,
-          total: response.data.purchases.total,
-          from: response.data.purchases.from,
-          to: response.data.purchases.to
-        });
-      } else {
-        showToast('error', response.message || 'Erreur lors du chargement');
-      }
+      dispatch(fetchApiData({
+        url: API_CONFIG.ENDPOINTS.PURCHASES,
+        itemKey: 'purchases',
+        params
+      }));
+     
+      setPurchases(data?.purchases?.data || []);
+      setStats(data?.stats || {});
+      setPagination({
+        current_page: data?.purchases?.current_page,
+        last_page: data?.purchases?.last_page,
+        total: data?.purchases?.total,
+        from: data?.purchases?.from,
+        to: data?.purchases?.to
+      });
+      
     } catch (error) {
       showToast('error', error.message);
     } finally {
@@ -71,7 +82,7 @@ const PurchaseScreen = () => {
 
   const handleDeletePurchase = async (purchaseId) => {
     try {
-      const response = await ApiService.delete(`/api/purchases/${purchaseId}`);
+        const response = await ApiService.delete(`/api/purchases/${purchaseId}`);
       if (response.success) {
         showToast('success', 'Achat supprimé avec succès');
         loadPurchases(pagination.current_page);

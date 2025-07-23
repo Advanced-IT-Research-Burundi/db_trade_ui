@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Toast } from 'primereact/toast';
 import ApiService from '../../services/api.js';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchApiData } from '../../stores/slicer/apiDataSlicer.js';
 
 const StockShowScreen = () => {
   const { id } = useParams();
@@ -14,27 +16,30 @@ const StockShowScreen = () => {
   const [deleteModal, setDeleteModal] = useState({ show: false, type: null, id: null });
   const toast = useRef(null);
 
+  const { stockStore } = useSelector((state) => ({
+    stockStore: state.apiData?.data
+  }));
+  const dispatch = useDispatch();
+  const itemKey = 'stockStore'+id;
+
+
   useEffect(() => {
     loadStockDetails();
-  }, [id]);
+  }, []);
 
   const loadStockDetails = async () => {
     try {
       setLoading(true);
-      const response = await ApiService.get(`/api/stocks/${id}`);
+
+      dispatch(fetchApiData({ url: `/api/stocks/${id}`, itemKey }))
       
-      if (response.success) {
-        setStock(response.data.stock);
-        setRecentProducts(response.data.recent_products || []);
-        setProformas(response.data.proformas || []);
-        setUsers(response.data.users || []);
-      } else {
-        showToast('error', 'Erreur lors du chargement du stock');
-        navigate('/stocks');
-      }
+      setStock(stockStore[itemKey]?.stock);
+      setRecentProducts(stockStore[itemKey]?.recent_products || []);
+      setProformas(stockStore[itemKey]?.proformas || []);
+      setUsers(stockStore[itemKey]?.users || []);
     } catch (error) {
       showToast('error', error.message);
-      navigate('/stocks');
+      //navigate('/stocks');
     } finally {
       setLoading(false);
     }
@@ -340,7 +345,7 @@ const StockShowScreen = () => {
                           <br />
                           <small className="text-muted">
                             {users.slice(0, 3).map((user, index) => (
-                              <span key={user.id}>
+                              <span key={index}>
                                 {user.first_name} {user.last_name}
                                 {index < Math.min(users.length, 3) - 1 ? ', ' : ''}
                               </span>
@@ -570,8 +575,8 @@ const StockShowScreen = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {users.slice(0, 5).map((user) => (
-                      <tr key={user.id}>
+                    {users.slice(0, 5).map((user, index) => (
+                      <tr key={index}>
                         <td>
                           <div className="d-flex align-items-center">
                             {getImageUrl(user.profile_photo) ? (

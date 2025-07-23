@@ -771,9 +771,7 @@ const SalesCreateScreen = () => {
                               <td>
                                 <div>
                                   <div className="fw-semibold">{item.name}</div>
-                                  <small className="text-muted">
-                                    #{item.code}
-                                  </small>
+                                  
                                   <div className="d-flex gap-1 mt-1">
                                     <span
                                       className={`badge badge-sm ${
@@ -784,6 +782,9 @@ const SalesCreateScreen = () => {
                                     >
                                       Stock: {availableStock}
                                     </span>
+                                    <small className="text-muted mx-2">
+                                    #{item.code}
+                                  </small>
                                     {isOverStock && (
                                       <span className="badge bg-danger badge-sm">
                                         <i className="pi pi-exclamation-triangle me-1"></i>

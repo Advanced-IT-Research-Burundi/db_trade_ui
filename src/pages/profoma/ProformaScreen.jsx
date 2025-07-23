@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Toast } from 'primereact/toast';
 import ApiService from '../../services/api.js';
-
 import StatCard from '../../components/Card/StatCard.jsx';
-
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchApiData } from '../../stores/slicer/apiDataSlicer.js';
 
 
 const ProformaScreen = () => {
@@ -28,34 +28,34 @@ const ProformaScreen = () => {
   const [deleteModal, setDeleteModal] = useState({ show: false, proformaId: null });
   const toast = useRef(null);
 
+  const dispatch = useDispatch();
+
+  const { proformasStore } = useSelector((state) => ({
+    proformasStore: state.apiData?.data
+  }));
+
   useEffect(() => {
     loadProformas();
   }, []);
 
   const loadProformas = async (page = 1) => {
     try {
-      setLoading(true);
+    
       const params = { page, ...filters };
-      const response = await ApiService.get('/api/proformas', params);
-      
-      if (response.success) {
-        setProformas(response.data.proformas.data || []);
-
-        setStats(response.data.stats || {});
+    
+      dispatch(fetchApiData({ url: '/api/proformas', itemKey: 'proformas', method: 'GET', params }));
+        setProformas(proformasStore?.proformas?.proformas.data || []);
+        setStats(proformasStore?.proformas?.stats || {});
         setPagination({
-          current_page: response.data.proformas.current_page,
-          last_page: response.data.proformas.last_page,
-          total: response.data.proformas.total,
-          from: response.data.proformas.from,
-          to: response.data.proformas.to
+          current_page: proformasStore?.proformas?.proformas.current_page,
+          last_page: proformasStore?.proformas?.proformas.last_page,
+          total: proformasStore?.proformas?.proformas.total,
+          from: proformasStore?.proformas?.proformas.from,
+          to: proformasStore?.proformas?.proformas.to
         });
-      } else {
-        showToast('error', response.message || 'Erreur lors du chargement');
-      }
+      
     } catch (error) {
       showToast('error', error.message);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -94,7 +94,7 @@ const ProformaScreen = () => {
 
   const handleDeleteProforma = async (proformaId) => {
     try {
-      const response = await ApiService.delete(`/api/proformas/${proformaId}`);
+      dispatch(fetchApiData({ url: `/api/proformas/${proformaId}`, itemKey: 'proformas', method: 'DELETE' }));
       if (response.success) {
         showToast('success', 'Proforma supprimé avec succès');
         loadProformas(pagination.current_page);

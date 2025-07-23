@@ -3,6 +3,8 @@ import { Toast } from 'primereact/toast';
 import ApiService from '../../services/api.js';
 import { useParams } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchApiData } from '../../stores/slicer/apiDataSlicer.js';
 
 const AddProductScreen = () => {
   const { id: stockId } = useParams();
@@ -26,6 +28,10 @@ const AddProductScreen = () => {
   });
   
   const toast = useRef(null);
+  const { stockStore } = useSelector((state) => ({
+    stockStore: state.apiData?.data
+  }));
+  const dispatch = useDispatch();
 
   useEffect(() => {
     if (stockId) {
@@ -38,8 +44,8 @@ const AddProductScreen = () => {
 
   const loadStock = async () => {
     try {
-      const response = await ApiService.get(`/api/stocks/${stockId}`);
-      if (response.success) setStock(response.data.stock);
+      dispatch(fetchApiData({ url: `/api/stocks/${stockId}`, itemKey: 'stockStore'+stockId, method: 'GET' }));
+      setStock(stockStore['stockStore'+stockId]?.stock || []);
     } catch (error) {
       showToast('error', 'Erreur lors du chargement du stock :' + error.message);
     }
@@ -48,13 +54,11 @@ const AddProductScreen = () => {
   const loadProducts = async (page = 1, search = productSearch) => {
     try {
       setLoading(true);
-      const response = await ApiService.get('/api/stock-products/available', {
-        stock_id: stockId, search, page, per_page: 10
-      });
-      if (response.success) {
-        setProducts(response.data.products || []);
-        setProductPagination(response.data.products);
-      }
+      dispatch(fetchApiData({ url: '/api/stock-products/available', itemKey: 'stockProducts'+stockId, method: 'GET', params: { stock_id: stockId, search, page, per_page: 10 } }));
+
+        setProducts(stockStore['stockProducts'+stockId]?.products ?? []);
+        setProductPagination(stockStore['stockProducts'+stockId]?.products ?? []);
+      
     } catch (error) {
       showToast('error', 'Erreur lors du chargement des produits: ' + error.message);
     } finally {
@@ -65,13 +69,11 @@ const AddProductScreen = () => {
   const loadStockProducts = async (page = 1, search = stockProductSearch) => {
     try {
       setStockProductsLoading(true);
-      const response = await ApiService.get('/api/stock-products', {
-        page, search, stock_id: stockId, per_page: 10
-      });
-      if (response.success) {
-        setStockProducts(response.data.stock_products.data || []);
-        setStockPagination(response.data.stock_products);
-      }
+      dispatch(fetchApiData({ url: '/api/stock-products', itemKey: 'stockProducts'+stockId, method: 'GET', params: { page, search, stock_id: stockId, per_page: 10 } }));
+
+        setStockProducts(stockStore['stockProducts'+stockId]?.stock_products.data || []);
+        setStockPagination(stockStore['stockProducts'+stockId]?.stock_products ?? []);
+      
     } catch (error) {
       showToast('error', 'Erreur lors du chargement des produits du stock :' + error.message);
     } finally {

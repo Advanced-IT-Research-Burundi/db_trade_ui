@@ -223,8 +223,8 @@ const AddProductScreen = () => {
              <a onClick={() => navigate('/stocks')} className="btn btn-secondary">
                 <i className="pi pi-arrow-left me-1"></i>Retour
             </a>
-            <a href={`/stocks/${stockId}/bulk-entry`} className="btn btn-primary">
-                <i className="pi pi-plus-circle me-1"></i>Entrée Multiple
+            <a  onClick={() => navigate(`/stocks/entre-multiple/${stockId}`)} className="btn btn-primary">
+                <i className="pi pi-plus-circle me-1"></i>Entrée Multiple 
             </a>
             </div>
         </div>

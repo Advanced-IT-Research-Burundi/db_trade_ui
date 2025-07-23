@@ -6,6 +6,12 @@ import { useDispatch, useSelector } from 'react-redux';
 import { fetchApiData } from '../../stores/slicer/apiDataSlicer.js';
 
 const StockShowScreen = () => {
+
+  const { stockStore, isLoading } = useSelector((state) => ({
+    stockStore: state.apiData?.data,
+    isLoading : state.apiData?.loading,
+  }));
+  const dispatch = useDispatch();
   const { id } = useParams();
   const navigate = useNavigate();
   const [stock, setStock] = useState({});
@@ -16,26 +22,19 @@ const StockShowScreen = () => {
   const [deleteModal, setDeleteModal] = useState({ show: false, type: null, id: null });
   const toast = useRef(null);
 
-  const { stockStore, isLoading } = useSelector((state) => ({
-    stockStore: state.apiData?.data,
-    isLoading : state.apiData?.loading,
-  }));
-  const dispatch = useDispatch();
-
-
-
+ 
   useEffect(() => {
     loadStockDetails();
-  }, []);
+  }, [id]);
 
-  const loadStockDetails =  () => {
-
-      dispatch(fetchApiData({ url: `/api/stocks/${id}`, itemKey: "stockStore" }))
-      setStock(stockStore?.stockStore?.stock ?? {});
-      setRecentProducts(stockStore?.stockStore?.recent_products ?? []);
-      setProformas(stockStore?.stockStore?.proformas ?? []);
-      setUsers(stockStore?.stockStore?.users ?? []);
-  
+  const loadStockDetails = () => {
+    const curentItemKey = "stockStore" + id;
+      dispatch(fetchApiData({ url: `/api/stocks/${id}`, itemKey: curentItemKey }))
+      setStock(stockStore[curentItemKey]?.stock ?? {});
+      setRecentProducts(stockStore[curentItemKey]?.recent_products ?? []);
+      setProformas(stockStore[curentItemKey]?.proformas ?? []);
+      setUsers(stockStore[curentItemKey]?.users ?? []);
+      
   };
 
   const handleDeleteStock = async () => {
@@ -121,7 +120,7 @@ const StockShowScreen = () => {
     return (firstName.charAt(0) + lastName.charAt(0)).toUpperCase();
   };
 
-   if (isLoading) {
+   /* if (isLoading) {
     return (
        <div className="container-fluid">
        <div className="d-flex justify-content-center align-items-center" style={{ height: '50vh' }}>
@@ -132,7 +131,7 @@ const StockShowScreen = () => {
       </div>
     );
    }
-
+ */
 
   return (
     <div className="container-fluid">

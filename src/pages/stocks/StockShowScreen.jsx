@@ -369,36 +369,7 @@ const StockShowScreen = () => {
 
         {/* Informations système et Actions */}
         <div className="col-lg-4">
-          {/* Informations système */}
-          {/* <div className="card shadow-sm border-0 mb-4">
-            <div className="card-header bg-secondary text-white">
-              <h6 className="mb-0">
-                <i className="pi pi-info-circle me-2"></i>Informations système
-              </h6>
-            </div>
-            <div className="card-body">
-              <div className="row">
-                <div className="col-6">
-                  <div className="mb-3">
-                    <label className="fw-bold text-muted">ID:</label>
-                    <p className="mb-1">
-                      <span className="badge bg-secondary">#{stock.id}</span>
-                    </p>
-                  </div>
-                </div>
-                <div className="col-6">
-                  <div className="mb-3">
-                    <label className="fw-bold text-muted">Date de création:</label>
-                    <p className="mb-1">
-                      <i className="pi pi-calendar text-primary me-1"></i>
-                      {formatDateTime(stock.created_at)}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div> */}
-
+         
           {/* Proformas associés */}
           <div className="card shadow-sm border-0 mb-4">
             <div className="card-header bg-info text-white">
@@ -408,6 +379,7 @@ const StockShowScreen = () => {
               </h6>
             </div>
             <div className="card-body">
+            
               {proformas.length > 0 ? (
                 <>
                   <div className="list-group list-group-flush">

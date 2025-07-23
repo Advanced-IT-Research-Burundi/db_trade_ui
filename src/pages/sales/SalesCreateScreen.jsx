@@ -299,7 +299,7 @@ const SalesCreateScreen = () => {
       <Toast ref={toast} />
       
       {/* Header */}
-      <div className="row mb-4">
+      {/* <div className="row mb-4">
         <div className="col-12">
           <div className="d-flex justify-content-between align-items-center">
             <div>
@@ -317,162 +317,135 @@ const SalesCreateScreen = () => {
             </div>
           </div>
         </div>
-      </div>
+      </div> */}
 
       <div className="row">
         {/* Colonne gauche */}
         <div className="col-lg-6">
-          {/* Sélection Stock et Type */}
-          <div className="card shadow-sm border-0 mb-4">
-            <div className="card-body">
-              <div className="row g-3">
-                <div className="col-md-6">
-                  <label className="form-label fw-semibold">Stock</label>
-                  <select 
-                    className="form-select" 
-                    value={selectedStock} 
-                    onChange={(e) => setSelectedStock(e.target.value)}
-                    disabled={loading}
-                  >
-                    <option value="">Sélectionner un stock</option>
-                    {stocks.map(stock => (
-                      <option key={stock.id} value={stock.id}>
-                        {stock.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div className="col-md-6">
-                  <label className="form-label fw-semibold">Type de facture</label>
-                  <select 
-                    className="form-select" 
-                    value={invoiceType} 
-                    onChange={(e) => setInvoiceType(e.target.value)}
-                  >
-                    <option value="FACTURE">FACTURE</option>
-                    <option value="PROFORMA">PROFORMA</option>
-                    <option value="BON">BON</option>
-                  </select>
-                </div>
-              </div>
+          <div className="card shadow-sm border-0 mb-2">
+  <div className="card-header p-1 px-2 bg-primary text-white">
+    <div className="d-flex justify-content-between align-items-center">
+      <h6 className="mb-0">Informations de vente</h6>
+      <a onClick={()=>{
+        navigate('/clients/create')
+      }} className="btn btn-outline-light btn-sm">
+        <i className="pi pi-plus me-1"></i>Nouveau client
+      </a>
+    </div>
+  </div>
+  <div className="card-body">
+    <div className="row g-3">
+      <div className="col-md-4">
+        <select 
+          className="form-select" 
+          value={selectedStock} 
+          onChange={(e) => setSelectedStock(e.target.value)}
+          disabled={loading}
+        >
+          <option value="">Sélectionner un stock</option>
+          {stocks.map(stock => (
+            <option key={stock.id} value={stock.id}>
+              {stock.name}
+            </option>
+          ))}
+        </select>
+      </div>
+      <div className="col-md-4">
+        <select 
+          className="form-select" 
+          value={invoiceType} 
+          onChange={(e) => setInvoiceType(e.target.value)}
+        >
+          <option value="FACTURE">FACTURE</option>
+          <option value="PROFORMA">PROFORMA</option>
+          <option value="BON">BON</option>
+        </select>
+      </div>
+      <div className="col-md-4">
+        <div className="position-relative">
+          <input
+            ref={clientSearchRef}
+            type="text"
+            className="form-control"
+            value={clientSearch}
+            onChange={(e) => handleClientSearch(e.target.value)}
+            placeholder="Nom, téléphone ou email..."
+            autoComplete="off"
+          />
+          {clientLoading && (
+            <div className="position-absolute top-50 end-0 translate-middle-y me-3">
+              <div className="spinner-border spinner-border-sm text-primary" role="status"></div>
             </div>
-          </div>
-
-          {/* Section Client */}
-          <div className="card shadow-sm border-0 mb-4">
-            <div className="card-header bg-primary text-white">
-              <div className="d-flex justify-content-between align-items-center">
-                <h6 className="mb-0">
-                  <i className="pi pi-user me-2"></i>Client
-                </h6>
-                <a onClick={()=>{
-                  navigate('/clients/create')
-                }} className="btn btn-outline-light btn-sm">
-                  <i className="pi pi-plus me-1"></i>Nouveau
+          )}
+          
+          {/* Dropdown clients */}
+          {showClientDropdown && clients.length > 0 && (
+            <div className="dropdown-menu show w-100 shadow-lg" style={{ maxHeight: '300px', overflowY: 'auto' }}>
+              {clients.map(client => (
+                <a
+                  key={client.id}
+                  href="#"
+                  className="dropdown-item d-flex align-items-center"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    handleSelectClient(client);
+                  }}
+                >
+                  <div className="bg-primary bg-opacity-10 rounded-circle me-3 d-flex align-items-center justify-content-center" style={{ width: '40px', height: '40px' }}>
+                    <i className="pi pi-user text-primary"></i>
+                  </div>
+                  <div>
+                    <div className="fw-semibold">{client.name}</div>
+                    {client.phone && (
+                      <small className="text-muted">
+                        <i className="pi pi-phone me-1"></i>{client.phone}
+                      </small>
+                    )}
+                  </div>
                 </a>
-              </div>
+              ))}
             </div>
-            <div className="card-body">
-              <div className="row g-3">
-                <div className="col-md-8">
-                  <label className="form-label fw-semibold">
-                    Rechercher un client <span className="text-danger">*</span>
-                  </label>
-                  <div className="position-relative">
-                    <input
-                      ref={clientSearchRef}
-                      type="text"
-                      className="form-control"
-                      value={clientSearch}
-                      onChange={(e) => handleClientSearch(e.target.value)}
-                      placeholder="Nom, téléphone ou email..."
-                      autoComplete="off"
-                    />
-                    {clientLoading && (
-                      <div className="position-absolute top-50 end-0 translate-middle-y me-3">
-                        <div className="spinner-border spinner-border-sm text-primary" role="status"></div>
-                      </div>
-                    )}
-                    
-                    {/* Dropdown clients */}
-                    {showClientDropdown && clients.length > 0 && (
-                      <div className="dropdown-menu show w-100 shadow-lg" style={{ maxHeight: '300px', overflowY: 'auto' }}>
-                        {clients.map(client => (
-                          <a
-                            key={client.id}
-                            href="#"
-                            className="dropdown-item d-flex align-items-center"
-                            onClick={(e) => {
-                              e.preventDefault();
-                              handleSelectClient(client);
-                            }}
-                          >
-                            <div className="bg-primary bg-opacity-10 rounded-circle me-3 d-flex align-items-center justify-content-center" style={{ width: '40px', height: '40px' }}>
-                              <i className="pi pi-user text-primary"></i>
-                            </div>
-                            <div>
-                              <div className="fw-semibold">{client.name}</div>
-                              {client.phone && (
-                                <small className="text-muted">
-                                  <i className="pi pi-phone me-1"></i>{client.phone}
-                                </small>
-                              )}
-                            </div>
-                          </a>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </div>
-                <div className="col-md-4">
-                  <label className="form-label fw-semibold">
-                    Date de vente <span className="text-danger">*</span>
-                  </label>
-                  <input
-                    type="datetime-local"
-                    className="form-control"
-                    value={saleDate}
-                    onChange={(e) => setSaleDate(e.target.value)}
-                  />
-                </div>
-              </div>
+          )}
+        </div>
+      </div>
+    </div>
 
-              {/* Client sélectionné */}
-              {selectedClient && (
-                <div className="alert alert-info mt-3">
-                  <div className="d-flex justify-content-between align-items-center">
-                    <div className="d-flex align-items-center">
-                      <div className="bg-info bg-opacity-20 rounded-circle me-3 d-flex align-items-center justify-content-center" style={{ width: '40px', height: '40px' }}>
-                        <i className="pi pi-user"></i>
-                      </div>
-                      <div>
-                        <h6 className="mb-1">{selectedClient.name}</h6>
-                        <div className="d-flex gap-3">
-                          {selectedClient.phone && (
-                            <small className="text-muted">
-                              <i className="pi pi-phone me-1"></i>{selectedClient.phone}
-                            </small>
-                          )}
-                          {selectedClient.email && (
-                            <small className="text-muted">
-                              <i className="pi pi-envelope me-1"></i>{selectedClient.email}
-                            </small>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                    <button 
-                      type="button" 
-                      className="btn btn-sm btn-outline-secondary"
-                      onClick={handleClearClient}
-                    >
-                      <i className="pi pi-times"></i>
-                    </button>
-                  </div>
-                </div>
-              )}
+    {/* Client sélectionné */}
+    {selectedClient && (
+      <div className="alert alert-info mt-3">
+        <div className="d-flex justify-content-between align-items-center">
+          <div className="d-flex align-items-center">
+            <div className="bg-info bg-opacity-20 rounded-circle me-3 d-flex align-items-center justify-content-center" style={{ width: '40px', height: '40px' }}>
+              <i className="pi pi-user"></i>
+            </div>
+            <div>
+              <h6 className="mb-1">{selectedClient.name}</h6>
+              <div className="d-flex gap-3">
+                {selectedClient.phone && (
+                  <small className="text-muted">
+                    <i className="pi pi-phone me-1"></i>{selectedClient.phone}
+                  </small>
+                )}
+                {selectedClient.email && (
+                  <small className="text-muted">
+                    <i className="pi pi-envelope me-1"></i>{selectedClient.email}
+                  </small>
+                )}
+              </div>
             </div>
           </div>
+          <button 
+            type="button" 
+            className="btn btn-sm btn-outline-secondary"
+            onClick={handleClearClient}
+          >
+            <i className="pi pi-times"></i>
+          </button>
+        </div>
+      </div>
+    )}
+  </div>
+</div>
 
           {/* Section Recherche de Produits */}
           <div className="card shadow-sm border-0">

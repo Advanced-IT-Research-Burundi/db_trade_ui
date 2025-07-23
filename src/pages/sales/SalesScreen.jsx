@@ -3,6 +3,8 @@ import { Toast } from 'primereact/toast';
 import ApiService from '../../services/api.js';
 import StatCard from '../../components/Card/StatCard.jsx';
 import { useNavigate } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchApiData } from '../../stores/slicer/apiDataSlicer.js';
 
 const SalesScreen = () => {
   const [sales, setSales] = useState([]);
@@ -26,6 +28,12 @@ const SalesScreen = () => {
   const toast = useRef(null);
   const navigate = useNavigate();
 
+  const { saleStore } = useSelector((state) => ({
+    saleStore: state.apiData?.data
+  }));
+
+  const dispatch = useDispatch();
+
   useEffect(() => {
     loadSales();
     loadStats();
@@ -35,20 +43,15 @@ const SalesScreen = () => {
     try {
       setLoading(true);
       const params = { page, ...filters };
-      const response = await ApiService.get('/api/sales', params);
-      
-      if (response.success) {
-        setSales(response.data.sales.data || []);
+      dispatch(fetchApiData({ url: '/api/sales', itemKey: 'sales', method: 'GET', params }));
+        setSales(saleStore?.sales?.sales?.data || []);
         setPagination({
-          current_page: response.data.sales.current_page,
-          last_page: response.data.sales.last_page,
-          total: response.data.sales.total,
-          from: response.data.sales.from,
-          to: response.data.sales.to
+          current_page: saleStore?.sales?.sales?.current_page,
+          last_page: saleStore?.sales?.sales?.last_page,
+          total: saleStore?.sales?.sales?.total,
+          from: saleStore?.sales?.sales?.from,
+          to: saleStore?.sales?.sales?.to
         });
-      } else {
-        showToast('error', response.message || 'Erreur lors du chargement');
-      }
     } catch (error) {
       showToast('error', error.message);
     } finally {
@@ -59,9 +62,9 @@ const SalesScreen = () => {
   const loadStats = async () => {
     try {
       setStatsLoading(true);
-      const response = await ApiService.get('/api/sales');
-      if (response.success) {
-        setStats(response.data.stats || {});
+      dispatch(fetchApiData({ url: '/api/sales', itemKey: 'sales', method: 'GET' }));
+      if (saleStore?.sales?.stats?.success) {
+        setStats(saleStore?.sales?.stats || {});
       }
     } catch (error) {
       console.error('Erreur stats:', error);

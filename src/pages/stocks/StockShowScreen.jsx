@@ -8,7 +8,7 @@ import { fetchApiData } from '../../stores/slicer/apiDataSlicer.js';
 const StockShowScreen = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [stock, setStock] = useState(null);
+  const [stock, setStock] = useState({});
   const [loading, setLoading] = useState(true);
   const [recentProducts, setRecentProducts] = useState([]);
   const [proformas, setProformas] = useState([]);
@@ -16,33 +16,26 @@ const StockShowScreen = () => {
   const [deleteModal, setDeleteModal] = useState({ show: false, type: null, id: null });
   const toast = useRef(null);
 
-  const { stockStore } = useSelector((state) => ({
-    stockStore: state.apiData?.data
+  const { stockStore, isLoading } = useSelector((state) => ({
+    stockStore: state.apiData?.data,
+    isLoading : state.apiData?.loading,
   }));
   const dispatch = useDispatch();
-  const itemKey = 'stockStore'+id;
+
 
 
   useEffect(() => {
     loadStockDetails();
   }, []);
 
-  const loadStockDetails = async () => {
-    try {
-      setLoading(true);
+  const loadStockDetails =  () => {
 
-      dispatch(fetchApiData({ url: `/api/stocks/${id}`, itemKey }))
-      
-      setStock(stockStore[itemKey]?.stock);
-      setRecentProducts(stockStore[itemKey]?.recent_products || []);
-      setProformas(stockStore[itemKey]?.proformas || []);
-      setUsers(stockStore[itemKey]?.users || []);
-    } catch (error) {
-      showToast('error', error.message);
-      //navigate('/stocks');
-    } finally {
-      setLoading(false);
-    }
+      dispatch(fetchApiData({ url: `/api/stocks/${id}`, itemKey: "stockStore" }))
+      setStock(stockStore?.stockStore?.stock ?? {});
+      setRecentProducts(stockStore?.stockStore?.recent_products ?? []);
+      setProformas(stockStore?.stockStore?.proformas ?? []);
+      setUsers(stockStore?.stockStore?.users ?? []);
+  
   };
 
   const handleDeleteStock = async () => {
@@ -128,27 +121,18 @@ const StockShowScreen = () => {
     return (firstName.charAt(0) + lastName.charAt(0)).toUpperCase();
   };
 
-  if (loading) {
+   if (isLoading) {
     return (
-      <div className="container-fluid">
-        <div className="d-flex justify-content-center align-items-center" style={{ height: '50vh' }}>
+       <div className="container-fluid">
+       <div className="d-flex justify-content-center align-items-center" style={{ height: '50vh' }}>
           <div className="spinner-border text-primary" role="status">
             <span className="visually-hidden">Chargement...</span>
           </div>
         </div>
       </div>
     );
-  }
+   }
 
-  if (!stock) {
-    return (
-      <div className="container-fluid">
-        <div className="alert alert-danger">
-          Stock non trouvé
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="container-fluid">
@@ -167,10 +151,10 @@ const StockShowScreen = () => {
               <i className="pi pi-box"></i> Stocks
             </a>
           </li>
-          <li className="breadcrumb-item active">{stock.name}</li>
+          <li className="breadcrumb-item active">{stock?.name}</li>
         </ol>
         <div className="ms-auto">
-          <a href={`/stocks/${stock.id}/edit`} className="btn btn-warning">
+          <a href={`/stocks/${stock?.id}/edit`} className="btn btn-warning">
             <i className="pi pi-pencil me-2"></i>Modifier
           </a>
         </div>
@@ -185,7 +169,7 @@ const StockShowScreen = () => {
               <h6 className="mb-0">
                 <i className="pi pi-clock me-2"></i>Derniers produits ajoutés
               </h6>
-              <a  onClick={() => navigate(`/add/product/${stock.id}`)} className="btn btn-outline-light btn-sm">
+              <a  onClick={() => navigate(`/add/product/${stock?.id}`)} className="btn btn-outline-light btn-sm">
                 <i className="pi pi-box me-1"></i>Voir tous les produits
               </a>
             </div>
@@ -269,7 +253,7 @@ const StockShowScreen = () => {
                 <div className="text-center py-4">
                   <i className="pi pi-inbox display-4 text-muted"></i>
                   <p className="text-muted mt-2">Aucun produit dans ce stock</p>
-                  <a href={`/stocks/${stock.id}/products`} className="btn btn-primary">
+                  <a href={`/stocks/${stock?.id}/products`} className="btn btn-primary">
                     <i className="pi pi-plus-circle me-2"></i>Ajouter des produits
                   </a>
                 </div>
@@ -281,7 +265,7 @@ const StockShowScreen = () => {
           <div className="card shadow-sm border-0 mb-4">
             <div className="card-header bg-info text-white">
               <h5 className="mb-0">
-                <i className="pi pi-box me-2"></i>{stock.name}
+                <i className="pi pi-box me-2"></i>{stock?.name}
               </h5>
             </div>
             <div className="card-body">
@@ -291,16 +275,16 @@ const StockShowScreen = () => {
                   
                   <div className="mb-3">
                     <label className="fw-bold text-muted">Nom:</label>
-                    <p className="mb-1">{stock.name}</p>
+                    <p className="mb-1">{stock?.name}</p>
                   </div>
                   
                   <div className="mb-3">
                     <label className="fw-bold text-muted">Localisation:</label>
                     <p className="mb-1">
-                      {stock.location ? (
+                      {stock?.location ? (
                         <>
                           <i className="pi pi-map-marker text-primary me-1"></i>
-                          {stock.location}
+                          {stock?.location}
                         </>
                       ) : (
                         <span className="text-muted">Non spécifiée</span>
@@ -311,7 +295,7 @@ const StockShowScreen = () => {
                   <div className="mb-3">
                     <label className="fw-bold text-muted">Description:</label>
                     <p className="mb-1">
-                      {stock.description || <span className="text-muted">Aucune description</span>}
+                      {stock?.description || <span className="text-muted">Aucune description</span>}
                     </p>
                   </div>
                 </div>
@@ -322,11 +306,11 @@ const StockShowScreen = () => {
                   <div className="mb-3">
                     <label className="fw-bold text-muted">Agence:</label>
                     <p className="mb-1">
-                      {stock.agency ? (
+                      {stock?.agency ? (
                         <>
                           <i className="pi pi-building text-info me-1"></i>
-                          <a href={`/agencies/${stock.agency.id}`} className="text-decoration-none">
-                            {stock.agency.name}
+                          <a href={`/agencies/${stock?.agency?.id}`} className="text-decoration-none">
+                            {stock?.agency.name}
                           </a>
                         </>
                       ) : (
@@ -341,12 +325,12 @@ const StockShowScreen = () => {
                       {users.length > 0 ? (
                         <>
                           <i className="pi pi-users text-success me-1"></i>
-                          <span className="badge bg-success">{users.length} utilisateur(s)</span>
+                          <span className="badge bg-success">{users?.length} utilisateur(s)</span>
                           <br />
                           <small className="text-muted">
                             {users.slice(0, 3).map((user, index) => (
                               <span key={index}>
-                                {user.first_name} {user.last_name}
+                                {user?.first_name} {user?.last_name}
                                 {index < Math.min(users.length, 3) - 1 ? ', ' : ''}
                               </span>
                             ))}
@@ -363,7 +347,7 @@ const StockShowScreen = () => {
                     <label className="fw-bold text-muted">Créé par:</label>
                     <p className="mb-1">
                       <i className="pi pi-user-check text-success me-1"></i>
-                      {stock.created_by?.full_name || 'N/A'}
+                      {stock?.created_by?.full_name || 'N/A'}
                     </p>
                   </div>
                 </div>
@@ -387,7 +371,7 @@ const StockShowScreen = () => {
                   <div className="mb-3">
                     <label className="fw-bold text-muted">ID:</label>
                     <p className="mb-1">
-                      <span className="badge bg-secondary">#{stock.id}</span>
+                      <span className="badge bg-secondary">#{stock?.id}</span>
                     </p>
                   </div>
                 </div>
@@ -396,7 +380,7 @@ const StockShowScreen = () => {
                     <label className="fw-bold text-muted">Date de création:</label>
                     <p className="mb-1">
                       <i className="pi pi-calendar text-primary me-1"></i>
-                      {formatDateTime(stock.created_at)}
+                      {formatDateTime(stock?.created_at)}
                     </p>
                   </div>
                 </div>
@@ -485,7 +469,7 @@ const StockShowScreen = () => {
                   
                   {proformas.length > 5 && (
                     <div className="text-center mt-3">
-                      <a href={`/proformas?stock_id=${stock.id}`} className="btn btn-sm btn-outline-info">
+                      <a href={`/proformas?stock_id=${stock?.id}`} className="btn btn-sm btn-outline-info">
                         <i className="pi pi-arrow-right me-1"></i>
                         Voir tous les proformas ({proformas.length})
                       </a>
@@ -496,7 +480,7 @@ const StockShowScreen = () => {
                 <div className="text-center py-4">
                   <i className="pi pi-file-text text-muted" style={{ fontSize: '2rem' }}></i>
                   <p className="text-muted mt-2 mb-0">Aucune proforma associée</p>
-                  <a href={`/sales/create?stock_id=${stock.id}`} className="btn btn-sm btn-primary mt-2">
+                  <a href={`/sales/create?stock_id=${stock?.id}`} className="btn btn-sm btn-primary mt-2">
                     <i className="pi pi-plus-circle me-1"></i>Créer une proforma
                   </a>
                 </div>
@@ -513,15 +497,15 @@ const StockShowScreen = () => {
             </div>
             <div className="card-body">
               <div className="d-grid gap-2">
-                <a href={`/stocks/${stock.id}/products`} className="btn btn-outline-primary">
+                <a href={`/stocks/${stock?.id}/products`} className="btn btn-outline-primary">
                   <i className="pi pi-box me-2"></i>Gérer les produits
                 </a>
                 
-                <a href={`/stocks/${stock.id}/users/manage`} className="btn btn-outline-info">
+                <a href={`/stocks/${stock?.id}/users/manage`} className="btn btn-outline-info">
                   <i className="pi pi-users me-2"></i>Gérer les utilisateurs
                 </a>
                 
-                <a href={`/stocks/${stock.id}/edit`} className="btn btn-warning">
+                <a href={`/stocks/${stock?.id}/edit`} className="btn btn-warning">
                   <i className="pi pi-pencil me-2"></i>Modifier ce stock
                 </a>
                 
@@ -533,7 +517,7 @@ const StockShowScreen = () => {
                 
                 <button 
                   className="btn btn-danger w-100"
-                  onClick={() => setDeleteModal({ show: true, type: 'stock', id: stock.id })}
+                  onClick={() => setDeleteModal({ show: true, type: 'stock', id: stock?.id })}
                 >
                   <i className="pi pi-trash me-2"></i>Supprimer ce stock
                 </button>
@@ -554,7 +538,7 @@ const StockShowScreen = () => {
               {users.length} utilisateur(s)
             </span>
             {users.length > 5 && (
-              <a href={`/stocks/${stock.id}/users/manage`} className="btn btn-outline-light btn-sm">
+              <a href={`/stocks/${stock?.id}/users/manage`} className="btn btn-outline-light btn-sm">
                 <i className="pi pi-users me-1"></i>Voir tous les utilisateurs
               </a>
             )}
@@ -662,7 +646,7 @@ const StockShowScreen = () => {
             <div className="text-center py-4">
               <i className="pi pi-users display-4 text-muted"></i>
               <p className="text-muted mt-2">Aucun utilisateur associé à ce stock</p>
-              <a href={`/stocks/${stock.id}/users/manage`} className="btn btn-primary">
+              <a href={`/stocks/${stock?.id}/users/manage`} className="btn btn-primary">
                 <i className="pi pi-user-plus me-2"></i>Assigner des utilisateurs
               </a>
             </div>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate,Link } from 'react-router-dom';
 import { Toast } from 'primereact/toast';
 import ApiService from '../../services/api.js';
 import { useDispatch, useSelector } from 'react-redux';
@@ -163,16 +163,19 @@ const StockShowScreen = () => {
             </a>
           </li>
           <li className="breadcrumb-item">
-            <a href="/stocks" className="text-decoration-none">
+           <Link to="/stocks" className="text-decoration-none">
               <i className="pi pi-box"></i> Stocks
-            </a>
+            </Link>
           </li>
           <li className="breadcrumb-item active">{stock.name}</li>
         </ol>
-        <div className="ms-auto">
-          <a href={`/stocks/${stock.id}/edit`} className="btn btn-warning">
+        <div className="ms-auto d-flex gap-2">
+         <Link onClick={() => navigate('/stocks')} className="btn btn-secondary">
+            <i className="pi pi-arrow-left me-2"></i>Retour à la liste
+          </Link>
+          <Link to={`/stocks/${stock.id}/edit`} className="btn btn-warning">
             <i className="pi pi-pencil me-2"></i>Modifier
-          </a>
+          </Link>
         </div>
       </nav>
 

@@ -18,6 +18,8 @@ import StockShowScreen from '../pages/stocks/StockShowScreen.jsx';
 import StockTransferScreen from '../pages/stocks/StockTransferScreen.jsx';
 import StockMovementScreen from '../pages/stocks/StockMovementScreen.jsx';
 import EntreMultipleScreen from '../pages/stocks/EntreMultipleScreen.jsx';
+import StockEditScreen from '../pages/stocks/StockEditScreen.jsx';
+import StockCreateScreen from '../pages/stocks/StockCreateScreen.jsx';
 
 //products
 import ProductsScreen from '../pages/products/ProductsScreen';
@@ -95,6 +97,8 @@ const protectedRoutes = [
   { path: '/stocks/movements/:id', component: StockMovementScreen },
   { path: '/stocks/entre-multiple/:id', component: EntreMultipleScreen },
   { path: '/stock-product-details/:id', component: StockProductDetailsScreen },
+  { path: '/stocks/create', component: StockCreateScreen },
+  { path: '/stocks/:id/edit', component: StockEditScreen },
   //products
   { path: '/products', component: ProductsScreen },
   { path: '/add/product/:id', component: AddProductScreen },

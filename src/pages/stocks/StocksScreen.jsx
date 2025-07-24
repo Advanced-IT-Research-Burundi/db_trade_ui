@@ -199,12 +199,14 @@ const StockScreen = () => {
                 <i className="pi pi-refresh me-1"></i>
                 {loading ? 'Actualisation...' : 'Actualiser'}
               </button>
-              <a onClick={() => navigate('/stocks/transfer')} className="btn btn-outline-info">
+             <div className="d-flex gap-2">
+               <a onClick={() => navigate('/stocks/transfer')} className="btn btn-outline-info">
                 <i className="pi pi-sync me-1"></i>Transfert Entre Stock
               </a>
               <a onClick={() => navigate('/stocks/create')} className="btn btn-primary">
                 <i className="pi pi-plus-circle me-1"></i>Nouveau Stock
               </a>
+             </div>
             </div>
           </div>
         </div>
@@ -414,7 +416,7 @@ const StockScreen = () => {
                             <i className="pi pi-eye"></i>
                           </a>
                           <a 
-                            href={`/stocks/${stock.id}/edit`} 
+                            onClick={() => navigate(`/stocks/${stock.id}/edit`)}
                             className="btn btn-sm btn-outline-warning" 
                             title="Modifier"
                           >

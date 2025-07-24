@@ -32,19 +32,19 @@ const StockEditScreen = () => {
     }
   };
 
-  const handleSubmit =  (values) => {
-    try {
-    const response = ApiService.put(`/api/stocks/${id}`, values);
+  const handleSubmit = async (values) => {
+    const response = await ApiService.put(`/api/stocks/${id}`, values);
 
-    console.log('Response from API:', response);
-    
     if (response.success) {
+      // Afficher un toast de succès
       toast.current.show({
         severity: 'success',
         summary: 'Succès',
         detail: 'Stock modifié avec succès',
         life: 3000
       });
+      
+      // Attendre un peu avant de naviguer pour que l'utilisateur voie le toast
       setTimeout(() => {
         navigate('/stocks');
       }, 1000);
@@ -58,19 +58,10 @@ const StockEditScreen = () => {
         life: 3000
       });
       
-      
+      if (response.status === 422) {
+        throw { status: 422, errors: response.errors };
+      }
     }
-    }catch (error) {
-        console.log('Error during stock modification:', error);
-        toast.current.show({
-            severity: 'error',
-            summary: 'Erreur',
-            detail: error.message || 'Erreur lors de la modification du stock',
-            life: 3000
-        });
-        
-       
-        }
   };
 
   const form = useForm({
@@ -88,14 +79,15 @@ const StockEditScreen = () => {
         
         if (response.success) {
           const stock = response.data.stock;
+          console.log('Response from API:', response.data.stock);
           setStockData(stock);
           
           // Mettre à jour les valeurs du formulaire
-          form.setValues({
-            name: stock.name || '',
-            location: stock.location || '',
-            description: stock.description || ''
-          });
+          // form.setValues({
+          //   name: stock.name || '',
+          //   location: stock.location || '',
+          //   description: stock.description || ''
+          // });
         } else {
           toast.current.show({
             severity: 'error',
@@ -109,7 +101,7 @@ const StockEditScreen = () => {
         toast.current.show({
           severity: 'error',
           summary: 'Erreur',
-          detail: 'Erreur lors du chargement du stock : ' + error.message,
+          detail: 'Erreur lors du chargement du stock',
           life: 3000
         });
         navigate('/stocks');
@@ -123,24 +115,7 @@ const StockEditScreen = () => {
     }
   }, [id, navigate]);
 
-  if (loading) {
-    return (
-      <div className="container-fluid py-4">
-        <div className="row justify-content-center">
-          <div className="col-12 col-md-8 col-lg-6">
-            <div className="card shadow-sm">
-              <div className="card-body text-center py-5">
-                <div className="spinner-border text-primary mb-3" role="status">
-                  <span className="visually-hidden">Chargement...</span>
-                </div>
-                <p className="text-muted">Chargement des données du stock...</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
+
 
   return (
     <div className="container-fluid py-4">
@@ -158,6 +133,13 @@ const StockEditScreen = () => {
                   Modifier le stock
                   {stockData && (
                     <small className="text-muted ms-2">#{stockData.id}</small>
+                  )}
+                  {loading && (
+                    <span className="ms-2">
+                      <div className="spinner-border spinner-border-sm text-primary" role="status">
+                        <span className="visually-hidden">Chargement...</span>
+                      </div>
+                    </span>
                   )}
                 </h4>
                 <button
@@ -216,6 +198,19 @@ const StockEditScreen = () => {
                     />
                   </div>
                 </div>
+
+                {loading && !stockData && (
+                  <div className="row mb-4">
+                    <div className="col-12">
+                      <div className="alert alert-info d-flex align-items-center">
+                        <div className="spinner-border spinner-border-sm text-info me-2" role="status">
+                          <span className="visually-hidden">Chargement...</span>
+                        </div>
+                        <span>Chargement des données du stock...</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
 
                 {/* Boutons d'action */}
                 <div className="d-flex justify-content-end gap-2 mt-4">

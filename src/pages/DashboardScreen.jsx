@@ -4,6 +4,8 @@ import { Chart, CategoryScale, LinearScale, PointElement, LineElement, Title, To
 import { Line } from 'react-chartjs-2';
 import ApiService from '../services/api.js';
 import { useNavigate } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchApiData } from '../stores/slicer/apiDataSlicer.js';
 
 Chart.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, Filler);
 
@@ -15,9 +17,21 @@ const DashboardScreen = () => {
   const toast = useRef(null);
   const navigate = useNavigate();
 
+  const dispatch = useDispatch()
+
+  const { data } = useSelector((state) => ({
+      data: state.apiData?.data?.DASHBOAR_DATA,
+  }))
+
   useEffect(() => {
     loadDashboard();
   }, [period, agencyId]);
+
+  useEffect(() => {
+    if (data) {
+      setDashboardData(data);
+      }
+  } , [data])
 
   const loadDashboard = async () => {
     try {
@@ -25,19 +39,7 @@ const DashboardScreen = () => {
       const params = new URLSearchParams();
       if (period) params.append('period', period);
       if (agencyId) params.append('agency_id', agencyId);
-      
-      const response = await ApiService.get(`/api/dashboard?${params.toString()}`);
-      
-      if (response.success) {
-        setDashboardData(response.data);
-      } else {
-        toast.current.show({
-          severity: 'error',
-          summary: 'Erreur',
-          detail: response.message || 'Erreur lors du chargement du dashboard',
-          life: 3000
-        });
-      }
+      dispatch(fetchApiData({url : "/api/dashboard" , itemKey : "DASHBOAR_DATA" , params : params.toString() }))
     } catch (error) {
       console.log('Erreur de connexion: ' + error.message);
       toast.current.show({

@@ -17,7 +17,7 @@ const StockShowScreen = () => {
   const toast = useRef(null);
 
   const dispatch = useDispatch()
-    const { data    } = useSelector((state) => ({
+  const { data    } = useSelector((state) => ({
       data: state.apiData?.data?.STOCK_DETAILS,
     }))
 

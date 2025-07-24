@@ -268,7 +268,7 @@ const ProformaScreen = () => {
                 <i className="pi pi-refresh me-1"></i>
                 {loading ? 'Actualisation...' : 'Actualiser'}
               </button>
-              <Link to="/sales/create" className="btn btn-primary">
+              <Link to="/proforma/create" className="btn btn-primary">
                 <i className="pi pi-plus-circle me-1"></i>Nouveau Proforma
               </Link>
             </div>

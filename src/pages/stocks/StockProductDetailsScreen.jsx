@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchApiData } from "../../stores/slicer/apiDataSlicer";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { 
   Table, TableBody, TableCell, TableContainer, TableHead, TableRow, 
   Paper, TextField, Button, Box, Typography, TablePagination, IconButton,
@@ -13,6 +13,7 @@ import { styled } from '@mui/material/styles';
 import { tableCellClasses } from '@mui/material/TableCell';
 import { jsPDF } from "jspdf";
 import 'jspdf-autotable';
+import usePrint from "../../hooks/usePrint";
 
 const StyledTableCell = styled(TableCell)(({ theme }) => ({
   [`&.${tableCellClasses.head}`]: {
@@ -79,32 +80,27 @@ export default function StockProductDetailsScreen() {
         XLSX.writeFile(wb, `stock_products_${new Date().toISOString().split('T')[0]}.xlsx`);
     };
 
-    const exportToPdf = () => {
-        try {
-            const doc = new jsPDF();        
-            doc.text("Hello world!", 10, 10);    
-            doc.save(`stock_products_${new Date().toISOString().split('T')[0]}.pdf`);
-                
-        } catch (error) {
-            console.error('Error generating PDF:', error);
-            alert('Error generating PDF. Please try again.');
-        }
-    };
+    const navigate = useNavigate();
    
+    const { print } = usePrint();
+    
     return (
-        <Box sx={{ p: 3 }}>
+        <Box sx={{ p: 3 }} id="stock-product-details">
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
                 <Typography variant="h4" component="h1">Détails du Stock</Typography>
-                
+                <Button onClick={() => print("stock-product-details")}>Imprimer</Button>
                 <Box>
                     <Tooltip title="Exporter en Excel">
                         <IconButton onClick={exportToExcel} color="primary">
                             <DownloadIcon />
+                            Exporter en Excel
                         </IconButton>
                     </Tooltip>
                     <Tooltip title="Exporter en PDF">
-                        <IconButton onClick={exportToPdf} color="error">
+                        <IconButton onClick={() => navigate(`/stocks-print-all/${stockId}`)} color="error">
+                        
                             <PdfIcon />
+                            Imprimer tout
                         </IconButton>
                     </Tooltip>
                 </Box>
@@ -119,8 +115,6 @@ export default function StockProductDetailsScreen() {
                 sx={{ mb: 2 }}
                 fullWidth
             />
-          
-
             <TableContainer component={Paper}>
                 <Table  sx={{ minWidth: 650 }} size="small" aria-label="a dense table" stickyHeader>
                     <TableHead>
@@ -137,9 +131,9 @@ export default function StockProductDetailsScreen() {
                         </TableRow>
                     </TableHead>
                     <TableBody>
-                        {data?.stock_products?.data?.map((item) => (
+                        {data?.stock_products?.data?.map((item, index) => (
                             <TableRow key={item.id}>
-                                <StyledTableCell >{item.id}</StyledTableCell>
+                                <StyledTableCell >{index + 1}</StyledTableCell>
                                 <StyledTableCell>{item.product?.code || '-'}</StyledTableCell>
                                 <StyledTableCell>{item.category?.name || '-'}</StyledTableCell>
                                 <StyledTableCell>{item.product_name}</StyledTableCell>

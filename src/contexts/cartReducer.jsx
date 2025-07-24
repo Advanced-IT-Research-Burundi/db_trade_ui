@@ -183,6 +183,10 @@ export const CartProvider = ({ children }) => {
       return quantity > availableStock;
     });
   }, [state.items]);
+  
+  const getStockProformaErrors = React.useMemo(() => {
+    return [];
+  }, [state.items]);
 
   // Actions du panier
   const addItem = React.useCallback((product) => {
@@ -378,6 +382,7 @@ export const CartProvider = ({ children }) => {
     loading: state.loading,
     totals: calculateTotals,
     stockErrors: getStockErrors,
+    stockProformaErrors: getStockProformaErrors,
     
     // Actions de base
     addItem,
@@ -408,6 +413,7 @@ export const CartProvider = ({ children }) => {
     state.loading,
     calculateTotals,
     getStockErrors,
+    getStockProformaErrors,
     addItem,
     removeItem,
     updateQuantity,

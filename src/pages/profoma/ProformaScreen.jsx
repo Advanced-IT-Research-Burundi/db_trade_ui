@@ -170,7 +170,7 @@ const ProformaScreen = () => {
     const diffTime = Math.abs(now - new Date(date));
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     
-    if (diffDays === 1) return 'Hier';
+    if (diffDays === 1) return 'Aujourd\'hui';
     if (diffDays < 7) return `Il y a ${diffDays} jours`;
     if (diffDays < 30) return `Il y a ${Math.ceil(diffDays / 7)} semaines`;
     return formatDate(date);
@@ -268,7 +268,7 @@ const ProformaScreen = () => {
                 <i className="pi pi-refresh me-1"></i>
                 {loading ? 'Actualisation...' : 'Actualiser'}
               </button>
-              <Link to="/sales/create" className="btn btn-primary">
+              <Link to="/proforma/create" className="btn btn-primary">
                 <i className="pi pi-plus-circle me-1"></i>Nouveau Proforma
               </Link>
             </div>

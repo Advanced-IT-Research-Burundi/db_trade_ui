@@ -2,13 +2,13 @@ import React, { useState, useEffect, useRef } from "react";
 import { Toast } from "primereact/toast";
 import { useCart } from "../../contexts/cartReducer.jsx";
 import ApiService from "../../services/api.js";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
-const SalesCreateScreen = () => {
+const ProformaCreateScreen = () => {
   const {
     items,
     totals,
-    stockErrors,
+    stockProformaErrors,
     addItem,
     removeItem,
     updateQuantity,
@@ -39,7 +39,7 @@ const SalesCreateScreen = () => {
   // Stock et données
   const [selectedStock, setSelectedStock] = useState("");
   const [stocks, setStocks] = useState([]);
-  const [invoiceType, setInvoiceType] = useState("FACTURE");
+  const [invoiceType, setInvoiceType] = useState("PROFORMA");
 
   // Vente
   const [saleDate, setSaleDate] = useState(
@@ -68,7 +68,7 @@ const SalesCreateScreen = () => {
   const loadInitialData = async () => {
     try {
       setLoading(true);
-      const response = await ApiService.get("/api/sales/create-data");
+      const response = await ApiService.get("/api/proformas/create-data");
 
       if (response.success) {
         setStocks(response.data.stocks || []);
@@ -92,7 +92,7 @@ const SalesCreateScreen = () => {
 
     try {
       const response = await ApiService.get(
-        `/api/sales/categories/${selectedStock}`
+        `/api/proformas/categories/${selectedStock}`
       );
       if (response.success) {
         setCategories(response.data.categories || {});
@@ -112,7 +112,7 @@ const SalesCreateScreen = () => {
 
     try {
       setClientLoading(true);
-      const response = await ApiService.get("/api/sales/clients/search", {
+      const response = await ApiService.get("/api/proformas/clients/search", {
         search,
       });
 
@@ -143,7 +143,7 @@ const SalesCreateScreen = () => {
       };
 
       const response = await ApiService.get(
-        "/api/sales/products/search",
+        "/api/proformas/products/search",
         params
       );
 
@@ -176,18 +176,18 @@ const SalesCreateScreen = () => {
   };
 
   const handleAddProduct = (product) => {
-    // Vérifier le stock
-    if (product.quantity_disponible <= 0) {
-      showToast("warn", "Stock insuffisant pour ce produit");
-      return;
-    }
+    // // Vérifier le stock
+    // if (product.quantity_disponible <= 0) {
+    //   showToast("warn", "Stock insuffisant pour ce produit");
+    //   return;
+    // }
 
     // Vérifier si le produit est déjà dans le panier
-    const existingItem = items.find((item) => item.product_id === product.id);
-    if (existingItem && existingItem.quantity >= product.quantity_disponible) {
-      showToast("warn", "Stock insuffisant pour cette quantité");
-      return;
-    }
+    // const existingItem = items.find((item) => item.product_id === product.id);
+    // if (existingItem && existingItem.quantity >= product.quantity_disponible) {
+    //   showToast("warn", "Stock insuffisant pour cette quantité");
+    //   return;
+    // }
 
     addItem(product);
     showToast("success", "Produit ajouté au panier");
@@ -218,7 +218,7 @@ const SalesCreateScreen = () => {
       return;
     }
 
-    if (stockErrors.length > 0) {
+    if (stockProformaErrors.length > 0) {
       showToast(
         "error",
         "Veuillez corriger les quantités supérieures au stock"
@@ -243,7 +243,7 @@ const SalesCreateScreen = () => {
         })),
       };
 
-      const response = await ApiService.post("/api/sales/store", saleData);
+      const response = await ApiService.post("/api/proformas/store", saleData);
 
       if (response.success) {
         showToast("success", "Vente enregistrée avec succès");
@@ -251,7 +251,7 @@ const SalesCreateScreen = () => {
 
         // Redirection ou reset du formulaire
         setTimeout(() => {
-          navigate("/sales");
+          navigate("/proforma");
         }, 1000);
       } else {
         showToast(
@@ -335,7 +335,7 @@ const SalesCreateScreen = () => {
             </div>
             <div className="d-flex gap-2">
               <a onClick={()=>{
-                navigate('/sales')
+                navigate('/proformas')
               }} className="btn btn-outline-secondary">
                 <i className="pi pi-arrow-left me-1"></i>Retour
               </a>
@@ -384,7 +384,7 @@ const SalesCreateScreen = () => {
                     value={invoiceType}
                     onChange={(e) => setInvoiceType(e.target.value)}
                   >
-                    <option value="FACTURE">FACTURE</option>
+                    <option value="PROFORMA" selected>PROFORMA</option>
                   </select>
                 </div>
                 <div className="col-md-4">
@@ -656,7 +656,7 @@ const SalesCreateScreen = () => {
                       className="btn btn-primary btn-sm"
                       onClick={handleSave}
                       disabled={
-                        saving || !selectedClient || stockErrors.length > 0
+                        saving || !selectedClient || stockProformaErrors.length > 0
                       }
                     >
                       {saving ? (
@@ -881,24 +881,7 @@ const SalesCreateScreen = () => {
                     </table>
                   </div>
 
-                  {/* Alerte globale pour les stocks insuffisants */}
-                  {stockErrors.length > 0 && (
-                    <div className="alert alert-danger mx-3 mt-3 mb-0">
-                      <div className="d-flex align-items-center">
-                        <i className="pi pi-exclamation-triangle me-2"></i>
-                        <div>
-                          <strong>Attention!</strong>
-                          Certains produits ont une quantité supérieure au stock
-                          disponible.
-                          <br />
-                          <small>
-                            Veuillez ajuster les quantités avant de procéder à
-                            la vente.
-                          </small>
-                        </div>
-                      </div>
-                    </div>
-                  )}
+                  
 
                   {/* Totaux */}
                   <div className="p-3 border-top bg-light">
@@ -1049,7 +1032,7 @@ const SalesCreateScreen = () => {
                     saving ||
                     !selectedClient ||
                     items.length === 0 ||
-                    stockErrors.length > 0
+                    stockProformaErrors.length > 0
                   }
                 >
                   {saving ? (
@@ -1063,7 +1046,7 @@ const SalesCreateScreen = () => {
                   ) : (
                     <>
                       <i className="pi pi-check-circle me-2"></i>
-                      {stockErrors.length > 0
+                      {stockProformaErrors.length > 0
                         ? "Corriger les stocks avant de sauvegarder"
                         : "Enregistrer la vente"}
                     </>
@@ -1072,12 +1055,12 @@ const SalesCreateScreen = () => {
 
                 <div className="row g-2">
                   <div className="col-6">
-                    <a
-                      href="/sales"
+                    <Link
+                      to='/proforma'
                       className="btn btn-outline-secondary w-100"
                     >
                       <i className="pi pi-arrow-left me-1"></i>Retour
-                    </a>
+                    </Link>
                   </div>
                   <div className="col-6">
                     <button
@@ -1095,7 +1078,7 @@ const SalesCreateScreen = () => {
               {/* Messages d'aide */}
               {(!selectedClient ||
                 items.length === 0 ||
-                stockErrors.length > 0) && (
+                stockProformaErrors.length > 0) && (
                 <div className="alert alert-warning mt-3 border-0">
                   <small>
                     <i className="pi pi-info-circle me-1"></i>
@@ -1108,7 +1091,7 @@ const SalesCreateScreen = () => {
                     {selectedClient &&
                       items.length === 0 &&
                       "Ajoutez des produits pour continuer"}
-                    {stockErrors.length > 0 &&
+                    {stockProformaErrors.length > 0 &&
                       "Corrigez les quantités supérieures au stock disponible avant de continuer"}
                   </small>
                 </div>
@@ -1121,4 +1104,4 @@ const SalesCreateScreen = () => {
   );
 };
 
-export default SalesCreateScreen;
+export default ProformaCreateScreen;

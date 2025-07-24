@@ -31,13 +31,26 @@ const ProformaScreen = () => {
 
   const dispatch = useDispatch();
 
-  const { proformasStore } = useSelector((state) => ({
-    proformasStore: state.apiData?.data
+  const { data } = useSelector((state) => ({
+    data: state.apiData?.data?.proformas
   }));
 
   useEffect(() => {
     loadProformas();
   }, []);
+  useEffect(() => {
+    if(data){
+      setProformas(data?.proformas?.data || []);
+      setStats(data?.stats || {});
+      setPagination({
+        current_page: data?.current_page,
+        last_page: data?.last_page,
+        total: data?.total,
+        from: data?.from,
+        to: data?.to
+      });
+    }
+  }, [data]);
 
   const loadProformas = async (page = 1) => {
     try {
@@ -45,15 +58,7 @@ const ProformaScreen = () => {
       const params = { page, ...filters };
     
       dispatch(fetchApiData({ url: '/api/proformas', itemKey: 'proformas', method: 'GET', params }));
-        setProformas(proformasStore?.proformas?.proformas.data || []);
-        setStats(proformasStore?.proformas?.stats || {});
-        setPagination({
-          current_page: proformasStore?.proformas?.proformas.current_page,
-          last_page: proformasStore?.proformas?.proformas.last_page,
-          total: proformasStore?.proformas?.proformas.total,
-          from: proformasStore?.proformas?.proformas.from,
-          to: proformasStore?.proformas?.proformas.to
-        });
+       
       
     } catch (error) {
       showToast('error', error.message);
@@ -249,6 +254,8 @@ const ProformaScreen = () => {
             <div>
               <h2 className="text-primary mb-1">
                 <i className="pi pi-file me-2"></i>Gestion des Proformas
+
+               
               </h2>
               <p className="text-muted mb-0">{pagination.total} proforma(s) au total</p>
             </div>

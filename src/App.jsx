@@ -12,6 +12,7 @@ import LoadingComponent from './pages/component/LoadingComponent';
 
 
 function App() {
+
   return (
     
     <Provider store={store}>

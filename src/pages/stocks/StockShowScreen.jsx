@@ -2,11 +2,13 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Toast } from 'primereact/toast';
 import ApiService from '../../services/api.js';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchApiData } from '../../stores/slicer/apiDataSlicer.js';
 
 const StockShowScreen = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [stock, setStock] = useState(null);
+  const [stock, setStock] = useState({});
   const [loading, setLoading] = useState(true);
   const [recentProducts, setRecentProducts] = useState([]);
   const [proformas, setProformas] = useState([]);
@@ -14,29 +16,32 @@ const StockShowScreen = () => {
   const [deleteModal, setDeleteModal] = useState({ show: false, type: null, id: null });
   const toast = useRef(null);
 
+  const dispatch = useDispatch()
+    const { data    } = useSelector((state) => ({
+      data: state.apiData?.data?.STOCK_DETAILS,
+    }))
+
   useEffect(() => {
     loadStockDetails();
   }, [id]);
 
+  useEffect(() => {
+    if (data) {
+      setStock(data.stock);
+      setRecentProducts(data.recent_products || []);
+      setProformas(data.proformas || []);
+      setUsers(data.users || []);
+    }
+  } , [data])
+
   const loadStockDetails = async () => {
     try {
-      setLoading(true);
-      const response = await ApiService.get(`/api/stocks/${id}`);
-      
-      if (response.success) {
-        setStock(response.data.stock);
-        setRecentProducts(response.data.recent_products || []);
-        setProformas(response.data.proformas || []);
-        setUsers(response.data.users || []);
-      } else {
-        showToast('error', 'Erreur lors du chargement du stock');
-        navigate('/stocks');
-      }
+      dispatch(fetchApiData({ url : `/api/stocks/${id}` , itemKey : "STOCK_DETAILS" }))
     } catch (error) {
       showToast('error', error.message);
       navigate('/stocks');
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
   };
 
@@ -340,7 +345,7 @@ const StockShowScreen = () => {
                           <br />
                           <small className="text-muted">
                             {users.slice(0, 3).map((user, index) => (
-                              <span key={user.id}>
+                              <span key={index}>
                                 {user.first_name} {user.last_name}
                                 {index < Math.min(users.length, 3) - 1 ? ', ' : ''}
                               </span>
@@ -542,8 +547,8 @@ const StockShowScreen = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {users.slice(0, 5).map((user) => (
-                      <tr key={user.id}>
+                    {users.slice(0, 5).map((user , index) => (
+                      <tr key={index}>
                         <td>
                           <div className="d-flex align-items-center">
                             {getImageUrl(user.profile_photo) ? (

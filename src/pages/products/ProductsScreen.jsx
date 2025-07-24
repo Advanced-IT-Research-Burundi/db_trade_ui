@@ -49,16 +49,7 @@ const ProductScreen = () => {
       params
     }));
 
-    setProducts(data?.products?.data || []);
-    setCategories(data?.categories || []);
-    setAgencies(data?.agencies || []);
-    setPagination({
-      current_page: data?.products?.current_page,
-      last_page: data?.products?.last_page,
-      total: data?.products?.total,
-      from: data?.products?.from,
-      to: data?.products?.to
-    });
+   
 
   };
 
@@ -66,6 +57,21 @@ const ProductScreen = () => {
   useEffect(() => {
     loadProducts();
   }, []);
+  useEffect(() => {
+   
+    if(data){
+      setProducts(data?.products?.data || []);
+      setCategories(data?.categories || []);
+      setAgencies(data?.agencies || []);
+      setPagination({
+        current_page: data?.products?.current_page,
+        last_page: data?.products?.last_page,
+        total: data?.products?.total,
+        from: data?.products?.from,
+        to: data?.products?.to
+      });
+    }
+  }, [data]);
 
   // Handle filter changes
   const handleFilterChange = (name, value) => {

@@ -28,8 +28,8 @@ const SalesScreen = () => {
   const toast = useRef(null);
   const navigate = useNavigate();
 
-  const { saleStore } = useSelector((state) => ({
-    saleStore: state.apiData?.data
+  const { data } = useSelector((state) => ({
+    data : state.apiData?.data
   }));
 
   const dispatch = useDispatch();
@@ -39,19 +39,27 @@ const SalesScreen = () => {
     loadStats();
   }, []);
 
+  useEffect(() => {
+    if (data) {
+      setSales(data?.sales?.sales?.data || []);
+      setPagination({
+        current_page: data?.sales?.sales?.current_page,
+        last_page: data?.sales?.sales?.last_page,
+        total: data?.sales?.sales?.total,
+        from: data?.sales?.sales?.from,
+        to: data?.sales?.sales?.to
+      });
+      setStats(data?.sales?.stats || {});
+      }
+
+  }, [data])
+
   const loadSales = async (page = 1) => {
     try {
       setLoading(true);
       const params = { page, ...filters };
       dispatch(fetchApiData({ url: '/api/sales', itemKey: 'sales', method: 'GET', params }));
-        setSales(saleStore?.sales?.sales?.data || []);
-        setPagination({
-          current_page: saleStore?.sales?.sales?.current_page,
-          last_page: saleStore?.sales?.sales?.last_page,
-          total: saleStore?.sales?.sales?.total,
-          from: saleStore?.sales?.sales?.from,
-          to: saleStore?.sales?.sales?.to
-        });
+       
     } catch (error) {
       showToast('error', error.message);
     } finally {
@@ -63,7 +71,6 @@ const SalesScreen = () => {
     try {
       setStatsLoading(true);
       dispatch(fetchApiData({ url: '/api/sales', itemKey: 'sales', method: 'GET' }));
-        setStats(saleStore?.sales?.stats || {});
     } catch (error) {
       console.error('Erreur stats:', error);
     } finally {

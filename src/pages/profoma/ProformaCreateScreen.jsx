@@ -8,7 +8,7 @@ const ProformaCreateScreen = () => {
   const {
     items,
     totals,
-    stockErrors,
+    stockProformaErrors,
     addItem,
     removeItem,
     updateQuantity,
@@ -218,7 +218,7 @@ const ProformaCreateScreen = () => {
       return;
     }
 
-    if (stockErrors.length > 0) {
+    if (stockProformaErrors.length > 0) {
       showToast(
         "error",
         "Veuillez corriger les quantités supérieures au stock"
@@ -656,7 +656,7 @@ const ProformaCreateScreen = () => {
                       className="btn btn-primary btn-sm"
                       onClick={handleSave}
                       disabled={
-                        saving || !selectedClient || stockErrors.length > 0
+                        saving || !selectedClient || stockProformaErrors.length > 0
                       }
                     >
                       {saving ? (
@@ -1032,7 +1032,7 @@ const ProformaCreateScreen = () => {
                     saving ||
                     !selectedClient ||
                     items.length === 0 ||
-                    stockErrors.length > 0
+                    stockProformaErrors.length > 0
                   }
                 >
                   {saving ? (
@@ -1046,7 +1046,7 @@ const ProformaCreateScreen = () => {
                   ) : (
                     <>
                       <i className="pi pi-check-circle me-2"></i>
-                      {stockErrors.length > 0
+                      {stockProformaErrors.length > 0
                         ? "Corriger les stocks avant de sauvegarder"
                         : "Enregistrer la vente"}
                     </>
@@ -1078,7 +1078,7 @@ const ProformaCreateScreen = () => {
               {/* Messages d'aide */}
               {(!selectedClient ||
                 items.length === 0 ||
-                stockErrors.length > 0) && (
+                stockProformaErrors.length > 0) && (
                 <div className="alert alert-warning mt-3 border-0">
                   <small>
                     <i className="pi pi-info-circle me-1"></i>
@@ -1091,7 +1091,7 @@ const ProformaCreateScreen = () => {
                     {selectedClient &&
                       items.length === 0 &&
                       "Ajoutez des produits pour continuer"}
-                    {stockErrors.length > 0 &&
+                    {stockProformaErrors.length > 0 &&
                       "Corrigez les quantités supérieures au stock disponible avant de continuer"}
                   </small>
                 </div>

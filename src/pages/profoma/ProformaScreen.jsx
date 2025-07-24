@@ -170,7 +170,7 @@ const ProformaScreen = () => {
     const diffTime = Math.abs(now - new Date(date));
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     
-    if (diffDays === 1) return 'Hier';
+    if (diffDays === 1) return 'Aujourd\'hui';
     if (diffDays < 7) return `Il y a ${diffDays} jours`;
     if (diffDays < 30) return `Il y a ${Math.ceil(diffDays / 7)} semaines`;
     return formatDate(date);

@@ -79,13 +79,12 @@ export default function StockProductDetailsScreen() {
         XLSX.writeFile(wb, `stock_products_${new Date().toISOString().split('T')[0]}.xlsx`);
     };
 
-
     const exportToPdf = () => {
         try {
             const doc = new jsPDF();        
             doc.text("Hello world!", 10, 10);    
             doc.save(`stock_products_${new Date().toISOString().split('T')[0]}.pdf`);
-            
+                
         } catch (error) {
             console.error('Error generating PDF:', error);
             alert('Error generating PDF. Please try again.');

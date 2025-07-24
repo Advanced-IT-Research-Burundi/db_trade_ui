@@ -2,9 +2,12 @@ import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
 
 export default defineConfig(({ mode }) => {
-  const env = loadEnv(mode, process.cwd(), '');
-  const injectedEnv = Object.keys(env).reduce((acc, key) => {
-    acc[key] = JSON.stringify(env[key]);
+  // ✅ Only load variables with VITE_ prefix
+  const env = loadEnv(mode, process.cwd(), 'VITE_');
+  
+  // ✅ Create proper define object structure
+  const defineEnv = Object.keys(env).reduce((acc, key) => {
+    acc[`process.env.${key}`] = JSON.stringify(env[key]);
     return acc;
   }, {});
 
@@ -14,8 +17,6 @@ export default defineConfig(({ mode }) => {
       exclude: ['primereact', 'primeicons'],
       include: ['prop-types'],
     },
-    define: {
-      'process.env': injectedEnv,
-    },
+    define: defineEnv,
   };
 });

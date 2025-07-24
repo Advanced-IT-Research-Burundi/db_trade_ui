@@ -56,6 +56,7 @@ import ProfileScreen from '../pages/Auth/ProfileScreen.jsx';
 
 import NotFound from '../components/NotFound';
 import SuppliersCreateScreen from '../pages/suppliers/SupplierCreateScreen.jsx';
+import StockProductDetailsScreen from '../pages/stocks/StockProductDetailsScreen.jsx';
 
 // Composant pour les routes protégées
 const ProtectedRoute = ({ children }) => {
@@ -91,6 +92,7 @@ const protectedRoutes = [
   { path: '/stocks/transfer', component: StockTransferScreen },
   { path: '/stocks/movements/:id', component: StockMovementScreen },
   { path: '/stocks/entre-multiple/:id', component: EntreMultipleScreen },
+  { path: '/stock-product-details/:id', component: StockProductDetailsScreen },
   //products
   { path: '/products', component: ProductsScreen },
   { path: '/add/product/:id', component: AddProductScreen },

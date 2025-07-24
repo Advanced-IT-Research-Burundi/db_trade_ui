@@ -188,6 +188,9 @@ const StockShowScreen = () => {
               <a  onClick={() => navigate(`/add/product/${stock.id}`)} className="btn btn-outline-light btn-sm">
                 <i className="pi pi-box me-1"></i>Voir tous les produits
               </a>
+              <a  onClick={() => navigate(`/stock-product-details/${stock.id}`)} className="btn btn-outline-light btn-sm">
+                <i className="pi pi-box me-1"></i>Afficher le stock
+              </a>
             </div>
             <div className="card-body">
               {recentProducts.length > 0 ? (

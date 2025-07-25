@@ -10,7 +10,7 @@ import './style/StockPrintAll.css';
 function StockPrintAll() {
     const stockId = useParams().id;
     const dispatch = useDispatch();
-    const { print } = usePrint();
+    const { print, generatePdf } = usePrint();
 
     const { data } = useSelector((state) => ({
         data: state.apiData?.data?.STOCK_PRODUCTS_PRINT,
@@ -35,6 +35,7 @@ function StockPrintAll() {
     return (
         <div className="print-wrapper">
             <Button variant="primary" onClick={() => print("stock-product-details")}>Imprimer</Button>
+            <Button variant="primary" onClick={() => generatePdf("stock-product-details")}>Télécharger PDF</Button>
 
             <div id="stock-product-details" className="">
                 <div className="header-section">

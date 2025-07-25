@@ -60,6 +60,7 @@ import SuppliersCreateScreen from '../pages/suppliers/SupplierCreateScreen.jsx';
 import StockProductDetailsScreen from '../pages/stocks/StockProductDetailsScreen.jsx';
 import StockPrintAll from '../pages/stocks/StockPrintAll.jsx';
 import SalesShowScreen from '../pages/sales/SalesShowScreen.jsx';
+import ProformaShowScreen from '../pages/profoma/ProformaShowScreen.jsx';
 
 // Composant pour les routes protégées
 const ProtectedRoute = ({ children }) => {
@@ -91,6 +92,7 @@ const protectedRoutes = [
   //proforma
   { path: '/proforma',component : ProformaScreen},
   { path: '/proforma/create', component: ProformaCreateScreen },
+  { path: '/proforma/:id', component: ProformaShowScreen },
   //stocks
   { path: '/stocks', component: StocksScreen },
   { path: '/stocks/:id', component: StockShowScreen },

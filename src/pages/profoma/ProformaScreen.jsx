@@ -9,7 +9,7 @@ import { Link } from 'react-router-dom';
 
 const ProformaScreen = () => {
   const [proformas, setProformas] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [loading] = useState(false);
   const [stats, setStats] = useState({});
   const [selectedProformas, setSelectedProformas] = useState([]);
   const [selectAll, setSelectAll] = useState(false);
@@ -484,13 +484,13 @@ const ProformaScreen = () => {
                         </td>
                         <td className="px-4">
                           <div className="btn-group" role="group">
-                            <a 
-                              href={`/proformas/${proforma.id}`} 
+                            <Link 
+                              to={`/proforma/${proforma.id}`} 
                               className="btn btn-sm btn-outline-primary" 
                               title="Voir"
                             >
                               <i className="pi pi-eye"></i>
-                            </a>
+                            </Link>
                             <button 
                               type="button" 
                               className="btn btn-sm btn-outline-info" 

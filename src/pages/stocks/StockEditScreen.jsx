@@ -63,16 +63,7 @@ const StockEditScreen = () => {
       }
     }
   };
-
-  const form = useForm({
-    initialValues,
-    validationRules,
-    onSubmit: handleSubmit
-  });
-
-  // Charger les données du stock
-  useEffect(() => {
-    const loadStock = async () => {
+   const loadStock = async () => {
       try {
         setLoading(true);
         const response = await ApiService.get(`/api/stocks/${id}`);
@@ -81,6 +72,7 @@ const StockEditScreen = () => {
           const stock = response.data.stock;
           console.log('Response from API:', response.data.stock);
           setStockData(stock);
+          return { success: true, data: response.data.stock };
           
           // Mettre à jour les valeurs du formulaire
           // form.setValues({
@@ -110,11 +102,23 @@ const StockEditScreen = () => {
       }
     };
 
+  
+
+  // Charger les données du stock
+  useEffect(() => {
+   
+
     if (id) {
       loadStock();
     }
   }, [id, navigate]);
 
+  const form = useForm({
+    initialValues,
+    validationRules,
+    onSubmit: handleSubmit,
+    loadStock
+  });
 
 
   return (

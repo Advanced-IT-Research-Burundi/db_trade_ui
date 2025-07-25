@@ -1073,7 +1073,7 @@ const SalesCreateScreen = () => {
                 <div className="row g-2">
                   <div className="col-6">
                     <a
-                      href="/sales"
+                      onClick={() => navigate("/sales")}
                       className="btn btn-outline-secondary w-100"
                     >
                       <i className="pi pi-arrow-left me-1"></i>Retour

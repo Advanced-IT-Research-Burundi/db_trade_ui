@@ -58,6 +58,7 @@ const SalesShowScreen = () => {
           minHeight: '1100px',
         }}
       >
+      {JSON.stringify(data)}
         {data && data.sale && (
           <>
             {/* Logo */}

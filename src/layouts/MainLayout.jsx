@@ -34,10 +34,10 @@ const MainLayout = ({ children }) => {
 
   return (
     <div className={`app-layout ${isSidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
-      <Sidebar isCollapsed={isSidebarCollapsed} onToggle={toggleSidebar} />
+      <Sidebar isCollapsed={isSidebarCollapsed} onToggle={toggleSidebar} className="no-print"/>
       
       <div className="main-wrapper">
-        <Header onSidebarToggle={toggleSidebar} />
+        <Header onSidebarToggle={toggleSidebar} className="no-print" />
         
         <main className="main-content">
           {children}

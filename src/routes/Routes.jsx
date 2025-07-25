@@ -59,6 +59,7 @@ import NotFound from '../components/NotFound';
 import SuppliersCreateScreen from '../pages/suppliers/SupplierCreateScreen.jsx';
 import StockProductDetailsScreen from '../pages/stocks/StockProductDetailsScreen.jsx';
 import StockPrintAll from '../pages/stocks/StockPrintAll.jsx';
+import SalesShowScreen from '../pages/sales/SalesShowScreen.jsx';
 
 // Composant pour les routes protégées
 const ProtectedRoute = ({ children }) => {
@@ -85,6 +86,7 @@ const protectedRoutes = [
   { path: '/dashboard', component: DashboardScreen },
   //sales
   { path: '/sales', component: SalesScreen },
+  { path: '/sales/:id', component: SalesShowScreen },
   { path: '/sales/create', component: SalesCreateScreen},
   //proforma
   { path: '/proforma',component : ProformaScreen},

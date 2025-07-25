@@ -28,12 +28,12 @@ const AddProductScreen = () => {
   const toast = useRef(null);
 
   useEffect(() => {
-    
+    if (stockId) {
       loadStock();
       loadProducts();
       loadStockProducts();
-    
-  }, []);
+    }
+  }, [stockId]);
 
 
   const loadStock = async () => {
@@ -52,8 +52,8 @@ const AddProductScreen = () => {
         stock_id: stockId, search, page, per_page: 10
       });
       if (response.success) {
-        setProducts(response?.data?.products || []);
-        setProductPagination(response?.data?.products);
+        setProducts(response.data.products || []);
+        setProductPagination(response.data.products);
       }
     } catch (error) {
       showToast('error', 'Erreur lors du chargement des produits: ' + error.message);
@@ -157,7 +157,7 @@ const AddProductScreen = () => {
   };
 
   const handleSelectAll = (isSelected) => {
-    setSelectedProducts(isSelected ? products?.map(p => p.id) : []);
+    setSelectedProducts(isSelected ? products.map(p => p.id) : []);
   };
 
   const showToast = (severity, detail) => {
@@ -247,7 +247,7 @@ const AddProductScreen = () => {
                     className="form-control form-control-sm"
                     placeholder="Rechercher..."
                     value={productSearch}
-                    onChange={(e) => products?.mapearch(e.target.value)}
+                    onChange={(e) => setProductSearch(e.target.value)}
                     onKeyUp={(e) => e.key === 'Enter' && loadProducts(1, productSearch)}
                   />
                   <button 
@@ -306,7 +306,7 @@ const AddProductScreen = () => {
                   </label>
                 </div>
 
-                { products?.data?.map((product) => (
+                {products.map((product) => (
                   <div key={product.id} className="border rounded p-2 mb-2">
                     <div className="d-flex justify-content-between align-items-center">
                       <div className="form-check flex-grow-1">
@@ -411,7 +411,7 @@ const AddProductScreen = () => {
                 <p className="small">Ajoutez des produits depuis la liste de gauche</p>
               </div>
             ) : (
-              stockProducts?.data?.map((stockProduct) => (
+              stockProducts.map((stockProduct) => (
                 <div key={stockProduct.id} className="border rounded p-2 mb-2">
                   <div className="d-flex justify-content-between align-items-center">
                     <div className="d-flex align-items-center flex-grow-1">

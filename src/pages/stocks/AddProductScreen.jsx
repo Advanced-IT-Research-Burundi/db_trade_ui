@@ -198,13 +198,7 @@ const AddProductScreen = () => {
     );
   };
 
-  if (!stock) {
-    return (
-      <div className="d-flex justify-content-center align-items-center" style={{ height: '100vh' }}>
-        <div className="spinner-border text-primary"></div>
-      </div>
-    );
-  }
+  
 
   return (
     <div className="d-flex flex-column" style={{ height: '100vh' }}>
@@ -215,7 +209,11 @@ const AddProductScreen = () => {
         <div className="d-flex justify-content-between align-items-center">
           <div>
             <h4 className="text-primary mb-1">
-              <i className="pi pi-box me-2"></i>Stock {stock.name}
+              <i className="pi pi-box me-2"></i>Stock {stock? stock.name : ((
+                <div >
+                  <div className="spinner-border text-primary"></div>
+                </div>
+              ))}
             </h4>
             <small className="text-muted">Gestion des produits en stock</small>
           </div>

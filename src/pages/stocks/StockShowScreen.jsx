@@ -188,12 +188,14 @@ const StockShowScreen = () => {
               <h6 className="mb-0">
                 <i className="pi pi-clock me-2"></i>Derniers produits ajoutés
               </h6>
-              <a  onClick={() => navigate(`/add/product/${stock.id}`)} className="btn btn-outline-light btn-sm">
-                <i className="pi pi-box me-1"></i>Voir tous les produits
-              </a>
-              <a  onClick={() => navigate(`/stock-product-details/${stock.id}`)} className="btn btn-outline-light btn-sm">
-                <i className="pi pi-box me-1"></i>Afficher le stock
-              </a>
+              <div className="d-flex gap-2">
+                <a onClick={() => navigate(`/add/product/${stock.id}`)} className="btn btn-outline-light btn-sm">
+                  <i className="pi pi-box me-1"></i>Voir tous les produits
+                </a>
+                <a onClick={() => navigate(`/stock-product-details/${stock.id}`)} className="btn btn-outline-light btn-sm">
+                  <i className="pi pi-box me-1"></i>Afficher le stock
+                </a>
+              </div>
             </div>
             <div className="card-body">
               {recentProducts.length > 0 ? (

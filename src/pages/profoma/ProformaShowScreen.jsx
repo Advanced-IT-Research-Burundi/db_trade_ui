@@ -1,11 +1,14 @@
 import { useParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchApiData } from '../../stores/slicer/apiDataSlicer.js';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { Button } from 'react-bootstrap';
 import QRCode from "react-qr-code";
 import usePrint from '../../hooks/usePrint';
 import logo from '../../assets/logo/ubwiza.png';
+import { useNavigate } from 'react-router-dom';
+import ApiService from '../../services/api.js';
+import { Toast } from 'primereact/toast';
 
 const thStyle = {
   border: '1px solid #000',
@@ -24,11 +27,13 @@ function ProformaShowScreen() {
   const { id } = useParams();
   const itemKey = 'PROFORMATS_' + id;
   const [loading, setLoading] = useState(true);
+  const [validateLoading, setValidateLoading] = useState(false);
   const [proformaData, setProformaData] = useState(null);
   const [items, setItems] = useState([]);
   const [client, setClient] = useState(null);
   const [company, setCompany] = useState(null);
-  
+  const navigate = useNavigate();
+
   const dispatch = useDispatch();
   const { data } = useSelector((state) => ({
     data: state.apiData?.data[itemKey]
@@ -53,6 +58,22 @@ function ProformaShowScreen() {
   if (loading || !proformaData) {
     return <div className="flex justify-center items-center h-screen">Chargement...</div>;
   }
+  const validateProforma = async (proformaId) => {
+    try {
+        setValidateLoading(true);
+
+        const response = await ApiService.post(`/api/proformas/${proformaId}/validate`);
+        console.log("Réponse de la validation:", response);
+        if (response.success) {
+          navigate(`/sales/${proformaId}`);
+        }
+        setValidateLoading(false);
+
+    } catch (error) {
+        setValidateLoading(false);
+        
+    }
+  };
 
   const formatDate = (dateString) => {
     if (!dateString) return '';
@@ -63,6 +84,14 @@ function ProformaShowScreen() {
   return (
     <div style={{ padding: '20px' }}>
       <div className="d-flex justify-content-end mb-3">
+        <Button variant="secondary" onClick={() => navigate('/proforma')} className="me-2">
+          Retour
+        </Button>
+        <Button variant="warning" onClick={() => {
+          validateProforma(proformaData.id);
+        }} className="me-2" disabled={validateLoading}>
+          {validateLoading ? 'Validation...' : 'Valider Proforma'}
+        </Button>
         <Button variant="success" onClick={() => generatePdf('proforma')} className="me-2">
           Télécharger PDF
         </Button>

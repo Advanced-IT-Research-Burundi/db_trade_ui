@@ -60,6 +60,9 @@ import ProfileScreen from '../pages/Auth/ProfileScreen.jsx';
 import NotFound from '../components/NotFound';
 import SuppliersCreateScreen from '../pages/suppliers/SupplierCreateScreen.jsx';
 import StockProductDetailsScreen from '../pages/stocks/StockProductDetailsScreen.jsx';
+import StockPrintAll from '../pages/stocks/StockPrintAll.jsx';
+import SalesShowScreen from '../pages/sales/SalesShowScreen.jsx';
+import ProformaShowScreen from '../pages/profoma/ProformaShowScreen.jsx';
 
 // Composant pour les routes protégées
 const ProtectedRoute = ({ children }) => {
@@ -86,10 +89,12 @@ const protectedRoutes = [
   { path: '/dashboard', component: DashboardScreen },
   //sales
   { path: '/sales', component: SalesScreen },
+  { path: '/sales/:id', component: SalesShowScreen },
   { path: '/sales/create', component: SalesCreateScreen},
   //proforma
   { path: '/proforma',component : ProformaScreen},
   { path: '/proforma/create', component: ProformaCreateScreen },
+  { path: '/proforma/:id', component: ProformaShowScreen },
   //stocks
   { path: '/stocks', component: StocksScreen },
   { path: '/stocks/:id', component: StockShowScreen },
@@ -97,6 +102,7 @@ const protectedRoutes = [
   { path: '/stocks/movements/:id', component: StockMovementScreen },
   { path: '/stocks/entre-multiple/:id', component: EntreMultipleScreen },
   { path: '/stock-product-details/:id', component: StockProductDetailsScreen },
+  { path: '/stocks-print-all/:id', component: StockPrintAll },
   { path: '/stocks/create', component: StockCreateScreen },
   { path: '/stocks/:id/edit', component: StockEditScreen },
   //products

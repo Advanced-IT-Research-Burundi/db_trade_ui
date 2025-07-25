@@ -8,7 +8,7 @@ const Sidebar = ({ isCollapsed, onToggle }) => {
   const menuItems = getMenuItems();
 
   return (
-    <>
+    <div className="no-print">
       <Tooltip target=".nav-link-collapsed" position="right" />
       <nav 
         className="sidebar shadow-lg"
@@ -114,7 +114,7 @@ const Sidebar = ({ isCollapsed, onToggle }) => {
           onClick={onToggle}
         />
       )}
-    </>
+    </div>
   );
 };
 

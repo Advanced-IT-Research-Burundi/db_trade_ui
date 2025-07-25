@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Toast } from 'primereact/toast';
 import ApiService from '../../services/api.js';
 import StatCard from '../../components/Card/StatCard.jsx';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchApiData } from '../../stores/slicer/apiDataSlicer.js';
 
@@ -299,8 +299,8 @@ const SalesScreen = () => {
                     </td>
                   </tr>
                 ) : (
-                  sales.map((sale) => (
-                    <tr key={sale.id}>
+                  sales.map((sale, index) => (
+                    <tr key={index}>
                       <td className="px-4">
                         <div className="d-flex align-items-center">
                           <div className="bg-primary bg-opacity-10 p-2 rounded me-2">
@@ -342,9 +342,9 @@ const SalesScreen = () => {
                       <td className="px-4"><strong>{sale.type_facture || 'Standard'}</strong></td>
                       <td className="px-4">
                         <div className="btn-group" role="group">
-                          <a href={`/sales/${sale.id}`} className="btn btn-sm btn-outline-primary" title="Voir">
+                          <Link to={`/sales/${sale.id}`} className="btn btn-sm btn-outline-primary" title="Voir">
                             <i className="pi pi-eye"></i>
-                          </a>
+                          </Link>
                           <a href={`/sales/${sale.id}/edit`} className="btn btn-sm btn-outline-warning" title="Modifier">
                             <i className="pi pi-pencil"></i>
                           </a>

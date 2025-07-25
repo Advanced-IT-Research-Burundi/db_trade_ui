@@ -68,7 +68,7 @@ const Header = ({ onSidebarToggle, pageTitle = 'Tableau de bord' }) => {
   };
 
   return (
-    <nav className="navbar navbar-expand-lg navbar-light bg-white shadow-sm sticky-top border-bottom">
+    <nav className="navbar no-print navbar-expand-lg navbar-light bg-white shadow-sm sticky-top border-bottom">
       <div className="container-fluid px-4">
         {/* Section gauche */}
         <div className="d-flex align-items-center">

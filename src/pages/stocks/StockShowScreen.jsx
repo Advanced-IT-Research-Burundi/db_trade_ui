@@ -257,9 +257,9 @@ const StockShowScreen = () => {
                           </td>
                           <td>
                             <a 
-                              onClick={() =>{ 
-                                console.log(stockProduct.id);
-                                navigate(`/stocks/movements/${stockProduct.id}`)}}
+                              onClick={() => {
+                                navigate(`/stocks/movements/${stockProduct.id}`)
+                              }}
                               className="btn btn-outline-info btn-sm"
                               title="Voir les mouvements"
                             >

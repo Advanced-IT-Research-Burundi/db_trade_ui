@@ -439,7 +439,9 @@ const AddProductScreen = () => {
                     </div>
                     <div className="btn-group ms-2">
                       <a 
-                        href={`/stocks/movement/${stockProduct.id}`}
+                       onClick={() => {
+                                navigate(`/stocks/movements/${stockProduct.id}`)
+                          }}
                         className="btn btn-outline-info btn-sm"
                       >
                         <i className="pi pi-eye"></i>

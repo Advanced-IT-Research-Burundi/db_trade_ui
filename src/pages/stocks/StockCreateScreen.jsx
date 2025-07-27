@@ -32,7 +32,6 @@ const StockCreateScreen = () => {
   const handleSubmit = async (values) => {
     const response = await ApiService.post('/api/stocks', values);
 
-    console.log('Response from API:', response);
     if (response.success) {
       // Afficher un toast de succès
       toast.current.show({

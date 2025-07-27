@@ -35,7 +35,6 @@ const ExpenseScreen = () => {
   // Extract data from API response
   const expenses = data?.expenses?.data || [];
 
-  //console.log("Expenses",expenses);
   const expenseTypes = data?.expenseTypes || [];
   const agencies = data?.agencies || [];
   const users = data?.users || [];

@@ -36,7 +36,6 @@ const ClientScreen = () => {
 
   useEffect(() => {
         if (data.clients) {
-          console.log(data.clients)
            setClients(data.clients.clients.data || []);
            setAgencies(data.clients.agencies || [])
            setCreators(data.clients.creators || [])

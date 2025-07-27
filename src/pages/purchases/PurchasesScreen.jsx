@@ -207,7 +207,7 @@ async function loadPurchases(page = 1) {
                 <i className="pi pi-refresh me-1"></i>
                 {loading ? 'Actualisation...' : 'Actualiser'}
               </button>
-              <a href="/purchases/create" className="btn btn-primary">
+              <a onClick={()=>navigate('/purchases/create')}  className="btn btn-primary">
                 <i className="pi pi-plus-circle me-1"></i>Nouvel Achat
               </a>
             </div>
@@ -340,7 +340,7 @@ async function loadPurchases(page = 1) {
                       </div>
                     </td>
                   </tr>
-                ) :  purchases.suppliers == undefined && purchases.length === 0 ?  (
+                ) :  data.purchases == undefined && purchases.length === 0 ?  (
                   <tr>
                     <td colSpan="9" className="text-center py-5">
                       <div className="text-muted">

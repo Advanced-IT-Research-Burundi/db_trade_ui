@@ -5,6 +5,8 @@ import { API_CONFIG } from '../../services/config.js';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchApiData } from '../../stores/slicer/apiDataSlicer.js';
 
+import { useNavigate } from 'react-router-dom';
+
 const ProductScreen = () => {
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -23,6 +25,7 @@ const ProductScreen = () => {
   });
   const [deleteModal, setDeleteModal] = useState({ show: false, productId: null });
   const toast = useRef(null);
+  const navigate = useNavigate();
 
 
     const dispatch = useDispatch();
@@ -207,7 +210,7 @@ const ProductScreen = () => {
                 <i className="pi pi-refresh me-1"></i>
                 {loading ? 'Actualisation...' : 'Actualiser'}
               </button>
-              <a href="/products/create" className="btn btn-primary">
+              <a onClick={()=> navigate('/products/create')} className="btn btn-primary">
                 <i className="pi pi-plus-circle me-1"></i>Nouveau Produit
               </a>
             </div>

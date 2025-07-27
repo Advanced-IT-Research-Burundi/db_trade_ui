@@ -2,13 +2,14 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Toast } from 'primereact/toast';
 import ApiService from '../../services/api.js';
 import StatCard from '../../components/Card/StatCard.jsx';
+import { API_CONFIG } from '../../services/config.js';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchApiData } from '../../stores/slicer/apiDataSlicer.js';
-import { API_CONFIG } from '../../services/config.js';
+import { useNavigate } from 'react-router-dom';
+
 
 const PurchaseScreen = () => {
   const [purchases, setPurchases] = useState([]);
-  const [loading, setLoading] = useState(false);
   const [stats, setStats] = useState({});
   const [filters, setFilters] = useState({
     search: '',
@@ -25,45 +26,38 @@ const PurchaseScreen = () => {
   const [deleteModal, setDeleteModal] = useState({ show: false, purchaseId: null });
   const toast = useRef(null);
 
-  const dispatch = useDispatch();
-
-  const { data } = useSelector((state) => ({
-    data: state.apiData?.data?.purchases,
-    loading: state.apiData.loading,
-  }))
-
+    const navigate = useNavigate();
+    const dispatch = useDispatch();
+    const { data , loading} = useSelector(state => state.apiData);
 
   useEffect(() => {
     loadPurchases();
   }, []);
 
-  const loadPurchases = async (page = 1) => {
-    try {
-      setLoading(true);
-      const params = { page, ...filters };
+    useEffect(() => {
+            if (data.purchases) {
+                 setPurchases(data.purchases.purchases.data || []);
 
-      dispatch(fetchApiData({
-        url: API_CONFIG.ENDPOINTS.PURCHASES,
-        itemKey: 'purchases',
-        params
-      }));
-     
-      setPurchases(data?.purchases?.data || []);
-      setStats(data?.stats || {});
-      setPagination({
-        current_page: data?.purchases?.current_page,
-        last_page: data?.purchases?.last_page,
-        total: data?.purchases?.total,
-        from: data?.purchases?.from,
-        to: data?.purchases?.to
-      });
-      
-    } catch (error) {
-      showToast('error', error.message);
-    } finally {
-      setLoading(false);
-    }
-  };
+                setStats(data.purchases.stats || {});
+                setPagination({
+                  current_page: data.purchases.purchases.current_page,
+                  last_page: data.purchases.purchases.last_page,
+                  total: data.purchases.purchases.total,
+                  from: data.purchases.purchases.from,
+                  to: data.purchases.purchases.to
+                });
+            }
+          }, [data]);
+
+async function loadPurchases(page = 1) {
+          try {
+            const params = { page, ...filters };
+            dispatch(fetchApiData({ url: API_CONFIG.ENDPOINTS.PURCHASES, itemKey: 'purchases', params }));
+           
+          } catch (error) {
+            showToast('error', error.message);
+          } 
+        };
 
 
   const handleFilterChange = (name, value) => {
@@ -82,7 +76,7 @@ const PurchaseScreen = () => {
 
   const handleDeletePurchase = async (purchaseId) => {
     try {
-        const response = await ApiService.delete(`/api/purchases/${purchaseId}`);
+      const response = await ApiService.delete(`/api/purchases/${purchaseId}`);
       if (response.success) {
         showToast('success', 'Achat supprimé avec succès');
         loadPurchases(pagination.current_page);
@@ -228,28 +222,28 @@ const PurchaseScreen = () => {
           title="Total Achats" 
           value={stats.totalPurchases || 0} 
           color="primary" 
-          loading={loading} 
+          loading={stats.length === 0 && loading} 
         />
         <StatCard 
           icon="money-bill" 
           title="Montant Total" 
           value={formatCurrency(stats.totalAmount || 0)} 
           color="success" 
-          loading={loading} 
+          loading={stats.length === 0 && loading } 
         />
         <StatCard 
           icon="check-circle" 
           title="Achats Payés" 
           value={stats.paidPurchases || 0} 
           color="info" 
-          loading={loading} 
+          loading={stats.length === 0 && loading } 
         />
         <StatCard 
           icon="exclamation-triangle" 
           title="En Attente" 
           value={stats.pendingPurchases || 0} 
           color="warning" 
-          loading={loading} 
+          loading={stats.length === 0 && loading } 
         />
       </div>
 
@@ -338,7 +332,7 @@ const PurchaseScreen = () => {
                 </tr>
               </thead>
               <tbody>
-                {loading ? (
+                {purchases.length === 0 && loading ?   (
                   <tr>
                     <td colSpan="9" className="text-center py-5">
                       <div className="spinner-border text-primary" role="status">
@@ -346,7 +340,7 @@ const PurchaseScreen = () => {
                       </div>
                     </td>
                   </tr>
-                ) : purchases.length === 0 ? (
+                ) :  purchases.suppliers == undefined && purchases.length === 0 ?  (
                   <tr>
                     <td colSpan="9" className="text-center py-5">
                       <div className="text-muted">

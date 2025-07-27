@@ -189,7 +189,7 @@ const SupplierScreen = () => {
                 <i className="pi pi-refresh me-1"></i>
                 {loading ? 'Actualisation...' : 'Actualiser'}
               </button>
-              <a href="/suppliers/create" className="btn btn-primary">
+              <a onClick={()=>navigate('/suppliers/create')}  className="btn btn-primary">
                 <i className="pi pi-plus-circle me-1"></i>Nouveau Fournisseur
               </a>
             </div>

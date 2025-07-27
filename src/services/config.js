@@ -1,5 +1,5 @@
 
-const API_BASE_URL = import.meta.env.VITE_APP_DEV_MODE_LOCAL ? import.meta.env.VITE_APP_BASE_URL_LOCAL : import.meta.env.VITE_APP_BASE_URL;
+const API_BASE_URL = import.meta.env.VITE_APP_DEV_MODE_LOCAL == 'true' ? import.meta.env.VITE_APP_BASE_URL_LOCAL : import.meta.env.VITE_APP_BASE_URL;
 
 export const API_CONFIG = {
   BASE_URL: API_BASE_URL,

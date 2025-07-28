@@ -35,11 +35,9 @@ const TransactionScreen = () => {
   const [deleteModal, setDeleteModal] = useState({ show: false, transactionId: null });
   const [cancelModal, setCancelModal] = useState({ show: false, transactionId: null });
   const toast = useRef(null);
-  const navigate = useNavigate();
-      
-      
-          const dispatch = useDispatch();
-          const { data , loading} = useSelector(state => state.apiData);
+  const navigate = useNavigate();      
+  const dispatch = useDispatch();
+  const { data , loading} = useSelector(state => state.apiData);
 
 
   useEffect(() => {

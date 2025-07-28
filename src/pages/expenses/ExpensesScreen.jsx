@@ -36,20 +36,20 @@ const ExpenseScreen = () => {
   }, []);
 
   useEffect(() => {
-          if (data.expenses) {
-              setExpenses(data.expenses.expenses.data || []);
-              setExpenseTypes(data.expenses.expense_types || []);
-              setAgencies(data.expenses.agencies || []);
-              setUsers(data.expenses.users || []);
-              setPagination({
-                current_page: data.expenses.expenses.current_page,
-                last_page: data.expenses.expenses.last_page,
-                total: data.expenses.expenses.total,
-                from: data.expenses.expenses.from,
-                to: data.expenses.expenses.to
-              });
-          }
-        }, [data]);
+    if (data.expenses) {
+        setExpenses(data.expenses.expenses.data || []);
+        setExpenseTypes(data.expenses.expense_types || []);
+        setAgencies(data.expenses.agencies || []);
+        setUsers(data.expenses.users || []);
+        setPagination({
+          current_page: data.expenses.expenses.current_page,
+          last_page: data.expenses.expenses.last_page,
+          total: data.expenses.expenses.total,
+          from: data.expenses.expenses.from,
+          to: data.expenses.expenses.to
+        });
+    }
+  }, [data]);
 
   async function loadExpenses(page = 1) {
       try {

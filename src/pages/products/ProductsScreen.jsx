@@ -4,7 +4,6 @@ import ApiService from '../../services/api.js';
 import { API_CONFIG } from '../../services/config.js';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchApiData } from '../../stores/slicer/apiDataSlicer.js';
-
 import { useNavigate } from 'react-router-dom';
 
 const ProductScreen = () => {

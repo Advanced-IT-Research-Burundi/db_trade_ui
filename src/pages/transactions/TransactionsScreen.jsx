@@ -2,26 +2,13 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Toast } from 'primereact/toast';
 import ApiService from '../../services/api.js';
 import StatCard from '../../components/Card/StatCard.jsx';
+import { API_CONFIG } from '../../services/config.js';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchApiData } from '../../stores/slicer/apiDataSlicer.js';
-import { API_CONFIG } from '../../services/config.js';
+import { useNavigate } from 'react-router-dom';
 
 
 const TransactionScreen = () => {
-  const dispatch = useDispatch();
-
-  const { data, loading, error } = useSelector((state) => ({
-    data: state.apiData?.data?.transactions,
-    loading: state.apiData.loading,
-    error: state.apiData.error
-  }));
-
-  useEffect(() => {
-    loadTransactions();
-  }, []);
-
-
-  
   const [transactions, setTransactions] = useState([]);
   const [stats, setStats] = useState({});
   const [cashRegisters, setCashRegisters] = useState([]);
@@ -48,42 +35,45 @@ const TransactionScreen = () => {
   const [deleteModal, setDeleteModal] = useState({ show: false, transactionId: null });
   const [cancelModal, setCancelModal] = useState({ show: false, transactionId: null });
   const toast = useRef(null);
+  const navigate = useNavigate();
+      
+      
+          const dispatch = useDispatch();
+          const { data , loading} = useSelector(state => state.apiData);
+
 
   useEffect(() => {
     loadTransactions();
   }, []);
 
-  const loadTransactions = async (page = 1) => {
-    try {
-      const params = { page, ...filters };
-      dispatch(fetchApiData({
-        url: API_CONFIG.ENDPOINTS.CASH_TRANSACTIONS,
-        itemKey: 'transactions',
-        params
-      }));  
-      
-        setTransactions(data?.transactions?.data || []);
+  useEffect(() => {
+        if (data.transactions) {
+            setTransactions(data.transactions.transactions.data || []);
+            setCashRegisters(data.transactions.cashRegisters || []);
+            setAgencies(data.transactions.agencies || []);
+            setUsers(data.transactions.users || []);
 
-        setCashRegisters(data?.cashRegisters || []);
-        setAgencies(data?.agencies || []);
-        setUsers(data?.users || []);
+            setStats(data.transactions.stats || {});
+            setPagination({
+              current_page: data.transactions.transactions.current_page,
+              last_page: data.transactions.transactions.last_page,
+              total: data.transactions.transactions.total,
+              from: data.transactions.transactions.from,
+              to: data.transactions.transactions.to
+            });
+        }
+      }, [data]);
 
-        setStats(data?.stats || {});
-        setPagination({
-          current_page: data?.transactions?.current_page,
-          last_page: data?.transactions?.last_page,
-          total: data?.transactions?.total,
-          from: data?.transactions?.from,
-          to: data?.transactions?.to
-        });
-    } catch (error) {
-      showToast('error', error.message);
-    } 
-  };
-
-
-
-
+   async function loadTransactions(page = 1) {
+            try {
+              const params = { page, ...filters };
+              dispatch(fetchApiData({ url: API_CONFIG.ENDPOINTS.CASH_TRANSACTIONS, itemKey: 'transactions', params }));
+             
+            } catch (error) {
+              showToast('error', error.message);
+            } 
+        };
+  
 
   const handleFilterChange = (name, value) => {
     setFilters(prev => ({ ...prev, [name]: value }));
@@ -224,8 +214,6 @@ const TransactionScreen = () => {
       return pages;
     };
 
-
-
     return (
       <nav>
         <ul className="pagination pagination-sm mb-0">
@@ -283,9 +271,10 @@ const TransactionScreen = () => {
               <button 
                 className="btn btn-outline-primary" 
                 onClick={() => { loadTransactions(pagination.current_page);  }} 
+                disabled={loading}
               >
                 <i className="pi pi-refresh me-1"></i>
-                Actualiser
+                {loading ? 'Actualisation...' : 'Actualiser'}
               </button>
               <a href="/cash-transactions/create" className="btn btn-primary">
                 <i className="pi pi-plus me-1"></i>Nouvelle Transaction
@@ -302,28 +291,28 @@ const TransactionScreen = () => {
           title="Total Transactions" 
           value={stats.total_count || 0} 
           color="primary" 
-      
+          loading={stats.length === 0 && loading} 
         />
         <StatCard 
           icon="arrow-down" 
           title="Total Entrées" 
           value={formatCurrency(stats.total_in || 0)} 
           color="success" 
-
+          loading={stats.length === 0 && loading} 
         />
         <StatCard 
           icon="arrow-up" 
           title="Total Sorties" 
           value={formatCurrency(stats.total_out || 0)} 
           color="danger" 
-
+          loading={stats.length === 0 && loading} 
         />
         <StatCard 
           icon="calendar" 
           title="Aujourd'hui" 
           value={stats.today_count || 0} 
           color="info" 
-
+          loading={stats.length === 0 && loading} 
         />
       </div>
 
@@ -456,7 +445,7 @@ const TransactionScreen = () => {
             </div>
             
             <div className="col-md-2 d-flex align-items-end gap-2">
-              <button type="submit" className="btn btn-primary" >
+              <button type="submit" className="btn btn-primary" disabled={loading}>
                 <i className="pi pi-search"></i>
               </button>
               <button type="button" className="btn btn-outline-secondary" onClick={handleReset}>
@@ -495,7 +484,15 @@ const TransactionScreen = () => {
                 </tr>
               </thead>
               <tbody>
-                {transactions.length === 0 ? (
+                {transactions.length === 0 && loading  ? (
+                  <tr>
+                    <td colSpan="10" className="text-center py-5">
+                      <div className="spinner-border text-primary" role="status">
+                        <span className="visually-hidden">Chargement...</span>
+                      </div>
+                    </td>
+                  </tr>
+                ) : data.transactions == undefined && transactions.length === 0  ? (
                   <tr>
                     <td colSpan="10" className="text-center py-5">
                       <div className="text-muted">

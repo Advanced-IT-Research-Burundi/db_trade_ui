@@ -1,107 +1,97 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
 import { Toast } from 'primereact/toast';
+import ApiService from '../../services/api.js';
+
+import { API_CONFIG } from '../../services/config.js';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchApiData } from '../../stores/slicer/apiDataSlicer.js';
 import { useNavigate } from 'react-router-dom';
-import { fetchApiData } from '../../stores/slicer/apiDataSlicer';
-import { API_CONFIG } from '../../services/config';
-import LoadingComponent from '../component/LoadingComponent';
-import ErrorComponent from '../component/ErrorComponent';
-import GlobalPagination from '../component/GlobalPagination';
-import { Card, Table, Container, Row, Col, Form, Button, InputGroup, Badge } from 'react-bootstrap';
-import { FaEdit, FaEye, FaTrash, FaSearch, FaSync, FaPlus, FaUser, FaBuilding, FaPhone, FaEnvelope, FaMapMarkerAlt } from 'react-icons/fa';
 
 const ClientScreen = () => {
-  const dispatch = useDispatch();
-  const navigate = useNavigate();
-  const toast = useRef(null);
-  
-  // Local state
+  const [clients, setClients] = useState([]);
+  const [agencies, setAgencies] = useState([]);
+  const [creators, setCreators] = useState([]);
   const [filters, setFilters] = useState({
     search: '',
     patient_type: '',
     agency_id: '',
     created_by: ''
   });
-  const [currentPage, setCurrentPage] = useState(1);
+  const [pagination, setPagination] = useState({
+    current_page: 1,
+    last_page: 1,
+    total: 0,
+    from: 0,
+    to: 0
+  });
   const [deleteModal, setDeleteModal] = useState({ show: false, clientId: null });
-  
-  // Get data from Redux store
-  const { data, loading, error } = useSelector((state) => ({
-    data: state.apiData?.data?.clients,
-    loading: state.apiData.loading,
-    error: state.apiData.error
-  }));
-  
-  // Extract data from API response
-  const clients = data?.clients?.data || [];
-  const agencies = data?.agencies || [];
-  const creators = data?.creators || [];
-  const pagination = data?.clients ? {
-    current_page: data.clients.current_page,
-    last_page: data.clients.last_page,
-    total: data.clients.total,
-    from: data.clients.from,
-    to: data.clients.to
-  } : { current_page: 1, last_page: 1, total: 0, from: 0, to: 0 };
+  const toast = useRef(null);
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const { data , loading} = useSelector(state => state.apiData);
 
-  // Fetch clients with filters
-  const loadClients = (page = 1, searchFilters = filters) => {
-    const params = { page, ...searchFilters };
-    dispatch(fetchApiData({
-      url: API_CONFIG.ENDPOINTS.CLIENTS,
-      itemKey: 'clients',
-      params
-    }));
-  };
-
-  // Initial load
   useEffect(() => {
     loadClients();
   }, []);
 
-  // Handle filter changes
+  useEffect(() => {
+        if (data.clients) {
+           setClients(data.clients.clients.data || []);
+           setAgencies(data.clients.agencies || [])
+           setCreators(data.clients.creators || [])
+
+        setPagination({
+          current_page: data.clients.clients.current_page,
+          last_page: data.clients.clients.last_page,
+          total: data.clients.clients.total,
+          from: data.clients.clients.from,
+          to: data.clients.clients.to
+        });
+        }
+      }, [data]);
+
+   async function loadClients(page = 1) {
+        try {
+          const params = { page, ...filters };
+          dispatch(fetchApiData({ url: API_CONFIG.ENDPOINTS.CLIENTS, itemKey: 'clients', params }));
+         
+        } catch (error) {
+          showToast('error', error.message);
+        } 
+      };
+
+  
+ 
+
   const handleFilterChange = (name, value) => {
-    const newFilters = { ...filters, [name]: value };
-    setFilters(newFilters);
-    setCurrentPage(1);
-    loadClients(1, newFilters);
+    setFilters(prev => ({ ...prev, [name]: value }));
   };
 
-  // Handle search
   const handleSearch = (e) => {
     e.preventDefault();
-    setCurrentPage(1);
-    loadClients(1, filters);
+    loadClients(1);
   };
 
-  // Reset filters
   const handleReset = () => {
-    const resetFilters = { search: '', patient_type: '', agency_id: '', created_by: '' };
-    setFilters(resetFilters);
-    setCurrentPage(1);
-    loadClients(1, resetFilters);
+    setFilters({ search: '', patient_type: '', agency_id: '', created_by: '' });
+    setTimeout(() => loadClients(1), 0);
   };
 
-  // Handle page change
-  const handlePageChange = (page) => {
-    setCurrentPage(page);
-    loadClients(page, filters);
-  };
-
-  // Handle delete client
   const handleDeleteClient = async (clientId) => {
     try {
-      // Implement delete logic here
-      // After successful deletion, reload clients
-      loadClients(currentPage);
-      showToast('success', 'Client supprimé avec succès');
+      const response = await ApiService.delete(`/api/clients/${clientId}`);
+      if (response.success) {
+        showToast('success', 'Client supprimé avec succès');
+        loadClients(pagination.current_page);
+      } else {
+        showToast('error', response.message || 'Erreur lors de la suppression');
+      }
     } catch (error) {
       showToast('error', error.message);
     }
     setDeleteModal({ show: false, clientId: null });
   };
 
-  // Show toast notification
   const showToast = (severity, detail) => {
     toast.current?.show({ 
       severity, 
@@ -111,14 +101,28 @@ const ClientScreen = () => {
     });
   };
 
-  // Helper functions
   const formatDate = (date) => new Date(date).toLocaleDateString('fr-FR');
+
+  // const formatCurrency = (amount) => {
+  //   return new Intl.NumberFormat('fr-FR', {
+  //     minimumFractionDigits: 0,
+  //     maximumFractionDigits: 0
+  //   }).format(amount) + ' F';
+  // };
 
   const getClientTypeBadge = (type) => {
     if (type === 'physique') {
-      return <Badge bg="success"><FaUser className="me-1" />Physique</Badge>;
+      return (
+        <span className="badge bg-success">
+          <i className="pi pi-user me-1"></i>Physique
+        </span>
+      );
     }
-    return <Badge bg="info"><FaBuilding className="me-1" />Morale</Badge>;
+    return (
+      <span className="badge bg-info">
+        <i className="pi pi-building me-1"></i>Morale
+      </span>
+    );
   };
 
   const getFullName = (client) => {
@@ -126,282 +130,411 @@ const ClientScreen = () => {
     return parts.length > 0 ? parts.join(' ') : '';
   };
 
-  if (loading && !data) return <LoadingComponent />;
-  if (error) return <ErrorComponent error={error} />;
+  const Pagination = () => {
+    if (pagination.last_page <= 1) return null;
+
+    const getVisiblePages = () => {
+      const current = pagination.current_page;
+      const last = pagination.last_page;
+      const pages = [];
+
+      if (last <= 7) {
+        return Array.from({ length: last }, (_, i) => i + 1);
+      }
+
+      pages.push(1);
+      if (current > 4) pages.push('...');
+      
+      const start = Math.max(2, current - 1);
+      const end = Math.min(last - 1, current + 1);
+      
+      for (let i = start; i <= end; i++) {
+        pages.push(i);
+      }
+      
+      if (current < last - 3) pages.push('...');
+      pages.push(last);
+      
+      return pages;
+    };
+
+    return (
+      <nav>
+        <ul className="pagination pagination-sm mb-0">
+          <li className={`page-item ${pagination.current_page === 1 ? 'disabled' : ''}`}>
+            <button 
+              className="page-link" 
+              onClick={() => loadClients(pagination.current_page - 1)} 
+              disabled={pagination.current_page === 1}
+            >
+              <i className="pi pi-chevron-left"></i>
+            </button>
+          </li>
+          
+          {getVisiblePages().map((page, index) => (
+            <li key={index} className={`page-item ${page === pagination.current_page ? 'active' : ''} ${page === '...' ? 'disabled' : ''}`}>
+              {page === '...' ? (
+                <span className="page-link">...</span>
+              ) : (
+                <button className="page-link" onClick={() => loadClients(page)}>
+                  {page}
+                </button>
+              )}
+            </li>
+          ))}
+          
+          <li className={`page-item ${pagination.current_page === pagination.last_page ? 'disabled' : ''}`}>
+            <button 
+              className="page-link" 
+              onClick={() => loadClients(pagination.current_page + 1)} 
+              disabled={pagination.current_page === pagination.last_page}
+            >
+              <i className="pi pi-chevron-right"></i>
+            </button>
+          </li>
+        </ul>
+      </nav>
+    );
+  };
 
   return (
-    <Container fluid>
+    <div className="container-fluid">
       <Toast ref={toast} />
       
       {/* Header */}
-      <Row className="mb-4">
-        <Col md={12}>
-          <Card className="card-plain">
-            <Card.Header>
-              <Card.Title as="h4" className="d-flex justify-content-between align-items-center">
-                <span><FaUser className="me-2" />Gestion des Clients</span>
-                <div>
-                  <Button 
-                    variant="primary" 
-                    className="me-2"
-                    onClick={() => navigate('/clients/create')}
-                  >
-                    <FaPlus className="me-1" /> Nouveau Client
-                  </Button>
-                  <Button 
-                    variant="outline-secondary" 
-                    onClick={() => loadClients(currentPage, filters)}
-                    disabled={loading}
-                  >
-                    <FaSync className={loading ? 'fa-spin' : ''} />
-                  </Button>
-                </div>
-              </Card.Title>
-              <p className="card-category">{pagination.total} client(s) au total</p>
-            </Card.Header>
-            
-            {/* Filters */}
-            <Card.Body>
-              <Form onSubmit={handleSearch}>
-                <Row className="g-3">
-                  <Col md={4}>
-                    <Form.Group>
-                      <Form.Label>Rechercher</Form.Label>
-                      <InputGroup>
-                        <Form.Control
-                          type="text"
-                          placeholder="Nom, prénom, email, téléphone..."
-                          value={filters.search}
-                          onChange={(e) => handleFilterChange('search', e.target.value)}
-                        />
-                        <Button type="submit" variant="primary">
-                          <FaSearch />
-                        </Button>
-                      </InputGroup>
-                    </Form.Group>
-                  </Col>
-                  <Col md={2}>
-                    <Form.Group>
-                      <Form.Label>Type</Form.Label>
-                      <Form.Select
-                        value={filters.patient_type}
-                        onChange={(e) => handleFilterChange('patient_type', e.target.value)}
-                      >
-                        <option value="">Tous les types</option>
-                        <option value="physique">Physique</option>
-                        <option value="morale">Morale</option>
-                      </Form.Select>
-                    </Form.Group>
-                  </Col>
-                  <Col md={3}>
-                    <Form.Group>
-                      <Form.Label>Agence</Form.Label>
-                      <Form.Select
-                        value={filters.agency_id}
-                        onChange={(e) => handleFilterChange('agency_id', e.target.value)}
-                      >
-                        <option value="">Toutes les agences</option>
-                        {agencies.map(agency => (
-                          <option key={agency.id} value={agency.id}>
-                            {agency.name}
-                          </option>
-                        ))}
-                      </Form.Select>
-                    </Form.Group>
-                  </Col>
-                  <Col md={2}>
-                    <Form.Group>
-                      <Form.Label>Créé par</Form.Label>
-                      <Form.Select
-                        value={filters.created_by}
-                        onChange={(e) => handleFilterChange('created_by', e.target.value)}
-                      >
-                        <option value="">Tous les créateurs</option>
-                        {creators.map(creator => (
-                          <option key={creator.id} value={creator.id}>
-                            {creator.name}
-                          </option>
-                        ))}
-                      </Form.Select>
-                    </Form.Group>
-                  </Col>
-                  <Col md={1} className="d-flex align-items-end">
-                    <Button 
-                      variant="outline-secondary" 
-                      onClick={handleReset}
-                      className="w-100"
-                      title="Réinitialiser les filtres"
-                    >
-                      <FaSync />
-                    </Button>
-                  </Col>
-                </Row>
-              </Form>
-            </Card.Body>
-          </Card>
-        </Col>
-      </Row>
-
-      {/* Clients Table */}
-      <Row>
-        <Col md={12}>
-          <Card>
-            <Card.Body>
-              <div className="table-responsive">
-                <Table hover className="align-items-center">
-                  <thead className="text-primary">
-                    <tr>
-                      <th>#</th>
-                      <th>Client</th>
-                      <th>Type</th>
-                      <th>Contact</th>
-                      <th>Adresse</th>
-                      <th>Créé le</th>
-                      <th>Statut</th>
-                      <th>Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {clients.length > 0 ? (
-                      clients.map((client) => (
-                        <tr key={client.id}>
-                          <td>{client.id}</td>
-                          <td>
-                            <div className="d-flex align-items-center">
-                              <div className="avatar-sm me-2">
-                                <div className="avatar-title bg-light rounded-circle">
-                                  {client.patient_type === 'physique' ? <FaUser /> : <FaBuilding />}
-                                </div>
-                              </div>
-                              <div>
-                                <h6 className="mb-0">{getFullName(client) || client.company_name}</h6>
-                                <small className="text-muted">{client.code_client}</small>
-                              </div>
-                            </div>
-                          </td>
-                          <td>
-                            {getClientTypeBadge(client.patient_type)}
-                          </td>
-                          <td>
-                            <div className="mb-1">
-                              <FaPhone className="text-muted me-1" />
-                              {client.phone || 'N/A'}
-                            </div>
-                            {client.email && (
-                              <div>
-                                <FaEnvelope className="text-muted me-1" />
-                                {client.email}
-                              </div>
-                            )}
-                          </td>
-                          <td>
-                            <div className="d-flex align-items-start">
-                              <FaMapMarkerAlt className="text-muted mt-1 me-1" />
-                              <span>{client.address || 'N/A'}</span>
-                            </div>
-                          </td>
-                          <td>{formatDate(client.created_at)}</td>
-                          <td>
-                            <Badge bg={client.status === 'active' ? 'success' : 'danger'}>
-                              {client.status === 'active' ? 'Actif' : 'Inactif'}
-                            </Badge>
-                          </td>
-                          <td>
-                            <Button 
-                              variant="primary" 
-                              size="sm" 
-                              className="me-1"
-                              onClick={() => navigate(`/clients/${client.id}`)}
-                            >
-                              <FaEye />
-                            </Button>
-                            <Button 
-                              variant="warning" 
-                              size="sm" 
-                              className="me-1"
-                              onClick={() => navigate(`/clients/${client.id}/edit`)}
-                            >
-                              <FaEdit />
-                            </Button>
-                            <Button 
-                              variant="danger" 
-                              size="sm"
-                              onClick={() => setDeleteModal({ show: true, clientId: client.id })}
-                            >
-                              <FaTrash />
-                            </Button>
-                          </td>
-                        </tr>
-                      ))
-                    ) : (
-                      <tr>
-                        <td colSpan="8" className="text-center">
-                          Aucun client trouvé
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </Table>
-              </div>
-
-              {/* Pagination */}
-              {pagination.last_page > 1 && (
-                <div className="mt-4 d-flex justify-content-between align-items-center">
-                  <div className="text-muted">
-                    Affichage de {pagination.from} à {pagination.to} sur {pagination.total} entrées
-                  </div>
-                  <GlobalPagination
-                    currentPage={pagination.current_page}
-                    lastPage={pagination.last_page}
-                    total={pagination.total}
-                    from={pagination.from}
-                    to={pagination.to}
-                    onPageChange={handlePageChange}
-                  />
-                </div>
-              )}
-            </Card.Body>
-          </Card>
-        </Col>
-      </Row>
-
-      {/* Delete Confirmation Modal */}
-      {deleteModal.show && (
-        <div className="modal show" style={{ display: 'block', backgroundColor: 'rgba(0,0,0,0.5)' }}>
-          <div className="modal-dialog">
-            <div className="modal-content">
-              <div className="modal-header">
-                <h5 className="modal-title">Confirmer la suppression</h5>
-                <button 
-                  type="button" 
-                  className="btn-close" 
-                  onClick={() => setDeleteModal({ show: false, clientId: null })}
-                ></button>
-              </div>
-              <div className="modal-body">
-                Êtes-vous sûr de vouloir supprimer ce client ? Cette action est irréversible.
-              </div>
-              <div className="modal-footer">
-                <button 
-                  type="button" 
-                  className="btn btn-secondary" 
-                  onClick={() => setDeleteModal({ show: false, clientId: null })}
-                >
-                  Annuler
-                </button>
-                <button 
-                  type="button" 
-                  className="btn btn-danger" 
-                  onClick={() => handleDeleteClient(deleteModal.clientId)}
-                >
-                  Supprimer
-                </button>
-              </div>
+      <div className="row mb-4">
+        <div className="col-12">
+          <div className="d-flex justify-content-between align-items-center">
+            <div>
+              <h2 className="text-primary mb-1">
+                <i className="pi pi-users me-2"></i>Gestion des Clients
+              </h2>
+              <p className="text-muted mb-0">{pagination.total} client(s) au total</p>
+            </div>
+            <div className="d-flex gap-2">
+              <button 
+                className="btn btn-outline-primary" 
+                onClick={() => loadClients(pagination.current_page)} 
+                disabled={loading}
+              >
+                <i className="pi pi-refresh me-1"></i>
+                {loading ? 'Actualisation...' : 'Actualiser'}
+              </button>
+              <a onClick={()=>navigate('/clients/create')} className="btn btn-primary">
+                <i className="pi pi-plus-circle me-1"></i>Nouveau Client
+              </a>
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Filters */}
+      <div className="card shadow-sm border-0 mb-4">
+        <div className="card-header bg-light">
+          <h6 className="mb-0">
+            <i className="pi pi-filter me-2"></i>Filtres de recherche
+          </h6>
+        </div>
+        <div className="card-body">
+          <form onSubmit={handleSearch} className="row g-3">
+            <div className="col-md-3">
+              <label className="form-label">Recherche</label>
+              <div className="input-group">
+                <span className="input-group-text">
+                  <i className="pi pi-search"></i>
+                </span>
+                <input 
+                  type="text" 
+                  className="form-control" 
+                  placeholder="Nom, email, téléphone, société..."
+                  value={filters.search} 
+                  onChange={(e) => handleFilterChange('search', e.target.value)} 
+                />
+              </div>
+            </div>
+            
+            <div className="col-md-2">
+              <label className="form-label">Type</label>
+              <select 
+                className="form-select" 
+                value={filters.patient_type} 
+                onChange={(e) => handleFilterChange('patient_type', e.target.value)}
+              >
+                <option value="">Tous</option>
+                <option value="physique">Personne physique</option>
+                <option value="morale">Personne morale</option>
+              </select>
+            </div>
+            
+            <div className="col-md-2">
+              <label className="form-label">Agence</label>
+              <select 
+                className="form-select" 
+                value={filters.agency_id} 
+                onChange={(e) => handleFilterChange('agency_id', e.target.value)}
+              >
+                <option value="">Toutes</option>
+                {agencies.map(agency => (
+                  <option key={agency.id} value={agency.id}>
+                    {agency.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            
+            <div className="col-md-2">
+              <label className="form-label">Créé par</label>
+              <select 
+                className="form-select" 
+                value={filters.created_by} 
+                onChange={(e) => handleFilterChange('created_by', e.target.value)}
+              >
+                <option value="">Tous</option>
+                {creators.map(creator => (
+                  <option key={creator.id} value={creator.id}>
+                    {creator.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            
+            <div className="col-md-3 d-flex align-items-end gap-2">
+              <button type="submit" className="btn btn-primary" disabled={loading}>
+                <i className="pi pi-search me-1"></i>Rechercher
+              </button>
+              <button type="button" className="btn btn-outline-secondary" onClick={handleReset}>
+                <i className="pi pi-refresh me-1"></i>Reset
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      {/* Clients Table */}
+      <div className="card shadow-sm border-0">
+        <div className="card-header bg-white d-flex justify-content-between align-items-center">
+          <h5 className="mb-0">
+            <i className="pi pi-list me-2"></i>Liste des Clients
+          </h5>
+        </div>
+        <div className="card-body p-0">
+          <div className="table-responsive">
+            <table className="table table-hover align-middle mb-0">
+              <thead className="bg-light">
+                <tr>
+                  <th className="border-0 px-4 py-3">Client</th>
+                  <th className="border-0 px-4 py-3">Type</th>
+                  <th className="border-0 px-4 py-3">Contact</th>
+                  <th className="border-0 px-4 py-3">Société/NIF</th>
+                  <th className="border-0 px-4 py-3">Agence</th>
+                  <th className="border-0 px-4 py-3">Créé par</th>
+                  <th className="border-0 px-4 py-3">Créé le</th>
+                  <th className="border-0 px-4 py-3">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {clients.length === 0 && loading ? (
+                  <tr>
+                    <td colSpan="8" className="text-center py-5">
+                      <div className="spinner-border text-primary" role="status">
+                        <span className="visually-hidden">Chargement...</span>
+                      </div>
+                    </td>
+                  </tr>
+                ) : data.clients == undefined && clients.length === 0 ? (
+                  <tr>
+                    <td colSpan="8" className="text-center py-5">
+                      <div className="text-muted">
+                        <i className="pi pi-inbox display-4 d-block mb-3"></i>
+                        <h5>Aucun client trouvé</h5>
+                        <p className="mb-0">Essayez de modifier vos critères de recherche ou créez un nouveau client</p>
+                      </div>
+                    </td>
+                  </tr>
+                ) : (
+                  clients.map((client) => (
+                    <tr key={client.id}>
+                      <td className="px-4">
+                        <div className="d-flex align-items-center">
+                          <div className="bg-primary bg-opacity-10 p-2 rounded me-3">
+                            <i className="pi pi-user text-primary"></i>
+                          </div>
+                          <div>
+                            <strong className="text-primary">{client.name}</strong>
+                            {getFullName(client) && (
+                              <>
+                                <br />
+                                <small className="text-muted">{getFullName(client)}</small>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-4">
+                        {getClientTypeBadge(client.patient_type)}
+                      </td>
+                      <td className="px-4">
+                        <div>
+                          {client.email && (
+                            <div className="mb-1">
+                              <i className="pi pi-envelope text-muted me-1"></i>
+                              <small>{client.email}</small>
+                            </div>
+                          )}
+                          {client.phone && (
+                            <div>
+                              <i className="pi pi-phone text-muted me-1"></i>
+                              <small>{client.phone}</small>
+                            </div>
+                          )}
+                          {!client.email && !client.phone && (
+                            <span className="text-muted">Non renseigné</span>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-4">
+                        <div>
+                          {client.societe && (
+                            <div className="mb-1">
+                              <i className="pi pi-building text-muted me-1"></i>
+                              <small>{client.societe}</small>
+                            </div>
+                          )}
+                          {client.nif && (
+                            <div>
+                              <i className="pi pi-id-card text-muted me-1"></i>
+                              <small>{client.nif}</small>
+                            </div>
+                          )}
+                          {!client.societe && !client.nif && (
+                            <span className="text-muted">-</span>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-4">
+                        {client.agency ? (
+                          <div className="d-flex align-items-center">
+                            <i className="pi pi-building text-info me-2"></i>
+                            {client.agency.name}
+                          </div>
+                        ) : (
+                          <span className="text-muted">Non assigné</span>
+                        )}
+                      </td>
+                      <td className="px-4">
+                        <div className="d-flex align-items-center">
+                          <i className="pi pi-user-check text-success me-2"></i>
+                          {client.created_by?.name || 'N/A'}
+                        </div>
+                      </td>
+                      <td className="px-4">
+                        <div>
+                          <strong>{formatDate(client.created_at)}</strong>
+                          <br />
+                          <small className="text-muted">
+                            {new Date(client.created_at).toLocaleTimeString('fr-FR', { 
+                              hour: '2-digit', 
+                              minute: '2-digit' 
+                            })}
+                          </small>
+                        </div>
+                      </td>
+                      <td className="px-4">
+                        <div className="btn-group" role="group">
+                          <a 
+                            href={`/clients/${client.id}`} 
+                            className="btn btn-sm btn-outline-info" 
+                            title="Voir"
+                          >
+                            <i className="pi pi-eye"></i>
+                          </a>
+                          <a 
+                            href={`/clients/${client.id}/edit`} 
+                            className="btn btn-sm btn-outline-warning" 
+                            title="Modifier"
+                          >
+                            <i className="pi pi-pencil"></i>
+                          </a>
+                          <button 
+                            type="button" 
+                            className="btn btn-sm btn-outline-danger" 
+                            title="Supprimer"
+                            onClick={() => setDeleteModal({ show: true, clientId: client.id })}
+                          >
+                            <i className="pi pi-trash"></i>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* Pagination */}
+        {pagination.last_page > 1 && (
+          <div className="card-footer bg-transparent border-0">
+            <div className="d-flex justify-content-between align-items-center">
+              <div className="text-muted small">
+                Affichage de {pagination.from} à {pagination.to} sur {pagination.total} résultats
+              </div>
+              <Pagination />
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Delete Modal */}
+      {deleteModal.show && (
+        <>
+          <div className="modal show d-block" tabIndex="-1">
+            <div className="modal-dialog">
+              <div className="modal-content">
+                <div className="modal-header bg-danger text-white">
+                  <h5 className="modal-title">
+                    <i className="pi pi-exclamation-triangle me-2"></i>Confirmer la suppression
+                  </h5>
+                  <button 
+                    type="button" 
+                    className="btn-close btn-close-white"
+                    onClick={() => setDeleteModal({ show: false, clientId: null })}
+                  ></button>
+                </div>
+                <div className="modal-body">
+                  <p>Êtes-vous sûr de vouloir supprimer ce client ? Cette action est irréversible.</p>
+                  <div className="alert alert-warning mt-3">
+                    <i className="pi pi-info-circle me-2"></i>
+                    <strong>Attention :</strong> La suppression de ce client pourrait affecter les ventes et factures associées.
+                  </div>
+                </div>
+                <div className="modal-footer">
+                  <button 
+                    type="button" 
+                    className="btn btn-secondary"
+                    onClick={() => setDeleteModal({ show: false, clientId: null })}
+                  >
+                    Annuler
+                  </button>
+                  <button 
+                    type="button" 
+                    className="btn btn-danger"
+                    onClick={() => handleDeleteClient(deleteModal.clientId)}
+                  >
+                    <i className="pi pi-trash me-1"></i>Supprimer
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div 
+            className="modal-backdrop show" 
+            onClick={() => setDeleteModal({ show: false, clientId: null })}
+          ></div>
+        </>
       )}
-    </Container>
+    </div>
   );
 };
 

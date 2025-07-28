@@ -178,7 +178,6 @@ export const CartProvider = ({ children }) => {
   // Vérifier les erreurs de stock (mémorisé)
   const getStockErrors = React.useMemo(() => {
     return state.items.filter(item => {
-       console.log(item)
       const quantity = parseFloat(item.quantity) || 0;
       const availableStock = parseFloat(item.available_stock) || 0;
       return quantity > availableStock;

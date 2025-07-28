@@ -70,7 +70,7 @@ const StockEditScreen = () => {
         
         if (response.success) {
           const stock = response.data.stock;
-          console.log('Response from API:', response.data.stock);
+          // console.log('Response from API:', response.data.stock);
           setStockData(stock);
           return { success: true, data: response.data.stock };
           

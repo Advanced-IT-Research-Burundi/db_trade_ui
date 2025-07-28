@@ -1,356 +1,533 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { Toast } from 'primereact/toast';
-import { useNavigate } from 'react-router-dom';
-import { fetchApiData } from '../../stores/slicer/apiDataSlicer';
-import { API_CONFIG } from '../../services/config';
-import LoadingComponent from '../component/LoadingComponent';
-import ErrorComponent from '../component/ErrorComponent';
-import GlobalPagination from '../component/GlobalPagination';
-import { Card, Table, Container, Row, Col, Form, Button, InputGroup, Badge } from 'react-bootstrap';
-import { FaEdit, FaEye, FaTrash, FaSearch, FaSync, FaPlus, FaTags } from 'react-icons/fa';
+import React, { useState, useEffect, useRef } from "react";
+import { Toast } from "primereact/toast";
+import ApiService from "../../services/api.js";
+import { useNavigate } from "react-router-dom";
+
+import { API_CONFIG } from "../../services/config.js";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchApiData } from "../../stores/slicer/apiDataSlicer.js";
 
 const CategoryScreen = () => {
-  const dispatch = useDispatch();
-  const navigate = useNavigate();
-  const toast = useRef(null);
-  
-  // Local state
+  const [categories, setCategories] = useState([]);
+  const [agencies, setAgencies] = useState([]);
+  const [creators, setCreators] = useState([]);
   const [filters, setFilters] = useState({
-    search: '',
-    agency_id: '',
-    created_by: ''
+    search: "",
+    agency_id: "",
+    created_by: "",
   });
-  const [currentPage, setCurrentPage] = useState(1);
-  const [deleteModal, setDeleteModal] = useState({ show: false, categoryId: null });
-  
-  // Get data from Redux store
-  const { data, loading, error } = useSelector((state) => ({
-    data: state.apiData?.data?.categories,
-    loading: state.apiData.loading,
-    error: state.apiData.error
-  }));
-  
-  // Extract data from API response
-  const categories = data?.categories?.data || [];
-  const agencies = data?.agencies || [];
-  const creators = data?.creators || [];
-  const pagination = data?.categories ? {
-    current_page: data.categories.current_page,
-    last_page: data.categories.last_page,
-    total: data.categories.total,
-    from: data.categories.from,
-    to: data.categories.to
-  } : { current_page: 1, last_page: 1, total: 0, from: 0, to: 0 };
+  const [pagination, setPagination] = useState({
+    current_page: 1,
+    last_page: 1,
+    total: 0,
+    from: 0,
+    to: 0,
+  });
+  const [deleteModal, setDeleteModal] = useState({
+    show: false,
+    categoryId: null,
+  });
+  const toast = useRef(null);
 
-  // Fetch categories with filters
-  const loadCategories = (page = 1, searchFilters = filters) => {
-    const params = { page, ...searchFilters };
-    dispatch(fetchApiData({
-      url: API_CONFIG.ENDPOINTS.CATEGORIES,
-      itemKey: 'categories',
-      params
-    }));
-  };
+  const navigate = useNavigate();
 
-  // Initial load
+  const dispatch = useDispatch();
+  const { data, loading } = useSelector((state) => state.apiData);
+
   useEffect(() => {
     loadCategories();
   }, []);
 
-  // Handle filter changes
+  useEffect(() => {
+    if (data.categories) {
+      setCategories(data.categories.categories.data || []);
+
+      setAgencies(data.categories.agencies || []);
+      setCreators(data.categories.creators || []);
+
+      setPagination({
+        current_page: data.categories.categories.current_page,
+        last_page: data.categories.categories.last_page,
+        total: data.categories.categories.total,
+        from: data.categories.categories.from,
+        to: data.categories.categories.to,
+      });
+    }
+  }, [data]);
+
+  async function loadCategories(page = 1) {
+    try {
+      const params = { page, ...filters };
+      dispatch(
+        fetchApiData({
+          url: API_CONFIG.ENDPOINTS.CATEGORIES,
+          itemKey: "categories",
+          params,
+        })
+      );
+    } catch (error) {
+      showToast("error", error.message);
+    }
+  }
+
   const handleFilterChange = (name, value) => {
-    const newFilters = { ...filters, [name]: value };
-    setFilters(newFilters);
-    setCurrentPage(1);
-    loadCategories(1, newFilters);
+    setFilters((prev) => ({ ...prev, [name]: value }));
   };
 
-  // Handle search
   const handleSearch = (e) => {
     e.preventDefault();
-    setCurrentPage(1);
-    loadCategories(1, filters);
+    loadCategories(1);
   };
 
-  // Reset filters
   const handleReset = () => {
-    const resetFilters = { search: '', agency_id: '', created_by: '' };
-    setFilters(resetFilters);
-    setCurrentPage(1);
-    loadCategories(1, resetFilters);
+    setFilters({ search: "", agency_id: "", created_by: "" });
+    setTimeout(() => loadCategories(1), 0);
   };
 
-  // Handle page change
-  const handlePageChange = (page) => {
-    setCurrentPage(page);
-    loadCategories(page, filters);
-  };
-
-  // Handle delete category
   const handleDeleteCategory = async (categoryId) => {
     try {
-      // Implement delete logic here
-      // After successful deletion, reload categories
-      loadCategories(currentPage);
-      showToast('success', 'Catégorie supprimée avec succès');
+      const response = await ApiService.delete(`/api/categories/${categoryId}`);
+      if (response.success) {
+        showToast("success", "Catégorie supprimée avec succès");
+        loadCategories(pagination.current_page);
+      } else {
+        showToast("error", response.message || "Erreur lors de la suppression");
+      }
     } catch (error) {
-      showToast('error', error.message);
+      showToast("error", error.message);
     }
     setDeleteModal({ show: false, categoryId: null });
   };
 
-  // Show toast notification
   const showToast = (severity, detail) => {
-    toast.current?.show({ 
-      severity, 
-      summary: severity === 'error' ? 'Erreur' : 'Succès', 
-      detail, 
-      life: 3000 
+    toast.current?.show({
+      severity,
+      summary: severity === "error" ? "Erreur" : "Succès",
+      detail,
+      life: 3000,
     });
   };
 
-  // Helper functions
-  const formatDate = (date) => new Date(date).toLocaleDateString('fr-FR');
+  const formatDate = (date) => new Date(date).toLocaleDateString("fr-FR");
 
   const truncateText = (text, maxLength = 50) => {
-    if (!text) return '';
-    return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
+    if (!text) return "";
+    return text.length > maxLength
+      ? text.substring(0, maxLength) + "..."
+      : text;
   };
 
+  const Pagination = () => {
+    if (pagination.last_page <= 1) return null;
+
+    const getVisiblePages = () => {
+      const current = pagination.current_page;
+      const last = pagination.last_page;
+      const pages = [];
+
+      if (last <= 7) {
+        return Array.from({ length: last }, (_, i) => i + 1);
+      }
+
+      pages.push(1);
+      if (current > 4) pages.push("...");
+
+      const start = Math.max(2, current - 1);
+      const end = Math.min(last - 1, current + 1);
+
+      for (let i = start; i <= end; i++) {
+        pages.push(i);
+      }
+
+      if (current < last - 3) pages.push("...");
+      pages.push(last);
+
+      return pages;
+    };
+
+    return (
+      <nav>
+        <ul className="pagination pagination-sm mb-0">
+          <li
+            className={`page-item ${
+              pagination.current_page === 1 ? "disabled" : ""
+            }`}
+          >
+            <button
+              className="page-link"
+              onClick={() => loadCategories(pagination.current_page - 1)}
+              disabled={pagination.current_page === 1}
+            >
+              <i className="pi pi-chevron-left"></i>
+            </button>
+          </li>
+
+          {getVisiblePages().map((page, index) => (
+            <li
+              key={index}
+              className={`page-item ${
+                page === pagination.current_page ? "active" : ""
+              } ${page === "..." ? "disabled" : ""}`}
+            >
+              {page === "..." ? (
+                <span className="page-link">...</span>
+              ) : (
+                <button
+                  className="page-link"
+                  onClick={() => loadCategories(page)}
+                >
+                  {page}
+                </button>
+              )}
+            </li>
+          ))}
+
+          <li
+            className={`page-item ${
+              pagination.current_page === pagination.last_page ? "disabled" : ""
+            }`}
+          >
+            <button
+              className="page-link"
+              onClick={() => loadCategories(pagination.current_page + 1)}
+              disabled={pagination.current_page === pagination.last_page}
+            >
+              <i className="pi pi-chevron-right"></i>
+            </button>
+          </li>
+        </ul>
+      </nav>
+    );
+  };
 
   return (
-    <Container fluid>
+    <div className="container-fluid">
       <Toast ref={toast} />
-      
+
       {/* Header */}
-      <Row className="mb-4">
-        <Col md={12}>
-          <Card className="card-plain">
-            <Card.Header>
-              <Card.Title as="h4" className="d-flex justify-content-between align-items-center">
-                <span><FaTags className="me-2" />Gestion des Catégories</span>
-                <div>
-                  <Button 
-                    variant="primary" 
-                    className="me-2"
-                    onClick={() => navigate('/categories/create')}
-                  >
-                    <FaPlus className="me-1" /> Nouvelle Catégorie
-                  </Button>
-                  <Button 
-                    variant="outline-secondary" 
-                    onClick={() => loadCategories(currentPage, filters)}
-                    disabled={loading}
-                  >
-                    <FaSync className={loading ? 'fa-spin' : ''} />
-                  </Button>
-                </div>
-              </Card.Title>
-              <p className="card-category">{pagination.total} catégorie(s) au total</p>
-            </Card.Header>
-            
-            {/* Filters */}
-            <Card.Body>
-              <Form onSubmit={handleSearch}>
-                <Row className="g-3">
-                  <Col md={5}>
-                    <Form.Group>
-                      <Form.Label>Rechercher</Form.Label>
-                      <InputGroup>
-                        <Form.Control
-                          type="text"
-                          placeholder="Nom, description..."
-                          value={filters.search}
-                          onChange={(e) => handleFilterChange('search', e.target.value)}
-                        />
-                        <Button type="submit" variant="primary">
-                          <FaSearch />
-                        </Button>
-                      </InputGroup>
-                    </Form.Group>
-                  </Col>
-                  <Col md={3}>
-                    <Form.Group>
-                      <Form.Label>Agence</Form.Label>
-                      <Form.Select
-                        value={filters.agency_id}
-                        onChange={(e) => handleFilterChange('agency_id', e.target.value)}
-                      >
-                        <option value="">Toutes les agences</option>
-                        {agencies.map(agency => (
-                          <option key={agency.id} value={agency.id}>
-                            {agency.name}
-                          </option>
-                        ))}
-                      </Form.Select>
-                    </Form.Group>
-                  </Col>
-                  <Col md={3}>
-                    <Form.Group>
-                      <Form.Label>Créé par</Form.Label>
-                      <Form.Select
-                        value={filters.created_by}
-                        onChange={(e) => handleFilterChange('created_by', e.target.value)}
-                      >
-                        <option value="">Tous les créateurs</option>
-                        {creators.map(creator => (
-                          <option key={creator.id} value={creator.id}>
-                            {creator.name}
-                          </option>
-                        ))}
-                      </Form.Select>
-                    </Form.Group>
-                  </Col>
-                  <Col md={1} className="d-flex align-items-end">
-                    <Button 
-                      variant="outline-secondary" 
-                      onClick={handleReset}
-                      className="w-100"
-                      title="Réinitialiser les filtres"
-                    >
-                      <FaSync />
-                    </Button>
-                  </Col>
-                </Row>
-              </Form>
-            </Card.Body>
-          </Card>
-        </Col>
-      </Row>
-
-      {/* Categories Table */}
-      <Row>
-        <Col md={12}>
-          <Card>
-            <Card.Body>
-              <div className="table-responsive">
-                <Table hover className="align-items-center">
-                  <thead className="text-primary">
-                    <tr>
-                      <th>#</th>
-                      <th>Nom</th>
-                      <th>Description</th>
-                      <th>Statut</th>
-                      <th>Agence</th>
-                      <th>Créé par</th>
-                      <th>Créé le</th>
-                      <th>Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {categories.length > 0 ? (
-                      categories.map((category) => (
-                        <tr key={category.id}>
-                          <td>{category.id}</td>
-                          <td>
-                            <strong>{category.name}</strong>
-                          </td>
-                          <td>{truncateText(category.description, 30)}</td>
-                          <td>
-                            <Badge bg={category.status === 'active' ? 'success' : 'danger'}>
-                              {category.status === 'active' ? 'Actif' : 'Inactif'}
-                            </Badge>
-                          </td>
-                          <td>{category.agency?.name || 'N/A'}</td>
-                          <td>{category.created_by?.name || 'N/A'}</td>
-                          <td>{formatDate(category.created_at)}</td>
-                          <td>
-                            <Button 
-                              variant="primary" 
-                              size="sm" 
-                              className="me-1"
-                              onClick={() => navigate(`/categories/${category.id}`)}
-                            >
-                              <FaEye />
-                            </Button>
-                            <Button 
-                              variant="warning" 
-                              size="sm" 
-                              className="me-1"
-                              onClick={() => navigate(`/categories/${category.id}/edit`)}
-                            >
-                              <FaEdit />
-                            </Button>
-                            <Button 
-                              variant="danger" 
-                              size="sm"
-                              onClick={() => setDeleteModal({ show: true, categoryId: category.id })}
-                            >
-                              <FaTrash />
-                            </Button>
-                          </td>
-                        </tr>
-                      ))
-                    ) : (
-                      <tr>
-                        <td colSpan="8" className="text-center">
-                          Aucune catégorie trouvée
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </Table>
-              </div>
-
-              {/* Pagination */}
-              {pagination.last_page > 1 && (
-                <div className="mt-4 d-flex justify-content-between align-items-center">
-                  <div className="text-muted">
-                    Affichage de {pagination.from} à {pagination.to} sur {pagination.total} entrées
-                  </div>
-                  <GlobalPagination
-                    currentPage={pagination.current_page}
-                    lastPage={pagination.last_page}
-                    total={pagination.total}
-                    from={pagination.from}
-                    to={pagination.to}
-                    onPageChange={handlePageChange}
-                  />
-                </div>
-              )}
-            </Card.Body>
-          </Card>
-        </Col>
-      </Row>
-
-      {/* Delete Confirmation Modal */}
-      {deleteModal.show && (
-        <div className="modal show" style={{ display: 'block', backgroundColor: 'rgba(0,0,0,0.5)' }}>
-          <div className="modal-dialog">
-            <div className="modal-content">
-              <div className="modal-header">
-                <h5 className="modal-title">Confirmer la suppression</h5>
-                <button 
-                  type="button" 
-                  className="btn-close" 
-                  onClick={() => setDeleteModal({ show: false, categoryId: null })}
-                ></button>
-              </div>
-              <div className="modal-body">
-                Êtes-vous sûr de vouloir supprimer cette catégorie ? Cette action est irréversible.
-              </div>
-              <div className="modal-footer">
-                <button 
-                  type="button" 
-                  className="btn btn-secondary" 
-                  onClick={() => setDeleteModal({ show: false, categoryId: null })}
-                >
-                  Annuler
-                </button>
-                <button 
-                  type="button" 
-                  className="btn btn-danger" 
-                  onClick={() => handleDeleteCategory(deleteModal.categoryId)}
-                >
-                  Supprimer
-                </button>
-              </div>
+      <div className="row mb-4">
+        <div className="col-12">
+          <div className="d-flex justify-content-between align-items-center">
+            <div>
+              <h2 className="text-primary mb-1">
+                <i className="pi pi-tags me-2"></i>Gestion des Catégories
+              </h2>
+              <p className="text-muted mb-0">
+                {pagination.total} catégorie(s) au total
+              </p>
+            </div>
+            <div className="d-flex gap-2">
+              <button
+                className="btn btn-outline-primary"
+                onClick={() => loadCategories(pagination.current_page)}
+                disabled={loading}
+              >
+                <i className="pi pi-refresh me-1"></i>
+                {loading ? "Actualisation..." : "Actualiser"}
+              </button>
+              <a
+                onClick={() => navigate("/categories/create")}
+                className="btn btn-primary"
+              >
+                <i className="pi pi-plus-circle me-1"></i>Nouvelle Catégorie
+              </a>
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Filters */}
+      <div className="card shadow-sm border-0 mb-4">
+        <div className="card-header bg-light">
+          <h6 className="mb-0">
+            <i className="pi pi-filter me-2"></i>Filtres de recherche
+          </h6>
+        </div>
+        <div className="card-body">
+          <form onSubmit={handleSearch} className="row g-3">
+            <div className="col-md-4">
+              <label className="form-label">Recherche</label>
+              <div className="input-group">
+                <span className="input-group-text">
+                  <i className="pi pi-search"></i>
+                </span>
+                <input
+                  type="text"
+                  className="form-control"
+                  placeholder="Nom ou description..."
+                  value={filters.search}
+                  onChange={(e) => handleFilterChange("search", e.target.value)}
+                />
+              </div>
+            </div>
+
+            <div className="col-md-3">
+              <label className="form-label">Agence</label>
+              <select
+                className="form-select"
+                value={filters.agency_id}
+                onChange={(e) =>
+                  handleFilterChange("agency_id", e.target.value)
+                }
+              >
+                <option value="">Toutes</option>
+                {agencies.map((agency) => (
+                  <option key={agency.id} value={agency.id}>
+                    {agency.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="col-md-3">
+              <label className="form-label">Créé par</label>
+              <select
+                className="form-select"
+                value={filters.created_by}
+                onChange={(e) =>
+                  handleFilterChange("created_by", e.target.value)
+                }
+              >
+                <option value="">Tous</option>
+                {creators.map((creator) => (
+                  <option key={creator.id} value={creator.id}>
+                    {creator.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="col-md-2 d-flex align-items-end gap-2">
+              <button
+                type="submit"
+                className="btn btn-primary"
+                disabled={loading}
+              >
+                <i className="pi pi-search me-1"></i>Rechercher
+              </button>
+              <button
+                type="button"
+                className="btn btn-outline-secondary"
+                onClick={handleReset}
+              >
+                <i className="pi pi-refresh me-1"></i>Reset
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      {/* Categories Table */}
+      <div className="card shadow-sm border-0">
+        <div className="card-header bg-white d-flex justify-content-between align-items-center">
+          <h5 className="mb-0">
+            <i className="pi pi-list me-2"></i>Liste des Catégories
+          </h5>
+        </div>
+        <div className="card-body p-0">
+          <div className="table-responsive">
+            <table className="table table-hover align-middle mb-0">
+              <thead className="bg-light">
+                <tr>
+                  <th className="border-0 px-4 py-3">Nom</th>
+                  <th className="border-0 px-4 py-3">Description</th>
+                  <th className="border-0 px-4 py-3">Agence</th>
+                  <th className="border-0 px-4 py-3">Créé par</th>
+                  <th className="border-0 px-4 py-3">Créé le</th>
+                  <th className="border-0 px-4 py-3">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {categories.length === 0 && loading   ? (
+                  <tr>
+                    <td colSpan="6" className="text-center py-5">
+                      <div
+                        className="spinner-border text-primary"
+                        role="status"
+                      >
+                        <span className="visually-hidden">Chargement...</span>
+                      </div>
+                    </td>
+                  </tr>
+                ) :  data.products == undefined && categories.length === 0 ? (
+                  <tr>
+                    <td colSpan="6" className="text-center py-5">
+                      <div className="text-muted">
+                        <i className="pi pi-inbox display-4 d-block mb-3"></i>
+                        <h5>Aucune catégorie trouvée</h5>
+                        <p className="mb-0">
+                          Essayez de modifier vos critères de recherche ou créez
+                          une nouvelle catégorie
+                        </p>
+                      </div>
+                    </td>
+                  </tr>
+                ) : (
+                  categories.map((category) => (
+                    <tr key={category.id}>
+                      <td className="px-4">
+                        <div className="d-flex align-items-center">
+                          <div className="bg-primary bg-opacity-10 p-2 rounded me-3">
+                            <i className="pi pi-tag text-primary"></i>
+                          </div>
+                          <strong className="text-primary">
+                            {category.name}
+                          </strong>
+                        </div>
+                      </td>
+                      <td className="px-4">
+                        {category.description ? (
+                          <span title={category.description}>
+                            {truncateText(category.description, 50)}
+                          </span>
+                        ) : (
+                          <span className="text-muted">Aucune description</span>
+                        )}
+                      </td>
+                      <td className="px-4">
+                        {category.agency ? (
+                          <div className="d-flex align-items-center">
+                            <i className="pi pi-building text-info me-2"></i>
+                            {category.agency.name}
+                          </div>
+                        ) : (
+                          <span className="text-muted">Non assigné</span>
+                        )}
+                      </td>
+                      <td className="px-4">
+                        <div className="d-flex align-items-center">
+                          <i className="pi pi-user-check text-success me-2"></i>
+                          {category.created_by?.full_name ||
+                            category.created_by?.name ||
+                            "N/A"}
+                        </div>
+                      </td>
+                      <td className="px-4">
+                        <div>
+                          <strong>{formatDate(category.created_at)}</strong>
+                          <br />
+                          <small className="text-muted">
+                            {new Date(category.created_at).toLocaleTimeString(
+                              "fr-FR",
+                              {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              }
+                            )}
+                          </small>
+                        </div>
+                      </td>
+                      <td className="px-4">
+                        <div className="btn-group" role="group">
+                          <a
+                            href={`/categories/${category.id}`}
+                            className="btn btn-sm btn-outline-info"
+                            title="Voir"
+                          >
+                            <i className="pi pi-eye"></i>
+                          </a>
+                          <a
+                            href={`/categories/${category.id}/edit`}
+                            className="btn btn-sm btn-outline-warning"
+                            title="Modifier"
+                          >
+                            <i className="pi pi-pencil"></i>
+                          </a>
+                          <button
+                            type="button"
+                            className="btn btn-sm btn-outline-danger"
+                            title="Supprimer"
+                            onClick={() =>
+                              setDeleteModal({
+                                show: true,
+                                categoryId: category.id,
+                              })
+                            }
+                          >
+                            <i className="pi pi-trash"></i>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* Pagination */}
+        {pagination.last_page > 1 && (
+          <div className="card-footer bg-transparent border-0">
+            <div className="d-flex justify-content-between align-items-center">
+              <div className="text-muted small">
+                Affichage de {pagination.from} à {pagination.to} sur{" "}
+                {pagination.total} résultats
+              </div>
+              <Pagination />
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Delete Modal */}
+      {deleteModal.show && (
+        <>
+          <div className="modal show d-block" tabIndex="-1">
+            <div className="modal-dialog">
+              <div className="modal-content">
+                <div className="modal-header bg-danger text-white">
+                  <h5 className="modal-title">
+                    <i className="pi pi-exclamation-triangle me-2"></i>Confirmer
+                    la suppression
+                  </h5>
+                  <button
+                    type="button"
+                    className="btn-close btn-close-white"
+                    onClick={() =>
+                      setDeleteModal({ show: false, categoryId: null })
+                    }
+                  ></button>
+                </div>
+                <div className="modal-body">
+                  <p>
+                    Êtes-vous sûr de vouloir supprimer cette catégorie ? Cette
+                    action est irréversible.
+                  </p>
+                  <div className="alert alert-warning mt-3">
+                    <i className="pi pi-info-circle me-2"></i>
+                    <strong>Attention :</strong> La suppression de cette
+                    catégorie pourrait affecter les produits associés.
+                  </div>
+                </div>
+                <div className="modal-footer">
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    onClick={() =>
+                      setDeleteModal({ show: false, categoryId: null })
+                    }
+                  >
+                    Annuler
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-danger"
+                    onClick={() => handleDeleteCategory(deleteModal.categoryId)}
+                  >
+                    <i className="pi pi-trash me-1"></i>Supprimer
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div
+            className="modal-backdrop show"
+            onClick={() => setDeleteModal({ show: false, categoryId: null })}
+          ></div>
+        </>
       )}
-    </Container>
+    </div>
   );
 };
 

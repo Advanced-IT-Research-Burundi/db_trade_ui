@@ -3,20 +3,24 @@ import { Toast } from 'primereact/toast';
 import ApiService from '../../services/api.js';
 import { useParams } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
+import { API_CONFIG } from '../../services/config.js';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchApiData } from '../../stores/slicer/apiDataSlicer.js';
 
 const AddProductScreen = () => {
   const { id: stockId } = useParams();
   const [stock, setStock] = useState(null);
   const [products, setProducts] = useState([]);
   const [stockProducts, setStockProducts] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [stockProductsLoading, setStockProductsLoading] = useState(false);
   const [stockProductSearch, setStockProductSearch] = useState('');
   const [productSearch, setProductSearch] = useState('');
   const [selectedProducts, setSelectedProducts] = useState([]);
   const [loadingStates, setLoadingStates] = useState({});
-  const navigate = useNavigate();
-  
+  const navigate = useNavigate();  
+
+  const dispatch = useDispatch();
+  const { data , loading} = useSelector(state => state.apiData);
+
   const [productPagination, setProductPagination] = useState({
     current_page: 1, last_page: 1, total: 0
   });
@@ -30,54 +34,59 @@ const AddProductScreen = () => {
   useEffect(() => {
     if (stockId) {
       loadStock();
-      loadProducts();
-      loadStockProducts();
+      loadData();
     }
   }, [stockId]);
 
+  const loadData = ()=>{
+      loadProducts();
+      loadStockProducts();
+  }
 
-  const loadStock = async () => {
-    try {
-      const response = await ApiService.get(`/api/stocks/${stockId}`);
-      if (response.success) setStock(response.data.stock);
-    } catch (error) {
-      showToast('error', 'Erreur lors du chargement du stock :' + error.message);
-    }
-  };
+  useEffect(() => {
+          if (data[`stock${stockId}`]) {
+            setStock(data[`stock${stockId}`].stock)
+          }
 
-  const loadProducts = async (page = 1, search = productSearch) => {
-    try {
-      setLoading(true);
-      const response = await ApiService.get('/api/stock-products/available', {
-        stock_id: stockId, search, page, per_page: 10
-      });
-      if (response.success) {
-        setProducts(response.data.products || []);
-        setProductPagination(response.data.products);
-      }
-    } catch (error) {
-      showToast('error', 'Erreur lors du chargement des produits: ' + error.message);
-    } finally {
-      setLoading(false);
-    }
-  };
+          if (data[`products_available${stockId}`]) {
+            setProducts(data[`products_available${stockId}`].products || []);
+            setProductPagination(data[`products_available${stockId}`].pagination || {});
+          }
+          if (data[`stockProducts${stockId}`]) {
+            setStockProducts(data[`stockProducts${stockId}`].stock_products.data || []);
+            setStockPagination(data[`stockProducts${stockId}`].stock_products);
+          }
+  }, [data]);
 
-  const loadStockProducts = async (page = 1, search = stockProductSearch) => {
+
+  const loadProducts = async (page = 1, search = productSearch) =>{
     try {
-      setStockProductsLoading(true);
-      const response = await ApiService.get('/api/stock-products', {
-        page, search, stock_id: stockId, per_page: 10
-      });
-      if (response.success) {
-        setStockProducts(response.data.stock_products.data || []);
-        setStockPagination(response.data.stock_products);
-      }
+            const availableParams = { stock_id: stockId, search, page, per_page: 10 };
+            dispatch(fetchApiData({ url: '/api/stock-products/available', itemKey: `products_available${stockId}`, params: availableParams }));
+
     } catch (error) {
-      showToast('error', 'Erreur lors du chargement des produits du stock :' + error.message);
-    } finally {
-      setStockProductsLoading(false);
-    }
-  };
+      showToast('error', error.message);
+    } 
+  }
+  const loadStock = async () =>{
+    try {
+            dispatch(fetchApiData({ url: `/api/stocks/${stockId}`, itemKey: `stock${stockId}` }));
+            
+    } catch (error) {
+      showToast('error', error.message);
+    } 
+  }
+  const loadStockProducts = async (page = 1, search = productSearch) =>{
+    try {
+            const stockProductsParams = { page, search, stock_id: stockId, per_page: 10 };
+            dispatch(fetchApiData({ url: '/api/stock-products', itemKey: `stockProducts${stockId}`, params: stockProductsParams }));
+
+    } catch (error) {
+      showToast('error', error.message);
+    } 
+  }
+
+
 
   const setItemLoading = (id, isLoading) => {
     setLoadingStates(prev => ({ ...prev, [id]: isLoading }));
@@ -92,8 +101,7 @@ const AddProductScreen = () => {
       
       if (response.success) {
         showToast('success', 'Produit ajouté au stock');
-        loadProducts();
-        loadStockProducts();
+        loadData()
       } else {
         showToast('error', response.message);
       }
@@ -119,8 +127,7 @@ const AddProductScreen = () => {
       if (response.success) {
         showToast('success', `${selectedProducts.length} produit(s) ajouté(s)`);
         setSelectedProducts([]);
-        loadProducts();
-        loadStockProducts();
+        loadData();
       } else {
         showToast('error', response.message);
       }
@@ -138,8 +145,7 @@ const AddProductScreen = () => {
       
       if (response.success) {
         showToast('success', 'Produit retiré du stock');
-        loadProducts();
-        loadStockProducts();
+        loadData();
       } else {
         showToast('error', response.message);
       }
@@ -280,11 +286,11 @@ const AddProductScreen = () => {
           )}
 
           <div className="flex-grow-1 overflow-auto p-3">
-            {loading ? (
+            {products.length === 0 && loading  ? (
               <div className="text-center py-4">
                 <div className="spinner-border text-primary"></div>
               </div>
-            ) : products.length === 0 ? (
+            ) : data.products_available == undefined && products.length === 0 ? (
               <div className="text-center py-4 text-muted">
                 <i className="pi pi-inbox display-4 d-block mb-3"></i>
                 <p>Aucun produit disponible</p>
@@ -398,17 +404,17 @@ const AddProductScreen = () => {
           </div>
 
           <div className="flex-grow-1 overflow-auto p-3">
-            {stockProductsLoading ? (
+            {stockProducts.length === 0 && loading  ? (
               <div className="text-center py-4">
                 <div className="spinner-border text-primary"></div>
               </div>
-            ) : stockProducts.length === 0 ? (
+            ) : data.stockProducts == undefined && stockProducts.length === 0 ?(
               <div className="text-center py-4 text-muted">
                 <i className="pi pi-inbox display-4 d-block mb-3"></i>
                 <h6>Aucun produit dans ce stock</h6>
                 <p className="small">Ajoutez des produits depuis la liste de gauche</p>
               </div>
-            ) : (
+            ) :(
               stockProducts.map((stockProduct) => (
                 <div key={stockProduct.id} className="border rounded p-2 mb-2">
                   <div className="d-flex justify-content-between align-items-center">

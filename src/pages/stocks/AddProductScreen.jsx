@@ -450,7 +450,7 @@ const AddProductScreen = () => {
                       >
                         <i className="pi pi-eye"></i>
                       </a>
-                      <button 
+                      {/* <button 
                         onClick={() => removeProduct(stockProduct.id)}
                         className="btn btn-outline-danger btn-sm"
                         disabled={loadingStates[`remove-${stockProduct.id}`]}
@@ -460,7 +460,7 @@ const AddProductScreen = () => {
                         ) : (
                           <i className="pi pi-trash"></i>
                         )}
-                      </button>
+                      </button> */}
                     </div>
                   </div>
                 </div>

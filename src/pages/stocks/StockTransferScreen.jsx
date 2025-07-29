@@ -2,9 +2,11 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Toast } from 'primereact/toast';
 import ApiService from '../../services/api.js';
 import { useNavigate } from 'react-router-dom';
+import { formatCurrency, getClientInfo,formatDate } from './../../utils/helpers.js'
 
 const StockTransferScreen = () => {
   const [stocks, setStocks] = useState([]);
+  const [proformas, setProformas] = useState([]);
   const [categories, setCategories] = useState([]);
   const [products, setProducts] = useState([]);
   const [selectedProducts, setSelectedProducts] = useState([]);
@@ -49,7 +51,9 @@ const StockTransferScreen = () => {
     try {
       setLoading(true);
       const response = await ApiService.get(`/api/stock-transfers/stocks/${stockId}/categories`);
-      if (response.success) {
+      const responseProformas = await ApiService.get(`/api/stock-transfers/stocks/${stockId}/proformas`);
+      if (response.success && responseProformas.success) {
+        setProformas(responseProformas.data.proformas || []);
         setCategories(response.data.categories || []);
         if (response.data.categories && response.data.categories.length > 0) {
           const firstCategory = response.data.categories[0];
@@ -299,83 +303,228 @@ const StockTransferScreen = () => {
       <div className="row">
         {/* Products List */}
         <div className="col-md-6">
-          <div className="card shadow-sm border-0">
-            <div className="card-header bg-light d-flex justify-content-between align-items-center">
-              <h6 className="mb-0">
-                <i className="pi pi-box me-2"></i>Produits disponibles
-              </h6>
-              {loading && (
-                <div className="spinner-border spinner-border-sm text-primary" role="status">
-                  <span className="visually-hidden">Chargement...</span>
-                </div>
-              )}
-            </div>
-            <div className="card-body p-0">
-              {/* Search */}
-              <div className="p-3 border-bottom">
-                <input 
-                  type="text" 
-                  className="form-control" 
-                  placeholder="Rechercher un produit..."
-                  value={formData.search}
-                  onChange={(e) => handleFormChange('search', e.target.value)}
-                />
+  <div className="card shadow-sm border-0">
+    {/* Tab Navigation */}
+    <div className="card-header bg-light p-0">
+      <nav>
+        <div className="nav nav-tabs" id="nav-tab" role="tablist">
+          <button 
+            className="nav-link active d-flex align-items-center" 
+            id="nav-products-tab" 
+            data-bs-toggle="tab" 
+            data-bs-target="#nav-products" 
+            type="button" 
+            role="tab" 
+            aria-controls="nav-products" 
+            aria-selected="true"
+          >
+            <i className="pi pi-box me-2"></i>
+            Produits disponibles
+            {loading && (
+              <div className="spinner-border spinner-border-sm text-primary ms-2" role="status">
+                <span className="visually-hidden">Chargement...</span>
               </div>
-              
-              {/* Products Table */}
-              <div className="table-responsive" style={{ maxHeight: '400px', overflowY: 'auto' }}>
-                <table className="table table-hover table-sm mb-0">
-                  <thead className="table-light sticky-top">
-                    <tr>
-                      <th>Produit</th>
-                      <th>Code</th>
-                      <th>Catégorie</th>
-                      <th>Quantité</th>
-                      <th>Actions</th>
+            )}
+          </button>
+          <button 
+            className="nav-link d-flex align-items-center" 
+            id="nav-proformas-tab" 
+            data-bs-toggle="tab" 
+            data-bs-target="#nav-proformas" 
+            type="button" 
+            role="tab" 
+            aria-controls="nav-proformas" 
+            aria-selected="false"
+          >
+            <i className="pi pi-file-text me-2"></i>
+            Proformas associés
+            {loading ? (
+              <div className="spinner-border spinner-border-sm text-primary ms-2" role="status">
+                <span className="visually-hidden">Chargement...</span>
+              </div>
+            ) : <span className="badge bg-primary ms-2">{proformas.length}</span>}
+            
+          </button>
+        </div>
+      </nav>
+    </div>
+
+    {/* Tab Content */}
+    <div className="tab-content" id="nav-tabContent">
+      {/* Produits disponibles Tab */}
+      <div 
+        className="tab-pane fade show active" 
+        id="nav-products" 
+        role="tabpanel" 
+        aria-labelledby="nav-products-tab"
+      >
+        <div className="card-body p-0">
+          {/* Search */}
+          <div className="p-3 border-bottom">
+            <input
+              type="text"
+              className="form-control"
+              placeholder="Rechercher un produit..."
+              value={formData.search}
+              onChange={(e) => handleFormChange('search', e.target.value)}
+            />
+          </div>
+          
+          {/* Products Table */}
+          <div className="table-responsive" style={{ maxHeight: '400px', overflowY: 'auto' }}>
+            <table className="table table-hover table-sm mb-0">
+              <thead className="table-light sticky-top">
+                <tr>
+                  <th>Produit</th>
+                  <th>Code</th>
+                  <th>Catégorie</th>
+                  <th>Quantité</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {products.length === 0 ? (
+                  <tr className='px-2'>
+                    <td colSpan="5" className="text-center py-4 text-muted">
+                      {loading ? 'Chargement...' : 'Aucun produit disponible'}
+                    </td>
+                  </tr>
+                ) : (
+                  products.map(product => (
+                    <tr key={product.id}>
+                      <td>
+                        <div>
+                          <strong>{product.name}</strong>
+                        </div>
+                      </td>
+                      <td>
+                        <span className="badge bg-info">{product.code}</span>
+                      </td>
+                      <td>{product.category?.name}</td>
+                      <td>
+                        <span className="badge bg-success">
+                          {product.stock_quantity || 0}
+                        </span>
+                      </td>
+                      <td>
+                        <button
+                          className="btn btn-primary btn-sm"
+                          onClick={() => addToTransfer(product)}
+                          disabled={product.stock_quantity <= 0}
+                        >
+                          <i className="pi pi-plus"></i>
+                        </button>
+                      </td>
                     </tr>
-                  </thead>
-                  <tbody>
-                    {products.length === 0 ? (
-                      <tr>
-                        <td colSpan="5" className="text-center py-4 text-muted">
-                          {loading ? 'Chargement...' : 'Aucun produit disponible'}
-                        </td>
-                      </tr>
-                    ) : (
-                      products.map(product => (
-                        <tr key={product.id}>
-                          <td>
-                            <div>
-                              <strong>{product.name}</strong>
-                            </div>
-                          </td>
-                          <td>
-                            <span className="badge bg-info">{product.code}</span>
-                          </td>
-                          <td>{product.category?.name}</td>
-                          <td>
-                            <span className="badge bg-success">
-                              {product.stock_quantity || 0}
-                            </span>
-                          </td>
-                          <td>
-                            <button
-                              className="btn btn-primary btn-sm"
-                              onClick={() => addToTransfer(product)}
-                              disabled={product.stock_quantity <= 0}
-                            >
-                              <i className="pi pi-plus"></i>
-                            </button>
-                          </td>
-                        </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </div>
+                  ))
+                )}
+              </tbody>
+            </table>
           </div>
         </div>
+      </div>
+
+      {/* Proformas associés Tab */}
+      <div 
+        className="tab-pane fade" 
+        id="nav-proformas" 
+        role="tabpanel" 
+        aria-labelledby="nav-proformas-tab"
+      >
+        <div className="card-body">
+          {proformas.length > 0 ? (
+            <>
+              <div className="list-group list-group-flush">
+                {proformas.slice(0, 5).map((proforma) => {
+                  const client = getClientInfo(proforma.client);
+                  return (
+                    <div key={proforma.id} className="list-group-item px-0 py-2 border-0 border-bottom">
+                      <div className="d-flex justify-content-between align-items-start">
+                        <div className="flex-grow-1">
+                          <div className="d-flex gap-4">
+                            <h6 className="mb-1">
+                              <i className="pi pi-file-text text-primary me-1"></i>
+                              #PRO-{proforma.id.toString().padStart(6, '0')}
+                            </h6>
+                            <p className="mb-1 text-muted small">
+                              <i className="pi pi-user me-1"></i>
+                              {client.name || 'Client non spécifié'}
+                            </p>
+                          </div>
+                          <div className="d-flex gap-4">
+                            <div className="d-flex align-items-center">
+                              <span className="badge bg-success me-2">
+                                {formatCurrency(proforma.total_amount)}
+                              </span>
+                              {proforma.invoice_type && (
+                                <span className="badge bg-secondary">
+                                  {proforma.invoice_type.charAt(0).toUpperCase() + proforma.invoice_type.slice(1)}
+                                </span>
+                              )}
+                            </div>
+                            <p className="mb-1 text-muted small">
+                              <i className="pi pi-calendar me-1"></i>
+                              {formatDate(proforma.sale_date)}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="dropdown">
+                          <button className="btn btn-sm btn-outline-secondary dropdown-toggle"
+                                  type="button" data-bs-toggle="dropdown">
+                            <i className="pi pi-ellipsis-v"></i>
+                          </button>
+                          <ul className="dropdown-menu">
+                            <li>
+                              <a className="dropdown-item" href={`/proformas/${proforma.id}`}>
+                                <i className="pi pi-eye me-2"></i>Valider le proforma
+                              </a>
+                            </li>
+                            <li><hr className="dropdown-divider" /></li>
+                            <li>
+                              <button 
+                                className="dropdown-item text-danger"
+                                onClick={() =>{}}
+                              >
+                                <i className="pi pi-trash me-2"></i>Supprimer
+                              </button>
+                            </li>
+                          </ul>
+                        </div>
+                      </div>
+                      {proforma.note && (
+                        <small className="text-muted">
+                          <i className="pi pi-comment me-1"></i>
+                          {proforma.note.length > 50 ? proforma.note.substring(0, 50) + '...' : proforma.note}
+                        </small>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+              
+              {proformas.length > 5 && (
+                <div className="text-center mt-3">
+                  <a href={`/proformas?stock_id=${1}`} className="btn btn-sm btn-outline-info">
+                    <i className="pi pi-arrow-right me-1"></i>
+                    Voir tous les proformas ({proformas.length})
+                  </a>
+                </div>
+              )}
+            </>
+          ) : (
+            <div className="text-center py-4">
+              <i className="pi pi-file-text text-muted" style={{ fontSize: '2rem' }}></i>
+              <p className="text-muted mt-2 mb-0">Aucune proforma associée</p>
+              <a href={`/sales/create?stock_id=${1}`} className="btn btn-sm btn-primary mt-2">
+                <i className="pi pi-plus-circle me-1"></i>Créer une proforma
+              </a>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 
         {/* Selected Products */}
         <div className="col-md-6">

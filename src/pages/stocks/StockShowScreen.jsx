@@ -4,6 +4,7 @@ import { Toast } from 'primereact/toast';
 import ApiService from '../../services/api.js';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchApiData } from '../../stores/slicer/apiDataSlicer.js';
+import { formatCurrency, getClientInfo ,formatDate} from './../../utils/helpers.js'
 
 const StockShowScreen = () => {
   const { id } = useParams();
@@ -99,23 +100,9 @@ const StockShowScreen = () => {
     });
   };
 
-  const formatDate = (date) => new Date(date).toLocaleDateString('fr-FR');
-
-  const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('fr-FR', {
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0
-    }).format(amount) + ' FCFA';
-  };
-
-  const getClientInfo = (clientData) => {
-    try {
-      const client = typeof clientData === 'string' ? JSON.parse(clientData) : clientData;
-      return client || {};
-    } catch {
-      return {};
-    }
-  };
+  
+  
+ 
 
   const getImageUrl = (imagePath) => {
     if (!imagePath) return null;
@@ -170,12 +157,12 @@ const StockShowScreen = () => {
           <li className="breadcrumb-item active">{stock.name}</li>
         </ol>
         <div className="ms-auto d-flex gap-2">
-         <Link onClick={() => navigate('/stocks')} className="btn btn-secondary">
+         <a onClick={() => navigate('/stocks')} className="btn btn-secondary">
             <i className="pi pi-arrow-left me-2"></i>Retour à la liste
-          </Link>
-          <Link to={`/stocks/${stock.id}/edit`} className="btn btn-warning">
+          </a>
+          <a onClick={() => navigate(`/stocks/${stock.id}/edit`)  } className="btn btn-warning">
             <i className="pi pi-pencil me-2"></i>Modifier
-          </Link>
+          </a>
         </div>
       </nav>
 

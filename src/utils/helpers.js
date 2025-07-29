@@ -6,6 +6,15 @@ export const formatCurrency = (amount) => {
   }).format(amount);
 };
 
+ export const getClientInfo = (clientData) => {
+    try {
+      const client = typeof clientData === 'string' ? JSON.parse(clientData) : clientData;
+      return client || {};
+    } catch {
+      return {};
+    }
+  };
+
 export const formatDate = (date) => {
   return new Intl.DateTimeFormat('fr-FR', {
     year: 'numeric',

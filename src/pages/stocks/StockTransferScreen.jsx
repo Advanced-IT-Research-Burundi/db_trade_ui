@@ -138,6 +138,7 @@ const StockTransferScreen = () => {
 
   const clearSelection = () => {
     setSelectedProducts([]);
+    setValidatingProformaIds([]);
     setQuantities({});
     updateProductList(formData.selectedCategory);
   };
@@ -282,7 +283,8 @@ const StockTransferScreen = () => {
         setSelectedProducts([]);
         setQuantities({});
         
-        updateProductList(formData.selectedCategory);
+        // updateProductList(formData.selectedCategory);
+        updateStockSource(formData.stockSource);
       } else {
         showToast('error', response.message || 'Erreur lors du transfert');
       }

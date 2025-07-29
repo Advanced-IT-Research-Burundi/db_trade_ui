@@ -120,7 +120,6 @@ const StockTransferScreen = () => {
       setSelectedProducts(prev => [...prev, newProduct]);
       setQuantities(prev => ({ ...prev, [product.id]: 1 }));
       
-      // Mettre à jour la liste des produits pour exclure le produit ajouté
       updateProductList(formData.selectedCategory);
     }
   };
@@ -263,6 +262,17 @@ const StockTransferScreen = () => {
           product_code: product.code
         }))
       };
+      if(validatingProformaIds.length > 0) {
+        const responsevalidate = await ApiService.post('/api/proformas/validate/bulk', {
+          proforma_ids: validatingProformaIds
+        });
+        if (!responsevalidate.success) {
+          showToast('error', 'Erreur lors de la validation des proformas');
+          return;
+        }else {
+          setValidatingProformaIds([]);
+        }
+      }
 
       const response = await ApiService.post('/api/stock-transfers/stocks/transfer', transferData);
 

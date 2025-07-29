@@ -731,13 +731,13 @@ const SalesCreateScreen = () => {
                       </thead>
                       <tbody>
                         {items.map((item) => {
-                          const quantity = parseFloat(item.quantity) || 0;
-                          const price = parseFloat(item.sale_price) || 0;
-                          const discount = parseFloat(item.discount) || 0;
+                          const quantity = parseFloat(item.quantity) ?? 0;
+                          const price = parseFloat(item.sale_price) ?? 0;
+                          const discount = parseFloat(item.discount) ?? 0;
                           const subtotal = quantity * price;
                           const discountAmount = (subtotal * discount) / 100;
                           const finalAmount = subtotal - discountAmount;
-                          const availableStock = item.available_stock || 0;
+                          const availableStock = item.available_stock ?? 0;
                           const isOverStock = quantity > availableStock;
 
                           return (
@@ -798,11 +798,11 @@ const SalesCreateScreen = () => {
                                   className={`form-control form-control-sm text-center ${
                                     isOverStock ? "is-invalid" : ""
                                   }`}
-                                  value={item.quantity}
+                                  value={parseFloat(item.quantity) ?? 0}
                                   onChange={(e) =>
                                     updateQuantity(
                                       item.product_id,
-                                      parseFloat(e.target.value) || 0
+                                      parseFloat(e.target.value) ?? 0
                                     )
                                   }
                                   min="0.01"
@@ -815,11 +815,11 @@ const SalesCreateScreen = () => {
                                 <input
                                   type="number"
                                   className="form-control form-control-sm text-center"
-                                  value={item.sale_price}
+                                  value={parseFloat(item.sale_price) ?? 0}
                                   onChange={(e) =>
                                     updatePrice(
                                       item.product_id,
-                                      parseFloat(e.target.value) || 0
+                                      parseFloat(e.target.value) ?? 0
                                     )
                                   }
                                   min="0"
@@ -831,11 +831,11 @@ const SalesCreateScreen = () => {
                                 <input
                                   type="number"
                                   className="form-control form-control-sm text-center"
-                                  value={item.discount || 0}
+                                  value={parseFloat(item.discount) ?? 0}
                                   onChange={(e) =>
                                     updateDiscount(
                                       item.product_id,
-                                      parseFloat(e.target.value) || 0
+                                      parseFloat(e.target.value) ?? 0
                                     )
                                   }
                                   min="0"

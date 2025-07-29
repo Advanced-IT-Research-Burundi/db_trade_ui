@@ -31,7 +31,7 @@ function StockPrintAll() {
         }));
     }
 
-    const totalStockValue = data?.stock_products?.data?.reduce((total, product) => total + (product.sale_price_ttc * product.quantity), 0);
+    const totalStockValue = data?.stock_products?.data?.reduce((total, product) => total + (product.product?.sale_price * product.quantity), 0);
     return (
         <div className="print-wrapper">
             <Button variant="primary" onClick={() => print("stock-product-details")}>Imprimer</Button>
@@ -39,8 +39,9 @@ function StockPrintAll() {
 
             <div id="stock-product-details" className="">
                 <div className="header-section">
-                    <img src={ubwiza} alt="ubwiza" className="logo" />
-                    <h2>Rapport des Produits en Stock</h2>
+                    <img src={ubwiza} alt="ubwiza" className="logo" style={{ width: '250px' }} />
+                    <h2>{data?.stock?.name}</h2>
+                    <h2>{data?.stock?.location}</h2>
                 </div>
 
                 <table className="print-table" border={1}>
@@ -60,11 +61,11 @@ function StockPrintAll() {
                             <tr key={product.id}>
                                 <td>{index + 1}</td>
                                 <td>{product.product?.code}</td>
-                                <td>{product.category?.name}</td>
+                                <td>{product?.product?.category?.name}</td>
                                 <td>{product.product_name}</td>
                                 <td style={{ textAlign: 'right' }}>{product.quantity}</td>
-                                <td style={{ textAlign: 'right' }}>{product.sale_price_ttc} </td>
-                                <td style={{ textAlign: 'right' }}>{(product.sale_price_ttc * product.quantity).toFixed(2)}
+                                <td style={{ textAlign: 'right' }}>{product.product?.sale_price} </td>
+                                <td style={{ textAlign: 'right' }}>{(product.product?.sale_price * product.quantity).toFixed(2)}
                                     
                                 </td>
                             </tr>

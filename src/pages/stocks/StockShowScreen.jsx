@@ -229,7 +229,7 @@ const StockShowScreen = () => {
                                 </div>
                               )}
                               <div>
-                                <strong>{stockProduct.product?.name || 'N/A'}</strong>
+                                <strong>{stockProduct.product_name || 'N/A'}</strong>
                                 <br />
                                 <small className="text-muted">{stockProduct.product?.unit || 'N/A'}</small>
                               </div>

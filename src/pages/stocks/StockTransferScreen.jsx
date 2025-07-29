@@ -13,6 +13,8 @@ const StockTransferScreen = () => {
   const [quantities, setQuantities] = useState({});
   const [loading, setLoading] = useState(false);
   const [transferLoading, setTransferLoading] = useState(false);
+  const [validatingProforma, setValidatingProforma] = useState(false);
+  const [validatingProformaIds, setValidatingProformaIds] = useState([]);
   const navigate = useNavigate();
   
   const [formData, setFormData] = useState({
@@ -100,6 +102,7 @@ const StockTransferScreen = () => {
     if (field === 'stockSource') {
       updateStockSource(value);
       setSelectedProducts([]);
+      setValidatingProformaIds([]);
       setQuantities({});
     } else if (field === 'selectedCategory') {
       updateProductList(value);
@@ -148,6 +151,89 @@ const StockTransferScreen = () => {
     setQuantities(prev => ({ ...prev, [productId]: validQuantity }));
   };
 
+  const validateProforma = async (proforma) => {
+    if (!formData.stockSource) {
+      showToast('error', 'Veuillez d\'abord sélectionner un stock source');
+      return;
+    }
+    
+    try {
+      setValidatingProforma(true);
+      
+      let proformaItems = [];
+      try {
+        proformaItems = JSON.parse(proforma.proforma_items);
+      } catch (parseError) {
+        showToast('error', 'Erreur lors de la lecture des éléments du proforma');
+        return;
+      }
+
+      if (!Array.isArray(proformaItems) || proformaItems.length === 0) {
+        showToast('error', 'Aucun produit trouvé dans le proforma');
+        return;
+      }
+
+      const productIds = proformaItems.map(item => item.product_id);
+      
+      const response = await ApiService.get('/api/stock-transfers/stocks/products', {
+        stock_id: formData.stockSource,
+        product_ids: productIds.join(','), 
+        include_all: true 
+      });
+
+      if (!response.success) {
+        showToast('error', 'Erreur lors du chargement des produits du proforma');
+        return;
+      }
+
+      const productsFromAPI = response.data.products || [];
+      let newSelectedProducts = [...selectedProducts];
+      let newQuantities = { ...quantities };
+      let addedCount = 0;
+
+      proformaItems.forEach(item => {
+        const productFromAPI = productsFromAPI.find(p => p.id === item.product_id);
+        if (productFromAPI) {
+          const existingProduct = newSelectedProducts.find(p => p.id === item.product_id);
+          
+          if (!existingProduct) {
+            newSelectedProducts.push(productFromAPI);
+            addedCount++;
+          }
+          
+          const maxStock = productFromAPI.stock_quantity || 0;
+          const requestedQty = item.quantity || 1;
+          newQuantities[item.product_id] = Math.min(requestedQty, maxStock);
+          
+          if (requestedQty > maxStock) {
+            showToast('warn', `Quantité réduite pour ${productFromAPI.name}: ${requestedQty} → ${maxStock} (stock disponible)`);
+          }
+        } else {
+          showToast('warn', `Produit Code ${item.code} non trouvé dans le stock source`);
+        }
+      });
+
+      setSelectedProducts(newSelectedProducts);
+      setQuantities(newQuantities);
+
+      updateProductList(formData.selectedCategory);
+
+      if (addedCount > 0) {
+        showToast('success', `${addedCount} produit(s) ajouté(s) depuis le proforma #PRO-${proforma.id.toString().padStart(6, '0')}`);
+        setValidatingProformaIds([...validatingProformaIds, proforma.id]);
+      } else {
+        showToast('info', 'Tous les produits du proforma étaient déjà sélectionnés. Quantités mises à jour.');
+      }
+      
+      setValidatingProforma(false);
+
+    } catch (error) {
+      showToast('error', 'Erreur lors de la validation du proforma: ' + error.message);
+    } finally {
+      setValidatingProforma(false);
+    }
+  };
+
   const handleTransfer = async () => {
     if (!formData.stockSource || !formData.destinationStockId) {
       showToast('error', 'Veuillez sélectionner les stocks source et destination');
@@ -183,11 +269,9 @@ const StockTransferScreen = () => {
       if (response.success) {
         showToast('success', 'Transfert effectué avec succès !');
         
-        // Réinitialiser les sélections
         setSelectedProducts([]);
         setQuantities({});
         
-        // Recharger la liste des produits
         updateProductList(formData.selectedCategory);
       } else {
         showToast('error', response.message || 'Erreur lors du transfert');
@@ -434,8 +518,8 @@ const StockTransferScreen = () => {
         <div className="card-body">
           {proformas.length > 0 ? (
             <>
-              <div className="list-group list-group-flush">
-                {proformas.slice(0, 5).map((proforma) => {
+              <div className="list-group list-group-flush" style={{ maxHeight: '400px', overflowY: 'auto' }}>
+                {proformas.map((proforma) => {
                   const client = getClientInfo(proforma.client);
                   return (
                     <div key={proforma.id} className="list-group-item px-0 py-2 border-0 border-bottom">
@@ -475,9 +559,26 @@ const StockTransferScreen = () => {
                           </button>
                           <ul className="dropdown-menu">
                             <li>
-                              <a className="dropdown-item" href={`/proformas/${proforma.id}`}>
-                                <i className="pi pi-eye me-2"></i>Valider le proforma
-                              </a>
+                              <button 
+                                className="dropdown-item"
+                                onClick={() => {
+                                  validateProforma(proforma);
+                                }}
+                                disabled={validatingProforma}
+                              >
+                                {validatingProforma ? (
+                                  <>
+                                    <div className="spinner-border spinner-border-sm me-2" role="status">
+                                      <span className="visually-hidden">Chargement...</span>
+                                    </div>
+                                    Validation...
+                                  </>
+                                ) : (
+                                  <>
+                                    <i className="pi pi-check me-2"></i>Valider le proforma
+                                  </>
+                                )}
+                              </button>
                             </li>
                             <li><hr className="dropdown-divider" /></li>
                             <li>
@@ -502,14 +603,6 @@ const StockTransferScreen = () => {
                 })}
               </div>
               
-              {proformas.length > 5 && (
-                <div className="text-center mt-3">
-                  <a href={`/proformas?stock_id=${1}`} className="btn btn-sm btn-outline-info">
-                    <i className="pi pi-arrow-right me-1"></i>
-                    Voir tous les proformas ({proformas.length})
-                  </a>
-                </div>
-              )}
             </>
           ) : (
             <div className="text-center py-4">
@@ -537,6 +630,16 @@ const StockTransferScreen = () => {
                   {selectedProducts.length}
                 </span>
               </h6>
+              <div className="d-flex gap-2">
+                {validatingProforma ? (
+                <div className="spinner-border spinner-border-md text-white" role="status">
+                  <span className="visually-hidden">Chargement...</span>
+                </div>
+              ) : (
+                <div className="badge bg-success text-white ms-2">
+                  <span className="h6">{validatingProformaIds.length}</span>
+                </div>
+              )}
               {selectedProducts.length > 0 && (
                 <button
                   className="btn btn-sm btn-light"
@@ -546,6 +649,7 @@ const StockTransferScreen = () => {
                   <i className="pi pi-trash"></i>
                 </button>
               )}
+              </div>
             </div>
 
             {selectedProducts.length > 0 ? (

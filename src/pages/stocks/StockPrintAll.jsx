@@ -57,7 +57,7 @@ function StockPrintAll() {
                         </tr>
                     </thead>
                     <tbody>
-                        {data?.stock_products?.data?.map((product, index) => (
+                        {data?.stock_products?.data?.filter((product) => product.quantity > 0)?.map((product, index) => (
                             <tr key={product.id}>
                                 <td>{index + 1}</td>
                                 <td>{product.product?.code}</td>

@@ -40,7 +40,6 @@ export default function StockProductDetailsScreen() {
     const [search, setSearch] = useState("");
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(10);
-
     const dispatch = useDispatch();
     const { data, loading } = useSelector((state) => ({
         data: state.apiData?.data?.STOCK_PRODUCTS,
@@ -131,7 +130,7 @@ export default function StockProductDetailsScreen() {
                         </TableRow>
                     </TableHead>
                     <TableBody>
-                        {data?.stock_products?.data?.map((item, index) => (
+                        {data?.stock_products?.data?.filter((item) => item.quantity > 0)?.map((item, index) => (
                             <TableRow key={item.id}>
                                 <StyledTableCell >{index + 1}</StyledTableCell>
                                 <StyledTableCell>{item.product?.code || '-'}</StyledTableCell>

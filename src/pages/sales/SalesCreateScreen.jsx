@@ -564,7 +564,7 @@ const SalesCreateScreen = () => {
                     className="row g-2"
                     style={{ maxHeight: "400px", overflowY: "auto" }}
                   >
-                    {products.map((product) => (
+                    {products?.filter((product) => product.quantity_disponible > 0).map((product) => (
                       <div key={product.id} className="col-md-6">
                         <div
                           className="card h-100 product-card border-0 shadow-sm"

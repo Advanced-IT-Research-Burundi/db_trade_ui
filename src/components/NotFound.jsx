@@ -148,12 +148,12 @@ const NotFound = () => {
                       className="mb-1"
                       style={{ borderColor: 'var(--primary-blue)', color: 'var(--primary-blue)' }}
                       onClick={() => {
-                        window.location.href = 'tel:+25779123456';
+                        window.location.href = 'tel:+25779614036';
                       }}
                     />
                     <div>
                       <small className="text-muted d-block">Support</small>
-                      <small className="fw-semibold">+257 79 123 456</small>
+                      <small className="fw-semibold">+257 79 614 036</small>
                     </div>
                   </div>
                   
@@ -165,12 +165,12 @@ const NotFound = () => {
                       className="mb-1"
                       style={{ borderColor: 'var(--primary-blue)', color: 'var(--primary-blue)' }}
                       onClick={() => {
-                        window.location.href = 'mailto:support@advancedit.bi';
+                        window.location.href = 'mailto:contact@advanceditb.com';
                       }}
                     />
                     <div>
                       <small className="text-muted d-block">Email</small>
-                      <small className="fw-semibold">support@advancedit.bi</small>
+                      <small className="fw-semibold">contact@advanceditb.com</small>
                     </div>
                   </div>
                   

@@ -10,14 +10,14 @@ import usePrint from '../../hooks/usePrint.js';
 
 const thStyle = {
   border: '1px solid #000',
-  padding: '8px',
+  padding: '5px',
   backgroundColor: '#f2f2f2',
   textAlign: 'left',
 };
 
 const tdStyle = {
   border: '1px solid #000',
-  padding: '8px',
+  padding: '5px',
   textAlign: 'left',
 };
 
@@ -33,15 +33,17 @@ const SalesShowScreen = () => {
 
   useEffect(() => {
     dispatch(fetchApiData({ url: `/api/sales/${id}`, itemKey: itemKey, method: 'GET' }));
-  }, [id, itemKey]);
+  }, [id, itemKey, dispatch]);
 
   
 
   return (
     <div style={{ padding: '20px' }}>
-      <div className="d-flex justify-content-end mb-3">
+      <div className="d-flex justify-content-end mb-3 gap-2">
               <Button variant="success" onClick={() => generatePdf('invoice')}>Télécharger PDF</Button>
               <Button variant="primary" onClick={() => print('invoice')}>Imprimer</Button>
+              <Button variant="primary" onClick={() => print('thermal-invoice', 'thermal80')}>Receipt Print</Button>
+              <Button variant="primary" onClick={() => generatePdf('thermal-invoice', [80, 250])}>Receipt PDF</Button>
       </div>
 
       <div
@@ -149,7 +151,96 @@ const SalesShowScreen = () => {
           </>
         )}
       </div>
-    </div>
+
+
+<div style={{ display: 'none' }}>
+      <div
+  id="thermal-invoice"
+  style={{
+    width: '80mm', // ou '80mm' selon ton imprimante
+    padding: '5px',
+    fontFamily: 'monospace',
+    fontSize: '10px',
+    color: '#000',
+    backgroundColor: '#fff',
+  }}
+>
+  {data && data.sale && (
+    <>
+      {/* En-tête / Logo (texte seulement pour éviter les images lourdes) */}
+      <div style={{ textAlign: 'center', marginBottom: '5px' }}>
+        <strong>{data.company?.tp_name?.toUpperCase()}</strong><br />
+        {data.company?.tp_address}<br />
+        Tél: {data.company?.tp_phone_number}<br />
+        Email: {data.company?.tp_email}
+      </div>
+
+      <hr style={{ borderTop: '1px dashed #000' }} />
+
+      {/* Infos Facture & Client */}
+      <div style={{ marginBottom: '5px' }}>
+        <div><strong>Facture N°:</strong> {data.sale.id}</div>
+        <div><strong>Date:</strong> {new Date(data.sale.sale_date).toLocaleDateString()}</div>
+        <div><strong>Client:</strong> {data.sale.client?.name}</div>
+        <div><strong>Tél:</strong> {data.sale.client?.phone}</div>
+      </div>
+
+      <hr style={{ borderTop: '1px dashed #000' }} />
+
+      {/* Table des articles */}
+      <table style={{ width: '100%' }}>
+        <thead>
+          <tr>
+            <td style={{ fontWeight: 'bold' }}>Désignation</td>
+            <td style={{ fontWeight: 'bold', textAlign: 'right' }}>Qté</td>
+            <td style={{ fontWeight: 'bold', textAlign: 'right' }}>PU</td>
+            <td style={{ fontWeight: 'bold', textAlign: 'right' }}>Total</td>
+          </tr>
+        </thead>
+        <tbody>
+          {data.sale.sale_items.map((item, index) => (
+            <tr key={item.id}>
+              <td>{item.product?.name}</td>
+              <td style={{ textAlign: 'right' }}>{item.quantity}</td>
+              <td style={{ textAlign: 'right' }}>{item.sale_price.toLocaleString()}</td>
+              <td style={{ textAlign: 'right' }}>{item.subtotal.toLocaleString()}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+
+      <hr style={{ borderTop: '1px dashed #000' }} />
+
+      {/* Totaux */}
+      <div style={{ textAlign: 'right' }}>
+        <div><strong>Total:</strong> {data.sale.total_amount.toLocaleString()} FBu</div>
+        <div><strong>Payé:</strong> {data.sale.paid_amount.toLocaleString()} FBu</div>
+        <div><strong>Reste:</strong> {data.sale.due_amount.toLocaleString()} FBu</div>
+      </div>
+
+      <hr style={{ borderTop: '1px dashed #000' }} />
+
+            <div style={{ textAlign: 'center' }}>
+            <QRCode
+                  value={`Facture ID: ${data.sale.id} - Client: ${data.sale.client?.name} - Montant: ${data.sale.total_amount} FBu`}
+                  size={100}
+                  level="H"
+                  includeMargin={true}
+                />
+      </div>
+      <hr style={{ borderTop: '1px dashed #000' }} />
+      {/* Merci */}
+      <div style={{ textAlign: 'center', marginTop: '5px' }}>
+        Merci pour votre achat<br />
+        {data.company?.tp_name}
+      </div>
+    </>
+  )}
+</div>
+
+    
+      </div>
+</div>
   );
 };
 

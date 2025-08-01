@@ -10,10 +10,10 @@
   }
   
   .header-section {
-    text-align: center;
-    margin-bottom: 30px;
+   display: flex;
+   justify-content: space-between;
     background-color: #fff;
-    padding: 20px;
+  
   }
   
   .header-section .logo {
@@ -27,6 +27,7 @@
   }
   table, th, td {
     background-color: #fff;
+    border-collapse: collapse;
   }
 
   .print-table th, .print-table td {

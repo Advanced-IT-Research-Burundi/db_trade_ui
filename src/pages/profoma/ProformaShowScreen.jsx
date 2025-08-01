@@ -9,6 +9,7 @@ import logo from '../../assets/logo/ubwiza.png';
 import { useNavigate } from 'react-router-dom';
 import ApiService from '../../services/api.js';
 import { Toast } from 'primereact/toast';
+import useFormat from '../../hooks/useFormat.js';
 
 const thStyle = {
   border: '1px solid #000',
@@ -19,7 +20,7 @@ const thStyle = {
 
 const tdStyle = {
   border: '1px solid #000',
-  padding: '8px',
+  padding: '1px',
   textAlign: 'left',
 };
 
@@ -75,11 +76,7 @@ function ProformaShowScreen() {
     }
   };
 
-  const formatDate = (dateString) => {
-    if (!dateString) return '';
-    const options = { year: 'numeric', month: 'long', day: 'numeric' };
-    return new Date(dateString).toLocaleDateString('fr-FR', options);
-  };
+  const { formatNumber, formatDate } = useFormat();
 
   return (
     <div style={{ padding: '20px' }}>
@@ -161,11 +158,11 @@ function ProformaShowScreen() {
                     <div style={{ fontSize: '0.9em', color: '#666' }}>Code: {item.code}</div>
                   </td>
                   <td style={{ ...tdStyle, textAlign: 'right' }}>
-                    {new Intl.NumberFormat('fr-BI', { maximumFractionDigits: 0 }).format(item.sale_price)} FBu
+                    {formatNumber(item.sale_price)} FBu
                   </td>
                   <td style={{ ...tdStyle, textAlign: 'center' }}>{item.quantity}</td>
                   <td style={{ ...tdStyle, textAlign: 'right', fontWeight: 'bold' }}>
-                    {new Intl.NumberFormat('fr-BI', { maximumFractionDigits: 0 }).format(item.subtotal)} FBu
+                    {formatNumber(item.subtotal)} FBu
                   </td>
                 </tr>
               ))}

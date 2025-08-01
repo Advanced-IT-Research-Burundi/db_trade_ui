@@ -6,11 +6,13 @@ import ubwiza from '../../assets/logo/ubwiza.png';
 import usePrint from '../../hooks/usePrint';
 import { Button } from 'react-bootstrap';
 import './style/StockPrintAll.css';
+import useFormat from '../../hooks/useFormat';
 
 function StockPrintAll() {
     const stockId = useParams().id;
     const dispatch = useDispatch();
     const { print, generatePdf } = usePrint();
+    const { formatNumber } = useFormat();
 
     const { data } = useSelector((state) => ({
         data: state.apiData?.data?.STOCK_PRODUCTS_PRINT,
@@ -39,9 +41,13 @@ function StockPrintAll() {
 
             <div id="stock-product-details" className="">
                 <div className="header-section">
-                    <img src={ubwiza} alt="ubwiza" className="logo" style={{ width: '250px' }} />
-                    <h2>{data?.stock?.name}</h2>
-                    <h2>{data?.stock?.location}</h2>
+                    <div>
+                    <img src={ubwiza} alt="ubwiza" className="logo" style={{ width: '400px' }} />
+                    </div>
+                    <div>
+                        <h2>STOCK : {data?.stock?.name}</h2>
+                        <p>{data?.stock?.location}</p>
+                    </div>
                 </div>
 
                 <table className="print-table" border={1}>
@@ -64,16 +70,16 @@ function StockPrintAll() {
                                 <td>{product?.product?.category?.name}</td>
                                 <td>{product.product_name}</td>
                                 <td style={{ textAlign: 'right' }}>{product.quantity}</td>
-                                <td style={{ textAlign: 'right' }}>{product.product?.sale_price} </td>
-                                <td style={{ textAlign: 'right' }}>{(product.product?.sale_price * product.quantity).toFixed(2)}
+                                <td style={{ textAlign: 'right' }}>{formatNumber(product.product?.sale_price)} </td>
+                                <th style={{ textAlign: 'right' }}>{formatNumber((product.product?.sale_price * product.quantity))}
                                     
-                                </td>
+                                </th>
                             </tr>
                         ))}
                         <tr>
                             <th colSpan={6}>Total</th>
-                            <th style={{ textAlign: 'right' }}>{totalStockValue}</th>
-                        </tr>
+                            <th style={{ textAlign: 'right' }}>{formatNumber(totalStockValue)}</th>
+                            </tr>
                     </tbody>
                 </table>
             </div>

@@ -34,14 +34,14 @@ const VehicleScreen = () => {
   }, []);
 
   useEffect(() => {
-        if (data.vehicules) {
-           setVehicles(data.vehicules.vehicules?.data || []);
+        if (data?.vehicules) {
+           setVehicles(data?.vehicules?.vehicules?.data || []);
             setPagination({
-              current_page: data.vehicules.vehicules?.current_page,
-              last_page: data.vehicules.vehicules?.last_page,
-              total: data.vehicules.vehicules?.total,
-              from: data.vehicules.vehicules?.from,
-              to: data.vehicules.vehicules?.to
+              current_page: data?.vehicules?.vehicules?.current_page,
+              last_page: data?.vehicules?.vehicules?.last_page,
+              total: data?.vehicules?.vehicules?.total,
+              from: data?.vehicules?.vehicules?.from,
+              to: data?.vehicules?.vehicules?.to
             });
         }
       }, [data]);
@@ -210,7 +210,7 @@ const VehicleScreen = () => {
                 <i className="pi pi-refresh me-1"></i>
                 {loading ? 'Actualisation...' : 'Actualiser'}
               </button>
-              <a href="/vehicles/create" className="btn btn-primary">
+              <a href="#" onClick={() => navigate('/vehicles/create')} className="btn btn-primary">
                 <i className="pi pi-plus-circle me-1"></i>Nouveau Véhicule
               </a>
             </div>
@@ -314,6 +314,9 @@ const VehicleScreen = () => {
                     <i className="pi pi-id-card me-1"></i>Immatriculation
                   </th>
                   <th className="border-0 px-4 py-3">
+                    <i className="pi pi-weight me-1"></i>Poids Maximal
+                  </th>
+                  <th className="border-0 px-4 py-3">
                     <i className="pi pi-circle-fill me-1"></i>Statut
                   </th>
                   <th className="border-0 px-4 py-3">Créé le</th>
@@ -365,6 +368,7 @@ const VehicleScreen = () => {
                           {vehicle.immatriculation}
                         </code>
                       </td>
+                      <td className="px-4">{vehicle.poids}</td>
                       <td className="px-4">{getStatusBadge(vehicle.status)}</td>
                       <td className="px-4">
                         <div>

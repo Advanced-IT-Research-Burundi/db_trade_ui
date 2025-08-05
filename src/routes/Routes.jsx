@@ -63,6 +63,7 @@ import StockProductDetailsScreen from '../pages/stocks/StockProductDetailsScreen
 import StockPrintAll from '../pages/stocks/StockPrintAll.jsx';
 import SalesShowScreen from '../pages/sales/SalesShowScreen.jsx';
 import ProformaShowScreen from '../pages/profoma/ProformaShowScreen.jsx';
+import VehicleCreateScreen from '../pages/vehicules/VehicleCreateScreen.jsx';
 
 // Composant pour les routes protégées
 const ProtectedRoute = ({ children }) => {
@@ -131,6 +132,7 @@ const protectedRoutes = [
   { path: '/users/:id', component: UsersShowScreen },
   //vehicules
   { path: '/vehicles', component: VehiclesScreen },
+  { path: '/vehicles/create', component: VehicleCreateScreen },
   { path: '/cash-registers', component: CashRegistersScreen },
   { path: '/transactions', component: TransactionsScreen },
   { path: '/expenses', component: ExpensesScreen },

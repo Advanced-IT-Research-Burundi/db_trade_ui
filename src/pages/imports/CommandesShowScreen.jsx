@@ -9,19 +9,30 @@ import logo from '../../assets/logo/ubwiza.png';
 import ImportHeader from './ImportHeader.jsx';
 import usePrint from '../../hooks/usePrint.js';
 import './styles/boncommande.css';
+import useFormat from '../../hooks/useFormat.js';
 
 const thStyle = {
     border: '1px solid #000',
     padding: '8px',
     backgroundColor: '#f2f2f2',
-    textAlign: 'left',
+    textAlign: 'center',
   };
   
   const tdStyle = {
     border: '1px solid #000',
     padding: '1px',
+    textAlign: 'right',
+};
+  
+const textLeft = {
+    ...tdStyle,
     textAlign: 'left',
-  };
+}
+
+const textCenter = {
+    ...tdStyle,
+    textAlign: 'center',
+}
   
 
 function CommandesShowScreen() {
@@ -42,6 +53,10 @@ function CommandesShowScreen() {
         }));
     }, [id, dispatch, itemKey])
     const {print} = usePrint();
+
+
+    const totalWeight = data?.details?.reduce((total, item) => total + item?.total_weight, 0);
+    const {formatNumber} = useFormat();
   
   return (
       <div>
@@ -86,13 +101,17 @@ function CommandesShowScreen() {
                       <tbody>
                           {data?.details?.map((item, index) => (
                               <tr key={index}>
-                                  <td  style={tdStyle}>{item?.company_code}</td>
-                                  <td  style={tdStyle}>{item?.item_name}</td>
-                                  <td  style={tdStyle}>{item?.quantity}</td>
-                                  <td  style={tdStyle}>{item?.weight_kg}</td>
-                                  <td  style={tdStyle}>{item?.total_weight}</td>
+                                  <td  style={textLeft}>{item?.company_code}</td>
+                                  <td  style={textLeft}>{item?.item_name}</td>
+                                  <td  style={textCenter}>{item?.quantity}</td>
+                                  <td  style={textCenter}>{item?.weight_kg}</td>
+                                  <td  style={{... tdStyle, textAlign: 'right', paddingRight: '20px'}}>{    formatNumber(item?.total_weight)}</td>
                               </tr>
                           ))}
+                          <tr>
+                              <th colSpan={4} style={{... thStyle, textAlign: 'left'}}>Total</th>
+                              <th style={{... thStyle, textAlign: 'right', paddingRight: '20px'}}>{formatNumber(totalWeight)}</th>
+                          </tr>
                       </tbody>
                   </table>
               </div>

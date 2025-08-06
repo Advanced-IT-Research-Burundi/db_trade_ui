@@ -64,6 +64,10 @@ import StockPrintAll from '../pages/stocks/StockPrintAll.jsx';
 import SalesShowScreen from '../pages/sales/SalesShowScreen.jsx';
 import ProformaShowScreen from '../pages/profoma/ProformaShowScreen.jsx';
 import VehicleCreateScreen from '../pages/vehicules/VehicleCreateScreen.jsx';
+import ImportsScreen from '../pages/imports/ImportsScreen.jsx';
+import CommandesScreen from '../pages/imports/CommandesScreen.jsx';
+import LivraisonScreen from '../pages/imports/LivraisonScreen.jsx';
+import ExcelReader from '../pages/imports/ExcelReader.jsx';
 
 // Composant pour les routes protégées
 const ProtectedRoute = ({ children }) => {
@@ -138,7 +142,12 @@ const protectedRoutes = [
   { path: '/expenses', component: ExpensesScreen },
   { path: '/expense-types', component: ExpenseTypesScreen },
   { path: '/reports', component: ReportsScreen },
-  { path: '/profile', component: ProfileScreen},
+  { path: '/profile', component: ProfileScreen },
+  //imports
+  { path: '/imports', component: ImportsScreen},
+  { path: '/commandes', component: CommandesScreen},
+  { path: '/livraison', component: LivraisonScreen},
+  { path: '/importFile', component: ExcelReader},
 
   // Errors
   { path: '/404', component: NotFound },

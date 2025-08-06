@@ -49,6 +49,12 @@ export const routesConfig = [
     component: 'SuppliersScreen'
   },
   {
+    path: '/imports',
+    icon: 'pi pi-upload',
+    label: 'Imports',
+    component: 'ImportsScreen'
+  },
+  {
     path: '/purchases',
     icon: 'pi pi-shopping-cart',
     label: 'Achats',

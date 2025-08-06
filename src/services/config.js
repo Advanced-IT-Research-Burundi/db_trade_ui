@@ -30,6 +30,7 @@ export const API_CONFIG = {
     CASH_TRANSACTIONS: '/api/cash-transactions',
     EXPENSES: '/api/expenses',
     EXPENSE_TYPES: '/api/expense-types',
+    PRODUCTSCOMPANY: '/api/product-company-names',
     
   },
   HEADERS: {

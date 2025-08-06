@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import * as XLSX from 'xlsx';
 import { Container, Button, Card, Table, Form, Row, Col, Alert } from 'react-bootstrap';
 import ApiService from '../../services/api.js';
+import ImportHeader from './ImportHeader.jsx';
 
 const ExcelReader = () => {
   const [data, setData] = useState([]);
@@ -113,6 +114,7 @@ const ExcelReader = () => {
 
   return (
     <Container className="my-4">
+      <ImportHeader />
       {loading && <div className="text-center">Enregistrement en cours...</div>}
       <Card className="mb-4">
         <Card.Header as="h4" className="bg-primary text-white">

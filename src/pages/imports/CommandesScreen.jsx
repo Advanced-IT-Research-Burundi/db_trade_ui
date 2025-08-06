@@ -13,7 +13,7 @@ const CommandesScreen = () => {
     const [totalWeight, setTotalWeight] = useState(0);
     const [errorMessage, setErrorMessage] = useState("");
 
-    const { data, loading, error } = useSelector(state => state.apiData);
+    const { data, loading } = useSelector(state => state.apiData);
     const dispatch = useDispatch();
 
     useEffect(() => {
@@ -74,7 +74,7 @@ const CommandesScreen = () => {
             const exists = prev.find(p => p.id === product.id);
             return exists
                 ? prev.map(p => p.id === product.id ? { ...p, quantity: p.quantity + 1 } : p)
-                : [...prev, { ...product, quantity: 1 }];
+                : [...prev, { ...product, quantity: 1 , total_weight: (product.weight_kg * 1).toFixed(2)}];
         });
     };
 
@@ -82,20 +82,25 @@ const CommandesScreen = () => {
 
     const updateQuantity = (id, qty) => {
        
-        setCart(prev => prev.map(p => p.id === id ? { ...p, quantity: qty ?? 0 } : p));
+        setCart(prev => prev.map(p => p.id === id ? { ...p, quantity: qty ?? 0 , total_weight: (p.weight_kg * qty).toFixed(2)} : p));
     };
     const updatePu = (id, pu) => {
       
         setCart(prev => prev.map(p => p.id === id ? { ...p, pu: pu ?? 0 } : p));
     };
 
+    const [commentaire, setCommentaire] = useState('');
+    const [numCommande, setNumCommande] = useState('');
+
     const confirmOrder = () => {
         if (!selectedVehicle) return setErrorMessage("Veuillez sélectionner un véhicule");
         if (totalWeight > selectedVehicle.poids) return setErrorMessage(`La commande dépasse la capacité du véhicule (${selectedVehicle.poids}kg)`);
         if (!cart.length) return setErrorMessage("Veuillez ajouter des produits à la commande");
+        //alert("Commande confirmée avec succès !");
+        //  setCart([]); setTotalWeight(0); setErrorMessage("");
+        // Save Commande to database
 
-        alert("Commande confirmée avec succès !");
-        setCart([]); setTotalWeight(0); setErrorMessage("");
+        console.log("Commande", cart, commentaire, numCommande);
     };
 
     return (
@@ -126,6 +131,14 @@ const CommandesScreen = () => {
                                     </>
                                 )
                             }
+                            <div className="mb-3">
+                                <label className="form-label">Commentaire</label>
+                                <textarea className="form-control" value={commentaire} onChange={(e) => setCommentaire(e.target.value)} rows={3}></textarea>
+                            </div>
+                            <div className="mb-3">
+                                <label className="form-label">Numéro de commande</label>
+                                <input type="text" className="form-control" value={numCommande} onChange={(e) => setNumCommande(e.target.value)} />
+                            </div>
                         </div>
                     </div>
                     <div className="col-md-8">
@@ -149,8 +162,10 @@ const CommandesScreen = () => {
                             <div className="table-responsive">
                                 <table className="table table-bordered table-hover table-sm">
                                     <thead className="table-light">
-                                        <tr>
+                                                <tr>
+                                                <th>Company</th>
                                             <th>Nom</th>
+                                        
                                             <th>Code</th>
                                             <th>Poids (kg)</th>
                                             <th>PU</th>
@@ -160,7 +175,9 @@ const CommandesScreen = () => {
                                     <tbody>
                                         {products.map(product => (
                                             <tr key={product.id}>
+                                                  <td>{product.company_code}</td>
                                                 <td>{product.item_name}</td>
+                                              
                                                 <td>{product.product_code}</td>
                                                 <td>{product.weight_kg}</td>
                                                 <td>{ product.pu}</td>
@@ -203,6 +220,8 @@ const CommandesScreen = () => {
                                     <table className="table table-striped table-hover table-sm">
                                         <thead className="table-dark">
                                             <tr>
+                                                <th>#</th>
+                                                <th>Company</th>
                                                 <th>Produit</th>
                                                 <th>Code</th>
                                                 <th>Poids</th>
@@ -214,13 +233,18 @@ const CommandesScreen = () => {
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            {cart.map(item => (
+                                            {cart.map((item, index) => (
                                                 <tr key={item.id}>
+                                                    <td>{index + 1}</td>
+                                                    <td>{item.company_code}</td>
                                                     <td>{item.item_name}</td>
                                                     <td>{item.product_code}</td>
                                                     <td>{item.weight_kg} kg</td>
                                                     <td><input type="number" className="form-control form-control-sm" value={item.quantity} min="1" onChange={(e) => updateQuantity(item.id, e.target.value)} style={{ width: '70px' }} step="0.01" /></td>
-                                                    <td>{(item.weight_kg * item.quantity).toFixed(2)} kg</td>
+                                                    <td>{(item.weight_kg * item.quantity).toFixed(2)} kg
+
+                                                    
+                                                    </td>
                                                     <td>
 
                                                         <input type="number" className="form-control form-control-sm" value={item.pu} onChange={(e) => updatePu(item.id, e.target.value)} style={{ width: '70px' }} step="0.01" />

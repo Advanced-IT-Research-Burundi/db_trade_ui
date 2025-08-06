@@ -68,6 +68,8 @@ import ImportsScreen from '../pages/imports/ImportsScreen.jsx';
 import CommandesScreen from '../pages/imports/CommandesScreen.jsx';
 import LivraisonScreen from '../pages/imports/LivraisonScreen.jsx';
 import ExcelReader from '../pages/imports/ExcelReader.jsx';
+import CommandesListsScreen from '../pages/imports/CommandesListsScreen.jsx';
+import CommandesShowScreen from '../pages/imports/CommandesShowScreen.jsx';
 
 // Composant pour les routes protégées
 const ProtectedRoute = ({ children }) => {
@@ -146,6 +148,8 @@ const protectedRoutes = [
   //imports
   { path: '/imports', component: ImportsScreen},
   { path: '/commandes', component: CommandesScreen},
+  { path: '/commandes/:id', component: CommandesShowScreen},
+  { path: '/commandes-lists', component: CommandesListsScreen},
   { path: '/livraison', component: LivraisonScreen},
   { path: '/importFile', component: ExcelReader},
 

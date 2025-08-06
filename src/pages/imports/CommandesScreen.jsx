@@ -3,6 +3,8 @@ import ImportHeader from './ImportHeader';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchApiData } from '../../stores/slicer/apiDataSlicer.js';
 import { API_CONFIG } from '../../services/config.js';
+import ApiService from '../../services/api.js';
+import { useNavigate } from 'react-router-dom';
 
 const CommandesScreen = () => {
     const [selectedVehicle, setSelectedVehicle] = useState(null);
@@ -91,6 +93,7 @@ const CommandesScreen = () => {
 
     const [commentaire, setCommentaire] = useState('');
     const [numCommande, setNumCommande] = useState('');
+    const navigate = useNavigate();
 
     const confirmOrder = () => {
         if (!selectedVehicle) return setErrorMessage("Veuillez sélectionner un véhicule");
@@ -101,6 +104,25 @@ const CommandesScreen = () => {
         // Save Commande to database
 
         console.log("Commande", cart, commentaire, numCommande);
+
+        ApiService.post(API_CONFIG.ENDPOINTS.COMMANDES, {
+            vehicule_id: selectedVehicle.id,
+            matricule: selectedVehicle.immatriculation,
+            poids: selectedVehicle.poids,
+            products: cart,
+            commentaire: commentaire,
+            numCommande: numCommande
+        })
+        .then(response => {
+            console.log(response);
+            setCart([]);
+            setTotalWeight(0);
+            setErrorMessage("");
+            navigate('/commandes-lists');
+        })
+        .catch(error => {
+            console.log(error);
+        });
     };
 
     return (
@@ -241,10 +263,7 @@ const CommandesScreen = () => {
                                                     <td>{item.product_code}</td>
                                                     <td>{item.weight_kg} kg</td>
                                                     <td><input type="number" className="form-control form-control-sm" value={item.quantity} min="1" onChange={(e) => updateQuantity(item.id, e.target.value)} style={{ width: '70px' }} step="0.01" /></td>
-                                                    <td>{(item.weight_kg * item.quantity).toFixed(2)} kg
-
-                                                    
-                                                    </td>
+                                                    <td>{(item.weight_kg * item.quantity).toFixed(2)} kg                                                 </td>
                                                     <td>
 
                                                         <input type="number" className="form-control form-control-sm" value={item.pu} onChange={(e) => updatePu(item.id, e.target.value)} style={{ width: '70px' }} step="0.01" />

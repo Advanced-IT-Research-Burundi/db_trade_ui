@@ -130,7 +130,7 @@ export default function StockProductDetailsScreen() {
                         </TableRow>
                     </TableHead>
                     <TableBody>
-                        {data?.stock_products?.data?.filter((item) => item.quantity > 0)?.map((item, index) => (
+                        {data?.stock_products?.data?.map((item, index) => (
                             <TableRow key={item.id}>
                                 <StyledTableCell >{index + 1}</StyledTableCell>
                                 <StyledTableCell>{item.product?.code || '-'}</StyledTableCell>

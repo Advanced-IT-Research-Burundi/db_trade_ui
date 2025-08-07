@@ -5,8 +5,9 @@ import { fetchApiData } from '../../stores/slicer/apiDataSlicer.js';
 import { Button } from 'react-bootstrap';
 import QRCode from "react-qr-code";
 import logo from '../../assets/logo/ubwiza.png';
+import logoUbwiza from '../../assets/logo/logo.png';
 import usePrint from '../../hooks/usePrint.js';
-// import background from '../../assets/images/invoice-bg.png'; // optionnel
+//import background from '../../assets/images/invoice-bg.png'; // optionnel
 
 const thStyle = {
   border: '1px solid #000',
@@ -19,6 +20,8 @@ const tdStyle = {
   border: '1px solid #000',
   padding: '5px',
   textAlign: 'left',
+  // odd
+  
 };
 
 const SalesShowScreen = () => {
@@ -49,17 +52,30 @@ const SalesShowScreen = () => {
       <div
         id="invoice"
         style={{
+          position: 'relative',
           padding: '30px',
           fontFamily: 'Arial, sans-serif',
           backgroundColor: '#ffffff',
-          // backgroundImage: `url(${background})`, // si image de fond
-          backgroundSize: 'cover',
-          backgroundRepeat: 'no-repeat',
-          backgroundPosition: 'center',
           color: '#000',
           minHeight: '1100px',
         }}
       >
+
+<div
+    style={{
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      backgroundImage: `url(${logoUbwiza})`,
+      backgroundSize: 'contain',
+      backgroundRepeat: 'no-repeat',
+      backgroundPosition: 'center',
+      opacity: 0.1,
+      zIndex: 1,
+    }}
+  />
         {data && data.sale && (
           <>
             {/* Logo */}

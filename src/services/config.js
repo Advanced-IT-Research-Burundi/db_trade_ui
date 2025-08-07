@@ -32,10 +32,16 @@ export const API_CONFIG = {
     EXPENSE_TYPES: '/api/expense-types',
     PRODUCTSCOMPANY: '/api/product-company-names',
     COMMANDES: '/api/commandes',
-    
+    TYPES_DEPENSES_IMPORTATION: '/api/depense-importation-types',
+    DEPENSES_IMPORTATION: '/api/depenses-importations/commandes',
+    DEPENSES_IMPORTATION_MODEL: '/api/depenses-importations',
   },
   HEADERS: {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
   }
 };
+
+export const APP_CONSTANT = {
+  APP_CURRENCIES : [ 'USD','EURO', 'BIF',]
+}

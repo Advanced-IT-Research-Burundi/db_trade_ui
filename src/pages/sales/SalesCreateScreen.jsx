@@ -245,13 +245,14 @@ const SalesCreateScreen = () => {
 
       const response = await ApiService.post("/api/sales/store", saleData);
 
+    
       if (response.success) {
         showToast("success", "Vente enregistrée avec succès");
         clearCart();
 
         // Redirection ou reset du formulaire
         setTimeout(() => {
-          navigate("/sales");
+          navigate("/sales/"+response.data.id);
         }, 1000);
       } else {
         showToast(

@@ -56,7 +56,7 @@ function CommandesShowScreen() {
 
 
     const totalWeight = data?.details?.reduce((total, item) => total + item?.total_weight, 0);
-    const {formatNumber} = useFormat();
+    const {formatNumber , formatDate} = useFormat();
   
   return (
       <div>
@@ -71,12 +71,12 @@ function CommandesShowScreen() {
                       <img src={logo} alt="" style={{width: '300px'}} />
                   </div>
                   <div>
-                      <h6>{data?.created_at}</h6>
+                      <h6>{formatDate(data?.created_at)}</h6>
                   </div>
               </div>
 
               <div>
-                  <h4 style={{textAlign: 'center'}}>Commande N° {data?.id} du {data?.created_at}</h4>
+                  <h4 style={{textAlign: 'center'}}>Commande N° {data?.id} du {formatDate(data?.created_at)}</h4>
                   <p>Numero de Vehicule : {data?.matricule}</p>
                   <p>Poids (KGS) : {data?.poids}</p>
               </div>

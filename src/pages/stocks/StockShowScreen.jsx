@@ -157,6 +157,9 @@ const StockShowScreen = () => {
           <li className="breadcrumb-item active">{stock.name}</li>
         </ol>
         <div className="ms-auto d-flex gap-2">
+          <a onClick={() => navigate(`/stocks/entre-multiple/${stock.id}`)} className="btn btn-primary">
+            <i className="pi pi-box me-2"></i>Entre Multiple en Stock
+          </a>
          <a onClick={() => navigate('/stocks')} className="btn btn-secondary">
             <i className="pi pi-arrow-left me-2"></i>Retour à la liste
           </a>

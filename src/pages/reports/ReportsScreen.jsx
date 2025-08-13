@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Toast } from 'primereact/toast';
 import ApiService from '../../services/api.js';
+import RapportHeader from './RapportHeader.jsx';
 
 const StatCard = ({ icon, title, value, color, loading, subtitle }) => (
   <div className="col-lg-3 col-md-6 mb-4">
@@ -426,7 +427,9 @@ const ReportsScreen = () => {
       {/* Header */}
       <div className="row mb-4">
         <div className="col-12">
+        <RapportHeader />
           <div className="d-flex justify-content-between align-items-center">
+          
             <div>
               <h2 className="text-primary mb-1">
                 <i className="pi pi-chart-bar me-2"></i>Rapports et Analyses

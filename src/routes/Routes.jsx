@@ -80,6 +80,7 @@ import ExcelReader from '../pages/imports/ExcelReader.jsx';
 import CommandesListsScreen from '../pages/imports/CommandesListsScreen.jsx';
 import CommandesShowScreen from '../pages/imports/CommandesShowScreen.jsx';
 import DepenseScreen from '../pages/imports/DepenseScreen.jsx';
+import ReportAnnuelScreen from '../pages/reports/ReportAnnuelScreen.jsx';
 
 // Composant pour les routes protégées
 const ProtectedRoute = ({ children }) => {
@@ -161,6 +162,7 @@ const protectedRoutes = [
   { path: '/expense-types/create', component: ExpenseTypeCreateScreen },
   { path: '/expense-types/:id/edit', component: ExpenseTypeEditScreen },
   { path: '/reports', component: ReportsScreen },
+  { path: '/reports/financial', component: ReportAnnuelScreen },
   { path: '/profile', component: ProfileScreen },
   //imports
   { path: '/imports', component: ImportsScreen},

@@ -13,7 +13,7 @@ const SalesCreateScreen = () => {
     removeItem,
     updateQuantity,
     updatePrice,
-    updateDiscount,
+    updateDiscountFBU,
     clearCart,
   } = useCart();
 
@@ -233,6 +233,7 @@ const SalesCreateScreen = () => {
         stock_id: selectedStock,
         sale_date: saleDate,
         paid_amount: parseFloat(paidAmount) || 0,
+        total_amount: totals.totalAmount,
         note: note,
         invoice_type: invoiceType,
         items: items.map((item) => ({
@@ -701,186 +702,215 @@ const SalesCreateScreen = () => {
               ) : (
                 <>
                   <div className="table-responsive">
-                    <table className="table table-sm mb-0">
-                      <thead className="table-light">
-                        <tr>
-                          <th style={{ width: "40px" }}></th>
-                          <th>Produit</th>
-                          <th
-                            className="text-center"
-                            style={{ width: "100px" }}
-                          >
-                            Quantité
-                          </th>
-                          <th
-                            className="text-center"
-                            style={{ width: "100px" }}
-                          >
-                            Prix
-                          </th>
-                          <th className="text-center" style={{ width: "80px" }}>
-                            Remise(%)
-                          </th>
-                          <th
-                            className="text-center"
-                            style={{ width: "120px" }}
-                          >
-                            Total
-                          </th>
-                          <th style={{ width: "40px" }}></th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {items.map((item) => {
-                          const quantity = parseFloat(item.quantity) ?? 0;
-                          const price = parseFloat(item.sale_price) ?? 0;
-                          const discount = parseFloat(item.discount) ?? 0;
-                          const subtotal = quantity * price;
-                          const discountAmount = (subtotal * discount) / 100;
-                          const finalAmount = subtotal - discountAmount;
-                          const availableStock = item.available_stock ?? 0;
-                          const isOverStock = quantity > availableStock;
+                  <table className="table table-sm mb-0">
+                    <thead className="table-light">
+                      <tr>
+                        <th style={{ width: "40px" }}></th>
+                        <th>Produit</th>
+                        <th
+                          className="text-center"
+                          style={{ width: "100px" }}
+                        >
+                          Quantité
+                        </th>
+                        <th
+                          className="text-center"
+                          style={{ width: "100px" }}
+                        >
+                          Prix
+                        </th>
+                        <th className="text-center" style={{ width: "100px" }}>
+                          Reduction (FBU)
+                        </th>
+                        <th
+                          className="text-center"
+                          style={{ width: "120px" }}
+                        >
+                          Total
+                        </th>
+                        <th style={{ width: "40px" }}></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {items.map((item) => {
+                        const quantity = parseFloat(item.quantity) || 0;
+                        const price = parseFloat(item.sale_price) || 0;
+                        const discountPercent = parseFloat(item.discount) || 0; 
+                        const discountFBUPerUnit = parseFloat(item.discount_fbu) || 0; 
+                        const subtotal = quantity * price;
+                        
+                        const percentDiscountAmount = (subtotal * discountPercent) / 100;
+                        const fbuDiscountTotal = discountFBUPerUnit * quantity; 
+                        const totalDiscountAmount = percentDiscountAmount + fbuDiscountTotal;
+                        const finalAmount = Math.max(0, subtotal - totalDiscountAmount);
+                        
+                        const fbuDiscountPercentage = subtotal > 0 ? (fbuDiscountTotal * 100) / subtotal : 0;
+                        
+                        const availableStock = item.available_stock || 0;
+                        const isOverStock = quantity > availableStock;
+                        const isDiscountTooHigh = totalDiscountAmount > subtotal;
 
-                          return (
-                            <tr
-                              key={item.product_id}
-                              className={isOverStock ? "table-danger" : ""}
-                            >
-                              <td className="text-center">
-                                {item.image ? (
-                                  <img
-                                    src={`/storage/${item.image}`}
-                                    alt="Product"
-                                    className="rounded"
-                                    style={{
-                                      width: "40px",
-                                      height: "40px",
-                                      objectFit: "cover",
-                                    }}
-                                  />
-                                ) : (
-                                  <div
-                                    className="bg-primary bg-opacity-10 rounded d-flex align-items-center justify-content-center"
-                                    style={{ width: "40px", height: "40px" }}
-                                  >
-                                    <i className="pi pi-box text-primary"></i>
-                                  </div>
-                                )}
-                              </td>
-                              <td>
-                                <div>
-                                  <div className="fw-semibold">{item.name}</div>
-                                  
-                                  <div className="d-flex gap-1 mt-1">
-                                    <span
-                                      className={`badge badge-sm ${
-                                        availableStock <= 2
-                                          ? "bg-warning"
-                                          : "bg-success"
-                                      }`}
-                                    >
-                                      Stock: {availableStock}
-                                    </span>
-                                    <small className="text-muted mx-2">
-                                    #{item.code}
-                                  </small>
-                                    {isOverStock && (
-                                      <span className="badge bg-danger badge-sm">
-                                        <i className="pi pi-exclamation-triangle me-1"></i>
-                                        Dépassé
-                                      </span>
-                                    )}
-                                  </div>
+                        return (
+                          <tr
+                            key={item.product_id}
+                            className={isOverStock ? "table-danger" : ""}
+                          >
+                            <td className="text-center">
+                              {item.image ? (
+                                <img
+                                  src={`/storage/${item.image}`}
+                                  alt="Product"
+                                  className="rounded"
+                                  style={{
+                                    width: "40px",
+                                    height: "40px",
+                                    objectFit: "cover",
+                                  }}
+                                />
+                              ) : (
+                                <div
+                                  className="bg-primary bg-opacity-10 rounded d-flex align-items-center justify-content-center"
+                                  style={{ width: "40px", height: "40px" }}
+                                >
+                                  <i className="pi pi-box text-primary"></i>
                                 </div>
-                              </td>
-                              <td className="text-center">
-                                <input
-                                  type="number"
-                                  className={`form-control form-control-sm text-center ${
-                                    isOverStock ? "is-invalid" : ""
-                                  }`}
-                                  value={parseFloat(item.quantity) ?? 0}
-                                  onChange={(e) =>
-                                    updateQuantity(
-                                      item.product_id,
-                                      parseFloat(e.target.value) ?? 0
-                                    )
-                                  }
-                                  min="0.01"
-                                  max={availableStock}
-                                  step="0.01"
-                                  style={{ width: "80px" }}
-                                />
-                              </td>
-                              <td className="text-center">
-                                <input
-                                  type="number"
-                                  className="form-control form-control-sm text-center"
-                                  value={parseFloat(item.sale_price) ?? 0}
-                                  onChange={(e) =>
-                                    updatePrice(
-                                      item.product_id,
-                                      parseFloat(e.target.value) ?? 0
-                                    )
-                                  }
-                                  min="0"
-                                  step="0.01"
-                                  style={{ width: "90px" }}
-                                />
-                              </td>
-                              <td className="text-center">
-                                <input
-                                  type="number"
-                                  className="form-control form-control-sm text-center"
-                                  value={parseFloat(item.discount) ?? 0}
-                                  onChange={(e) =>
-                                    updateDiscount(
-                                      item.product_id,
-                                      parseFloat(e.target.value) ?? 0
-                                    )
-                                  }
-                                  min="0"
-                                  max="100"
-                                  step="0.01"
-                                  style={{ width: "70px" }}
-                                />
-                              </td>
-                              <td className="text-center">
-                                <div className="d-flex flex-column align-items-center">
+                              )}
+                            </td>
+                            <td>
+                              <div>
+                                <div className="fw-semibold">{item.name}</div>
+                                
+                                <div className="d-flex gap-1 mt-1">
                                   <span
-                                    className={`fw-bold ${
-                                      isOverStock
-                                        ? "text-danger"
-                                        : "text-success"
+                                    className={`badge badge-sm ${
+                                      availableStock <= 2
+                                        ? "bg-warning"
+                                        : "bg-success"
                                     }`}
                                   >
-                                    {formatCurrency(finalAmount)}
+                                    Stock: {availableStock}
                                   </span>
-                                  {discount > 0 && (
-                                    <small className="text-muted text-decoration-line-through">
-                                      {formatCurrency(subtotal)}
-                                    </small>
+                                  <small className="text-muted mx-2">
+                                    #{item.code}
+                                  </small>
+                                  {isOverStock && (
+                                    <span className="badge bg-danger badge-sm">
+                                      <i className="pi pi-exclamation-triangle me-1"></i>
+                                      Dépassé
+                                    </span>
+                                  )}
+                                  {isDiscountTooHigh && (
+                                    <span className="badge bg-warning badge-sm">
+                                      <i className="pi pi-exclamation-triangle me-1"></i>
+                                      Remise élevée
+                                    </span>
                                   )}
                                 </div>
-                              </td>
-                              <td className="text-center">
-                                <button
-                                  type="button"
-                                  className="btn btn-outline-danger btn-sm"
-                                  onClick={() =>
-                                    handleRemoveItem(item.product_id)
-                                  }
-                                  title="Supprimer"
+                              </div>
+                            </td>
+                            <td className="text-center">
+                              <input
+                                type="number"
+                                className={`form-control form-control-sm text-center ${
+                                  isOverStock ? "is-invalid" : ""
+                                }`}
+                                value={item.quantity}
+                                onChange={(e) =>
+                                  updateQuantity(
+                                    item.product_id,
+                                    parseFloat(e.target.value) || 0
+                                  )
+                                }
+                                min="0.01"
+                                max={availableStock}
+                                step="0.01"
+                                style={{ width: "80px" }}
+                              />
+                            </td>
+                            <td className="text-center">
+                              <input
+                                type="number"
+                                className="form-control form-control-sm text-center"
+                                value={item.sale_price}
+                                onChange={(e) =>
+                                  updatePrice(
+                                    item.product_id,
+                                    parseFloat(e.target.value) || 0
+                                  )
+                                }
+                                min="0"
+                                step="0.01"
+                                style={{ width: "90px" }}
+                              />
+                            </td>
+                            <td className="text-center">
+                              <input
+                                type="number"
+                                className={`form-control form-control-sm text-center ${
+                                  isDiscountTooHigh ? "is-invalid" : ""
+                                }`}
+                                value={item.discount_fbu || 0}
+                                onChange={(e) =>
+                                  updateDiscountFBU(
+                                    item.product_id,
+                                    parseFloat(e.target.value) || 0
+                                  )
+                                }
+                                min="0"
+                                step="1"
+                                style={{ width: "90px" }}
+                                placeholder="0"
+                                title={`Remise en FBU par produit (Quantité: ${quantity})`}
+                              />
+                              {discountFBUPerUnit > 0 && (
+                                <div className="text-center">
+                                  <small className="text-info d-block">
+                                    {fbuDiscountPercentage.toFixed(1)}%
+                                  </small>
+                                </div>
+                              )}
+                            </td>
+                            <td className="text-center">
+                              <div className="d-flex flex-column align-items-center">
+                                <span
+                                  className={`fw-bold ${
+                                    isOverStock
+                                      ? "text-danger"
+                                      : isDiscountTooHigh
+                                      ? "text-warning"
+                                      : "text-success"
+                                  }`}
                                 >
-                                  <i className="pi pi-trash"></i>
-                                </button>
-                              </td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
-                  </div>
+                                  {formatCurrency(finalAmount)}
+                                </span>
+                                {discountFBUPerUnit > 0 && (
+                                  <div className="text-center">
+                                    <small className="text-muted text-decoration-line-through d-block">
+                                      {formatCurrency(subtotal)}
+                                    </small>
+                                    
+                                  </div>
+                                )}
+                              </div>
+                            </td>
+                            <td className="text-center">
+                              <button
+                                type="button"
+                                className="btn btn-outline-danger btn-sm"
+                                onClick={() =>
+                                  handleRemoveItem(item.product_id)
+                                }
+                                title="Supprimer"
+                              >
+                                <i className="pi pi-trash"></i>
+                              </button>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
 
                   {/* Alerte globale pour les stocks insuffisants */}
                   {stockErrors.length > 0 && (

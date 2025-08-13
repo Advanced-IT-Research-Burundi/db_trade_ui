@@ -169,6 +169,7 @@ export const CartProvider = ({ children }) => {
     let totalDiscount = 0;
 
     state.items.forEach(item => {
+      // console.log("item", item);
       const quantity = parseFloat(item.quantity) || 0;
       const price = parseFloat(item.sale_price) || 0;
       const discountPercent = parseFloat(item.discount) || 0; 

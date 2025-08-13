@@ -246,7 +246,7 @@ const SalesScreen = () => {
               </select>
             </div>
             <div className="col-md-3 d-flex align-items-end gap-2">
-              <a href="/proformas" className="btn btn-outline-primary">
+              <a onClick={()=>navigate('/proforma')} className="btn btn-outline-primary">
                 <i className="pi pi-file-earmark-text me-1"></i>Proforma
               </a>
               <button type="submit" className="btn btn-primary" disabled={loading}>

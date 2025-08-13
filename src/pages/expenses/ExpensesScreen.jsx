@@ -201,7 +201,10 @@ const ExpenseScreen = () => {
                 <i className="pi pi-refresh me-1"></i>
                 {loading ? 'Actualisation...' : 'Actualiser'}
               </button>
-              <a href="/expenses/create" className="btn btn-primary">
+              <a 
+              onClick={() => navigate('/expenses/create')}
+              className="btn btn-primary"
+              >
                 <i className="pi pi-plus-circle me-1"></i>Nouvelle Dépense
               </a>
             </div>
@@ -411,7 +414,7 @@ const ExpenseScreen = () => {
                             <i className="pi pi-eye"></i>
                           </a>
                           <a 
-                            href={`/expenses/${expense.id}/edit`} 
+                            onClick={() => navigate(`/expenses/${expense.id}/edit`)}
                             className="btn btn-sm btn-outline-warning" 
                             title="Modifier"
                           >

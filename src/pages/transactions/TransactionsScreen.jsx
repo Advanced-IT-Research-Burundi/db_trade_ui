@@ -274,9 +274,9 @@ const TransactionScreen = () => {
                 <i className="pi pi-refresh me-1"></i>
                 {loading ? 'Actualisation...' : 'Actualiser'}
               </button>
-              <a href="/cash-transactions/create" className="btn btn-primary">
+              {/* <a href="/cash-transactions/create" className="btn btn-primary">
                 <i className="pi pi-plus me-1"></i>Nouvelle Transaction
-              </a>
+              </a> */}
             </div>
           </div>
         </div>

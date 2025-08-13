@@ -1,19 +1,19 @@
-// contexts/CartContext.js
 import React, { createContext, useContext, useReducer, useEffect } from 'react';
 
-// Actions du panier
+
 const CART_ACTIONS = {
   ADD_ITEM: 'ADD_ITEM',
   REMOVE_ITEM: 'REMOVE_ITEM',
   UPDATE_QUANTITY: 'UPDATE_QUANTITY',
   UPDATE_PRICE: 'UPDATE_PRICE',
   UPDATE_DISCOUNT: 'UPDATE_DISCOUNT',
+  UPDATE_DISCOUNT_FBU: 'UPDATE_DISCOUNT_FBU', 
   CLEAR_CART: 'CLEAR_CART',
   LOAD_CART: 'LOAD_CART',
   SET_LOADING: 'SET_LOADING'
 };
 
-// Reducer du panier optimisé
+
 const cartReducer = (state, action) => {
   switch (action.type) {
     case CART_ACTIONS.ADD_ITEM: {
@@ -37,7 +37,8 @@ const cartReducer = (state, action) => {
           code: product.code,
           quantity: 1,
           sale_price: product.sale_price_ttc || 0,
-          discount: 0,
+          discount: 0, 
+          discount_fbu: 0, 
           unit: product.unit,
           available_stock: product.quantity_disponible || 0,
           image: product.image
@@ -90,11 +91,25 @@ const cartReducer = (state, action) => {
 
     case CART_ACTIONS.UPDATE_DISCOUNT: {
       const { productId, discount } = action.payload;
+      
       return {
         ...state,
         items: state.items.map(item =>
           item.product_id === productId
             ? { ...item, discount: Math.max(0, Math.min(100, parseFloat(discount) || 0)) }
+            : item
+        )
+      };
+    }
+
+    case CART_ACTIONS.UPDATE_DISCOUNT_FBU: {
+      const { productId, discountFBU } = action.payload;
+      
+      return {
+        ...state,
+        items: state.items.map(item =>
+          item.product_id === productId
+            ? { ...item, discount_fbu: Math.max(0, parseFloat(discountFBU) || 0) }
             : item
         )
       };
@@ -126,16 +141,16 @@ const cartReducer = (state, action) => {
   }
 };
 
-// État initial du panier
+
 const initialState = {
   items: [],
   loading: false
 };
 
-// Création du contexte
+
 const CartContext = createContext();
 
-// Hook pour utiliser le contexte
+
 export const useCart = () => {
   const context = useContext(CartContext);
   if (!context) {
@@ -144,11 +159,11 @@ export const useCart = () => {
   return context;
 };
 
-// Provider du contexte
+
 export const CartProvider = ({ children }) => {
   const [state, dispatch] = useReducer(cartReducer, initialState);
 
-  // Calculer les totaux (mémorisé pour éviter les recalculs inutiles)
+  
   const calculateTotals = React.useMemo(() => {
     let subtotal = 0;
     let totalDiscount = 0;
@@ -156,13 +171,18 @@ export const CartProvider = ({ children }) => {
     state.items.forEach(item => {
       const quantity = parseFloat(item.quantity) || 0;
       const price = parseFloat(item.sale_price) || 0;
-      const discount = parseFloat(item.discount) || 0;
+      const discountPercent = parseFloat(item.discount) || 0; 
+      const discountFBU = parseFloat(item.discount_fbu) || 0; 
 
       const itemSubtotal = quantity * price;
-      const itemDiscountAmount = (itemSubtotal * discount) / 100;
+      
+      
+      const percentDiscountAmount = (itemSubtotal * discountPercent) / 100; 
+      const fbuDiscountAmount = discountFBU * quantity; 
+      const totalItemDiscount = percentDiscountAmount + fbuDiscountAmount;
 
       subtotal += itemSubtotal;
-      totalDiscount += itemDiscountAmount;
+      totalDiscount += totalItemDiscount;
     });
 
     const totalAmount = subtotal - totalDiscount;
@@ -175,7 +195,20 @@ export const CartProvider = ({ children }) => {
     };
   }, [state.items]);
 
-  // Vérifier les erreurs de stock (mémorisé)
+  
+  const calculateDiscountPercentage = React.useCallback((item) => {
+    const quantity = parseFloat(item.quantity) || 0;
+    const price = parseFloat(item.sale_price) || 0;
+    const discountFBU = parseFloat(item.discount_fbu) || 0;
+    
+    const subtotal = quantity * price;
+    if (subtotal === 0) return 0;
+    
+    
+    const totalDiscountFBU = discountFBU * quantity;
+    return (totalDiscountFBU * 100) / subtotal;
+  }, []);
+
   const getStockErrors = React.useMemo(() => {
     return state.items.filter(item => {
       const quantity = parseFloat(item.quantity) || 0;
@@ -193,7 +226,6 @@ export const CartProvider = ({ children }) => {
     });
   }, [state.items]);
 
-  // Actions du panier
   const addItem = React.useCallback((product) => {
     dispatch({
       type: CART_ACTIONS.ADD_ITEM,
@@ -226,6 +258,13 @@ export const CartProvider = ({ children }) => {
     dispatch({
       type: CART_ACTIONS.UPDATE_DISCOUNT,
       payload: { productId, discount }
+    });
+  }, []);
+
+  const updateDiscountFBU = React.useCallback((productId, discountFBU) => {
+    dispatch({
+      type: CART_ACTIONS.UPDATE_DISCOUNT_FBU,
+      payload: { productId, discountFBU }
     });
   }, []);
 
@@ -289,7 +328,6 @@ export const CartProvider = ({ children }) => {
     };
   }, [state.items]);
 
-  // Fonctions de gestion du stockage local
   const saveToLocalStorage = React.useCallback(() => {
     try {
       const cartData = {
@@ -308,13 +346,11 @@ export const CartProvider = ({ children }) => {
       if (savedCart) {
         const cartData = JSON.parse(savedCart);
         
-        // Vérifier si les données ne sont pas trop anciennes (1 heure)
         const isExpired = Date.now() - cartData.timestamp > 3600000;
         
         if (!isExpired && cartData.items) {
           loadCart(cartData.items);
         } else {
-          // Nettoyer les données expirées
           localStorage.removeItem('sales_cart');
         }
       }
@@ -324,27 +360,17 @@ export const CartProvider = ({ children }) => {
     }
   }, [loadCart]);
 
-  // Sauvegarder automatiquement dans le localStorage
   useEffect(() => {
     saveToLocalStorage();
   }, [saveToLocalStorage]);
 
-  // Charger depuis le localStorage au démarrage
   useEffect(() => {
     loadFromLocalStorage();
   }, [loadFromLocalStorage]);
 
-  // Nettoyer le localStorage quand le composant est démonté
-  useEffect(() => {
-    return () => {
-      // Optionnel: nettoyer le panier à la fermeture
-      // localStorage.removeItem('sales_cart');
-    };
-  }, []);
 
-  // Fonctions de batch pour optimiser les performances
+
   const batchUpdateItems = React.useCallback((updates) => {
-    // Permet de faire plusieurs mises à jour en une seule fois
     updates.forEach(update => {
       switch (update.type) {
         case 'quantity':
@@ -356,13 +382,15 @@ export const CartProvider = ({ children }) => {
         case 'discount':
           updateDiscount(update.productId, update.value);
           break;
+        case 'discount_fbu':
+          updateDiscountFBU(update.productId, update.value);
+          break;
         default:
           break;
       }
     });
   }, [updateQuantity, updatePrice, updateDiscount]);
 
-  // Fonctions d'import/export pour la sauvegarde avancée
   const exportCart = React.useCallback(() => {
     return {
       items: state.items,
@@ -380,37 +408,34 @@ export const CartProvider = ({ children }) => {
     return false;
   }, [loadCart]);
 
-  // Valeur du contexte optimisée
   const value = React.useMemo(() => ({
-    // État
+    
     items: state.items,
     loading: state.loading,
     totals: calculateTotals,
     stockErrors: getStockErrors,
     stockProformaErrors: getStockProformaErrors,
     
-    // Actions de base
     addItem,
     removeItem,
     updateQuantity,
     updatePrice,
     updateDiscount,
+    updateDiscountFBU, 
     clearCart,
     loadCart,
     setLoading,
     
-    // Fonctions utilitaires
     getItemByProductId,
     isProductInCart,
     getTotalQuantity,
     validateCart,
+    calculateDiscountPercentage,
     
-    // Fonctions avancées
     batchUpdateItems,
     exportCart,
     importCart,
     
-    // Gestion du stockage
     saveToLocalStorage,
     loadFromLocalStorage
   }), [
@@ -424,6 +449,7 @@ export const CartProvider = ({ children }) => {
     updateQuantity,
     updatePrice,
     updateDiscount,
+    updateDiscountFBU, 
     clearCart,
     loadCart,
     setLoading,
@@ -431,6 +457,7 @@ export const CartProvider = ({ children }) => {
     isProductInCart,
     getTotalQuantity,
     validateCart,
+    calculateDiscountPercentage, 
     batchUpdateItems,
     exportCart,
     importCart,

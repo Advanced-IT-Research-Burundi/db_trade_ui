@@ -140,10 +140,11 @@ const LivraisonScreen = () => {
           id: commande.id,
           matricule: commande.matricule,
           poids: commande.poids,
-          products: commande.details || []
+          details: commande.details || []
         }))
       };
 
+      console.log('Livraison data:', deliveryData);
       const response = await ApiService.post('/api/commande/livraison/valide', deliveryData);
       
       if (response.success) {

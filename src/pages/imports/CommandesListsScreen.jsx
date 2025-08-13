@@ -5,7 +5,7 @@ import { API_CONFIG } from '../../services/config.js';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchApiData } from '../../stores/slicer/apiDataSlicer.js';
 import { useNavigate, Link } from 'react-router-dom';
-import { ImportHeader } from './ImportHeader.jsx';
+import ImportHeader  from './ImportHeader.jsx';
 import useFormat from '../../hooks/useFormat.js';
 
 

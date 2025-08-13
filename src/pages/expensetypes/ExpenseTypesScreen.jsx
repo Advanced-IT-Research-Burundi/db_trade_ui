@@ -193,7 +193,9 @@ const ExpenseTypeScreen = () => {
                 <i className="pi pi-refresh me-1"></i>
                 {loading ? 'Actualisation...' : 'Actualiser'}
               </button>
-              <a href="/expense-types/create" className="btn btn-primary">
+              <a
+               onClick={() => navigate('/expense-types/create')}
+               className="btn btn-primary">
                 <i className="pi pi-plus-circle me-1"></i>Nouveau Type
               </a>
             </div>
@@ -336,15 +338,15 @@ const ExpenseTypeScreen = () => {
                       </td>
                       <td className="px-4">
                         <div className="btn-group" role="group">
-                          <a 
+                          {/* <a 
                             href={`/expense-types/${expenseType.id}`} 
                             className="btn btn-sm btn-outline-info" 
                             title="Voir"
                           >
                             <i className="pi pi-eye"></i>
-                          </a>
+                          </a> */}
                           <a 
-                            href={`/expense-types/${expenseType.id}/edit`} 
+                            onClick={() => navigate(`/expense-types/${expenseType.id}/edit`)}
                             className="btn btn-sm btn-outline-warning" 
                             title="Modifier"
                           >

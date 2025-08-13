@@ -50,7 +50,12 @@ import VehiclesScreen from '../pages/vehicules/VehiclesScreen.jsx';
 import CashRegistersScreen from '../pages/cashregister/CashRegistersScreen';
 import TransactionsScreen from '../pages/transactions/TransactionsScreen';
 import ExpensesScreen from '../pages/expenses/ExpensesScreen';
+
+// Expense Types
 import ExpenseTypesScreen from '../pages/expensetypes/ExpenseTypesScreen';
+import ExpenseTypeCreateScreen from '../pages/expensetypes/ExpenseTypeCreateScreen.jsx';
+import ExpenseTypeEditScreen from '../pages/expensetypes/ExpenseTypeEditScreen.jsx'
+// Reports
 import ReportsScreen from '../pages/reports/ReportsScreen.jsx';
 
 //Profil
@@ -143,7 +148,11 @@ const protectedRoutes = [
   { path: '/cash-registers', component: CashRegistersScreen },
   { path: '/transactions', component: TransactionsScreen },
   { path: '/expenses', component: ExpensesScreen },
+
+  // Expense Types
   { path: '/expense-types', component: ExpenseTypesScreen },
+  { path: '/expense-types/create', component: ExpenseTypeCreateScreen },
+  { path: '/expense-types/:id/edit', component: ExpenseTypeEditScreen },
   { path: '/reports', component: ReportsScreen },
   { path: '/profile', component: ProfileScreen },
   //imports

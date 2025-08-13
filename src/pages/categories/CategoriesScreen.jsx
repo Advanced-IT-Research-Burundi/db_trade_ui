@@ -419,15 +419,15 @@ const CategoryScreen = () => {
                       </td>
                       <td className="px-4">
                         <div className="btn-group" role="group">
-                          <a
+                          {/* <a
                             href={`/categories/${category.id}`}
                             className="btn btn-sm btn-outline-info"
                             title="Voir"
                           >
                             <i className="pi pi-eye"></i>
-                          </a>
+                          </a> */}
                           <a
-                            href={`/categories/${category.id}/edit`}
+                            onClick={() => navigate(`/categories/${category.id}/edit`)}
                             className="btn btn-sm btn-outline-warning"
                             title="Modifier"
                           >

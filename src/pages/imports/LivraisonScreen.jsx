@@ -140,7 +140,7 @@ const LivraisonScreen = () => {
           id: commande.id,
           matricule: commande.matricule,
           poids: commande.poids,
-          products: commande.products || []
+          products: commande.details || []
         }))
       };
 
@@ -472,7 +472,7 @@ const LivraisonScreen = () => {
                             onClick={() => toggleExpandCommande(commande.id)}
                           >
                             <i className={`pi pi-chevron-${expandedCommande === commande.id ? 'up' : 'down'} me-1`}></i>
-                            {commande.products?.length || 0} produit(s)
+                            {commande.details?.length || 0} produit(s)
                           </button>
                         </td>
                         <td className="px-4">
@@ -499,7 +499,7 @@ const LivraisonScreen = () => {
                           </div>
                         </td>
                       </tr>
-                      {expandedCommande === commande.id && commande.products && (
+                      {expandedCommande === commande.id && commande.details && (
                         <tr>
                           <td colSpan="9" className="px-4 py-3 bg-light">
                             <div className="row">
@@ -522,7 +522,7 @@ const LivraisonScreen = () => {
                                       </tr>
                                     </thead>
                                     <tbody>
-                                      {commande.products.map((product, index) => (
+                                      {commande.details.map((product, index) => (
                                         <tr key={index}>
                                           <td><span className="badge bg-info text-white">{product.company_code}</span></td>
                                           <td>{product.item_name}</td>
@@ -544,13 +544,13 @@ const LivraisonScreen = () => {
                                         <th colSpan="5" className="text-end">Total:</th>
                                         <th>
                                           {formatWeight(
-                                            commande.products.reduce((sum, p) => sum + (p.weight_kg * p.quantity), 0)
+                                            commande.details.reduce((sum, p) => sum + (p.weight_kg * p.quantity), 0)
                                           )}
                                         </th>
                                         <th></th>
                                         <th>
                                           {formatCurrency(
-                                            commande.products.reduce((sum, p) => sum + ((p.pu || 0) * p.quantity), 0)
+                                            commande.details.reduce((sum, p) => sum + ((p.pu || 0) * p.quantity), 0)
                                           )}
                                         </th>
                                       </tr>

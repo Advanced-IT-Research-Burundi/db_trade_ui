@@ -12,6 +12,8 @@ import ImportHeader from './ImportHeader.jsx';
 const LivraisonScreen = () => {
   const [commandes, setCommandes] = useState([]);
   const [selectedCommandes, setSelectedCommandes] = useState([]);
+  const [stocks, setStocks] = useState([]);
+  const [selectedStock, setSelectedStock] = useState(null);
   const [filters, setFilters] = useState({
     search: '',
     status: 'pending' // pending, approved, delivered
@@ -37,8 +39,9 @@ const LivraisonScreen = () => {
   }, [filters.status]);
 
   useEffect(() => {
-    if (data.commandes) {
+    if (data.commandes && data.stocks) {
       setCommandes(data.commandes.data || []);
+      setStocks(data?.stocks?.stocks?.data || []);
       setPagination({
         current_page: data.commandes.current_page,
         last_page: data.commandes.last_page,
@@ -72,6 +75,8 @@ const LivraisonScreen = () => {
         itemKey: 'commandes', 
         params 
       }));
+      dispatch(fetchApiData({ url: API_CONFIG.ENDPOINTS.STOCKS, itemKey: 'stocks' }));
+           
     } catch (error) {
       showToast('error', error.message);
     }
@@ -111,6 +116,10 @@ const LivraisonScreen = () => {
     }
   };
 
+  const handleStockChange = (name, value) => {
+    setSelectedStock(value);
+  };
+
   const approveCommande = async (commandeId) => {
     try {
       const response = await ApiService.patch(`/api/commandes/${commandeId}/approve`);
@@ -136,6 +145,7 @@ const LivraisonScreen = () => {
       // Prepare data for delivery validation
       const selectedCommandesData = commandes.filter(c => selectedCommandes.includes(c.id));
       const deliveryData = {
+        stock_id: selectedStock,
         commandes: selectedCommandesData.map(commande => ({
           id: commande.id,
           matricule: commande.matricule,
@@ -145,10 +155,12 @@ const LivraisonScreen = () => {
       };
 
       console.log('Livraison data:', deliveryData);
+      
       const response = await ApiService.post('/api/commande/livraison/valide', deliveryData);
       
       if (response.success) {
-        showToast('success', `${selectedCommandes.length} commande(s) validée(s) pour livraison`);
+        console.log(response)
+        showToast('success', response.message || 'Livraison validée avec succès');
         setSelectedCommandes([]);
         loadCommandes(pagination.current_page);
       } else {
@@ -297,6 +309,19 @@ const LivraisonScreen = () => {
                 <i className="pi pi-refresh me-1"></i>
                 {loading ? 'Actualisation...' : 'Actualiser'}
               </button>
+               <select 
+                className="form-select-sm" 
+                value={selectedStock} 
+                disabled={loading}
+                onChange={(e) => handleStockChange('stock_id', e.target.value)}
+              >
+              <option> Sélectionner le stock</option>
+                {stocks.map(stock => (
+                  <option key={stock.id} value={stock.id}>
+                    {stock.name}
+                  </option>
+                ))}
+              </select>
               {selectedCommandes.length > 0 && (
                 <button 
                   className="btn btn-success" 
@@ -346,7 +371,6 @@ const LivraisonScreen = () => {
               >
                 <option value="pending">En attente</option>
                 <option value="approved">Approuvées</option>
-                <option value="delivered">Livrées</option>
               </select>
             </div>
             

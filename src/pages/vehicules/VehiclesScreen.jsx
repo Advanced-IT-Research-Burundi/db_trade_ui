@@ -384,15 +384,15 @@ const VehicleScreen = () => {
                       </td>
                       <td className="px-4">
                         <div className="btn-group" role="group">
-                          <a 
+                          {/* <a 
                             href={`/vehicles/${vehicle.id}`} 
                             className="btn btn-sm btn-outline-info" 
                             title="Voir"
                           >
                             <i className="pi pi-eye"></i>
-                          </a>
+                          </a> */}
                           <a 
-                            href={`/vehicles/${vehicle.id}/edit`} 
+                            onClick={()=>{navigate(`/vehicles/${vehicle.id}/edit`);}}
                             className="btn btn-sm btn-outline-warning" 
                             title="Modifier"
                           >

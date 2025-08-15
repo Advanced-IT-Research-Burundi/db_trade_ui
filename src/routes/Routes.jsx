@@ -50,6 +50,7 @@ import UsersEditScreen from '../pages/users/UsersEditScreen.jsx';
 import UsersShowScreen from '../pages/users/UsersShowScreen.jsx';
 //vehicles
 import VehiclesScreen from '../pages/vehicules/VehiclesScreen.jsx';
+import VehiculeEditScreen from '../pages/vehicules/VehiculeEditScreen.jsx';
 import CashRegistersScreen from '../pages/cashregister/CashRegistersScreen';
 import TransactionsScreen from '../pages/transactions/TransactionsScreen';
 
@@ -157,6 +158,7 @@ const protectedRoutes = [
   //vehicules
   { path: '/vehicles', component: VehiclesScreen },
   { path: '/vehicles/create', component: VehicleCreateScreen },
+  { path: '/vehicles/:id/edit', component: VehiculeEditScreen },
   { path: '/cash-registers', component: CashRegistersScreen },
   { path: '/transactions', component: TransactionsScreen },
   //expenses

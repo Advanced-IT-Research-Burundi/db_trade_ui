@@ -234,30 +234,30 @@ function ReportAnnuelScreen() {
                                 TOTAL GÉNÉRAL
                             </th>
                             <th style={{ textAlign: 'right' }}>
-                                {data?.reduce((sum, item) => sum + (parseFloat(item.transport) || 0), 0).toFixed(2)}
+                                {formatNumber(data?.reduce((sum, item) => sum + (parseFloat(item.transport) || 0), 0).toFixed(2))}
                             </th>
                             <th style={{ textAlign: 'right' }}>
-                                {data?.reduce((sum, item) => sum + (parseFloat(item.douane) || 0), 0).toFixed(2)}
+                                {formatNumber(data?.reduce((sum, item) => sum + (parseFloat(item.douane) || 0), 0).toFixed(2))}
                             </th>
                             <th style={{ textAlign: 'right' }}>
-                                {data?.reduce((sum, item) => sum + (parseFloat(item.licence) || 0), 0).toFixed(2)}
+                                {formatNumber(data?.reduce((sum, item) => sum + (parseFloat(item.licence) || 0), 0).toFixed(2))}
                             </th>
                             <th style={{ textAlign: 'right' }}>
-                                {data?.reduce((sum, item) => sum + (parseFloat(item.assurance) || 0), 0).toFixed(2)}
+                                {formatNumber(data?.reduce((sum, item) => sum + (parseFloat(item.assurance) || 0), 0).toFixed(2))}
                             </th>
                             <th style={{ textAlign: 'right' }}>
-                                {data?.reduce((sum, item) => sum + (parseFloat(item.imprevu) || 0), 0).toFixed(2)}
+                                {formatNumber(data?.reduce((sum, item) => sum + (parseFloat(item.imprevu) || 0), 0).toFixed(2))}
                             </th>
                             <th style={{ textAlign: 'right' }}>
-                                {data?.reduce((sum, item) => sum + (parseFloat(item.bbn) || 0), 0).toFixed(2)}
+                                {formatNumber(data?.reduce((sum, item) => sum + (parseFloat(item.bbn) || 0), 0).toFixed(2))}
                             </th>
                             <th style={{ textAlign: 'right' }}>-</th>
                             <th style={{ textAlign: 'right' }}>-</th>
                             <th style={{ textAlign: 'right' }}>
-                                {data?.reduce((sum, item) => sum + (parseFloat(item.dechargement) || 0), 0).toFixed(2)}
+                                {formatNumber(data?.reduce((sum, item) => sum + (parseFloat(item.dechargement) || 0), 0).toFixed(2))}
                             </th>
                             <th style={{ textAlign: 'right' }}>
-                                {data?.reduce((sum, item) => sum + (parseFloat(item.palette) || 0), 0).toFixed(2)}
+                                {formatNumber(data?.reduce((sum, item) => sum + (parseFloat(item.palette) || 0), 0).toFixed(2))}
                             </th>
                         </tr>
                     </tbody>

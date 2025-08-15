@@ -9,6 +9,128 @@ import { Button } from 'react-bootstrap';
 import './style/StockPrintAll.css';
 import useFormat from '../../hooks/useFormat';
 
+const printStyles = `
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+            
+            .card {
+                box-shadow: none !important;
+                border: none !important;
+            }
+            
+            body {
+                margin: 0;
+                padding: 0;
+            }
+            
+            #rapport-annuel {
+                margin: 0;
+                padding: 0;
+            }
+            
+            .print-table {
+                page-break-inside: auto;
+            }
+            
+            .print-table tr {
+                page-break-inside: avoid;
+                page-break-after: auto;
+            }
+            
+            .print-table thead {
+                display: table-header-group;
+            }
+            
+            .print-table tbody {
+                display: table-row-group;
+            }
+        }
+        
+        .print-table {
+            width: 100%;
+            border-collapse: collapse;
+            border: 2px solid #333;
+            font-size: 12px;
+        }
+        
+        .print-table th,
+        .print-table td {
+            border: 1px solid #666;
+            padding: 8px;
+            text-align: left;
+            vertical-align: middle;
+        }
+        
+        .print-table th {
+            background-color: #4a5568;
+            color: white;
+            font-weight: bold;
+            text-align: center;
+        }
+        
+        .print-table tbody tr:nth-child(odd) {
+            background-color: #f7fafc;
+        }
+        
+        .print-table tbody tr:nth-child(even) {
+            background-color: #edf2f7;
+        }
+        
+        .print-table tbody tr:hover {
+            background-color: #e2e8f0;
+        }
+        
+        .total-row {
+            background-color: #2d3748 !important;
+            color: white !important;
+            font-weight: bold;
+        }
+        
+        .total-row td {
+            border-top: 3px solid #333;
+        }
+        
+        .print-buttons {
+            margin-bottom: 20px;
+            display: flex;
+            gap: 10px;
+        }
+        
+        .print-buttons button {
+            margin-right: 10px;
+        }
+        
+        @media print {
+            .print-table tbody tr:nth-child(odd) {
+                background-color: #f0f0f0 !important;
+                -webkit-print-color-adjust: exact;
+                color-adjust: exact;
+            }
+            
+            .print-table tbody tr:nth-child(even) {
+                background-color: #ffffff !important;
+                -webkit-print-color-adjust: exact;
+                color-adjust: exact;
+            }
+            
+            .print-table th {
+                background-color: #333333 !important;
+                color: white !important;
+                -webkit-print-color-adjust: exact;
+                color-adjust: exact;
+            }
+            
+            .total-row {
+                background-color: #333333 !important;
+                color: white !important;
+                -webkit-print-color-adjust: exact;
+                color-adjust: exact;
+            }
+        }
+    `;
+
 function StockPrintAll() {
     const stockId = useParams().id;
     const dispatch = useDispatch();
@@ -43,8 +165,11 @@ function StockPrintAll() {
             <div id="stock-product-details" className=""
                 style={{
                     position: 'relative'
-                    
-                 }}>
+                }}>
+                
+                <style>
+                    {printStyles}
+                </style>
                 <div className="header-section">
                     <div>
                     <img src={ubwiza} alt="ubwiza" className="logo" style={{ width: '400px' }} />

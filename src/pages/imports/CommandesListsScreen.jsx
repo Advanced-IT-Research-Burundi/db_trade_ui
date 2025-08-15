@@ -69,7 +69,6 @@ function CommandesListsScreen() {
                 </Pagination.Item>
             );
         }
-
         items.push(
             <Pagination.Next key="next" onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === totalPages} />
         );
@@ -145,6 +144,10 @@ function CommandesListsScreen() {
                                                 <td>{commande.commentaire || <em>Aucun</em>}</td>
                                                 <td></td>
                                                 <td>
+                                                    <Link to={`/commandes/${commande.id}/edit`} className="btn btn-outline-primary btn-sm">
+                                                        Modifier
+                                                    </Link>
+
                                                     <Link to={`/commandes/${commande.id}`} className="btn btn-outline-primary btn-sm">
                                                         <i className="bi bi-eye me-1"></i>Afficher
                                                     </Link>

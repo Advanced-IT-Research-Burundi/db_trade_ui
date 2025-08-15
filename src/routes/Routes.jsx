@@ -83,6 +83,7 @@ import CommandesListsScreen from '../pages/imports/CommandesListsScreen.jsx';
 import CommandesShowScreen from '../pages/imports/CommandesShowScreen.jsx';
 import DepenseScreen from '../pages/imports/DepenseScreen.jsx';
 import ReportAnnuelScreen from '../pages/reports/ReportAnnuelScreen.jsx';
+import CommandesEditScreen from '../pages/imports/CommandesEditScreen.jsx';
 
 // Composant pour les routes protégées
 const ProtectedRoute = ({ children }) => {
@@ -172,6 +173,7 @@ const protectedRoutes = [
   { path: '/imports', component: ImportsScreen},
   { path: '/commandes', component: CommandesScreen},
   { path: '/commandes/:id', component: CommandesShowScreen},
+  { path: '/commandes/:id/edit', component: CommandesEditScreen},
   { path: '/depenses/:id', component: DepenseScreen},
   { path: '/commandes-lists', component: CommandesListsScreen},
   { path: '/livraison', component: LivraisonScreen},

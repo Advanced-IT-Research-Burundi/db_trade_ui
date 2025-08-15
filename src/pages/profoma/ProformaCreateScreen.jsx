@@ -35,6 +35,7 @@ const ProformaCreateScreen = () => {
   const [categories, setCategories] = useState([]);
   const [showProductSearch, setShowProductSearch] = useState(false);
   const [productLoading, setProductLoading] = useState(false);
+  const [discountGlobal, setDiscountGlobal] = useState(null);
 
   // Stock et données
   const [selectedStock, setSelectedStock] = useState("");
@@ -51,6 +52,7 @@ const ProformaCreateScreen = () => {
   const toast = useRef(null);
   const clientSearchRef = useRef(null);
   const productSearchRef = useRef(null);
+
 
   const navigate = useNavigate();
 
@@ -271,6 +273,14 @@ const ProformaCreateScreen = () => {
     } finally {
       setSaving(false);
     }
+  };
+   const handleSetDiscountGlobal = () => {
+    items.map((item) => {
+      updateDiscountFBU(
+        item.product_id,
+        parseFloat(discountGlobal) || 0
+      )
+    });
   };
 
   const showToast = (severity, detail) => {
@@ -658,13 +668,28 @@ const ProformaCreateScreen = () => {
                 </h6>
                 {items.length > 0 && (
                   <div className="d-flex gap-2">
+                  <input
+                      type="number"
+                      className="form-control form-control-sm text-center"
+                      value={discountGlobal}
+                      onChange={(e) =>
+                        setDiscountGlobal(
+                          parseFloat(e.target.value) || 0
+                        )
+                      }                                  
+                      min="0"
+                      step="1"
+                      style={{ width: "90px" }}
+                      placeholder="0"
+                      title={`Remise en FBU pour tous les  produits`}
+                    />
                     <button
                       type="button"
-                      className="btn btn-primary btn-sm"
-                      onClick={handleSave}
-                      disabled={
-                        saving || !selectedClient || stockProformaErrors.length > 0
-                      }
+                      className="btn btn-outline-primary btn-sm text-black"
+                      onClick={handleSetDiscountGlobal}
+                      // disabled={
+                      //   saving || !selectedClient || stockErrors.length > 0
+                      // }
                     >
                       {saving ? (
                         <>
@@ -675,7 +700,9 @@ const ProformaCreateScreen = () => {
                           Enregistrement...
                         </>
                       ) : (
+
                         <>
+                        
                           <i className="pi pi-check me-1"></i>Valider
                         </>
                       )}

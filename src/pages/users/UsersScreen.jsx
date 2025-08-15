@@ -494,14 +494,14 @@ const UserScreen = () => {
                       <td className="px-4">
                         <div className="btn-group" role="group">
                           <a 
-                            href={`/users/${user.id}`} 
+                            onClick={()=>{navigate(`/users/${user.id}`)}}
                             className="btn btn-sm btn-outline-info" 
                             title="Voir"
                           >
                             <i className="pi pi-eye"></i>
                           </a>
                           <a 
-                            href={`/users/${user.id}/edit`} 
+                            onClick={()=>navigate(`/users/${user.id}/edit`)}
                             className="btn btn-sm btn-outline-warning" 
                             title="Modifier"
                           >

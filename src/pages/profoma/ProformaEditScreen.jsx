@@ -75,41 +75,74 @@ const ProformaEditScreen = () => {
   };
 
   const initializeProformaData = async (proformaData) => {
-    try {
-      const proformaItems = JSON.parse(proformaData.proforma_items || '[]');
-      const clientData = JSON.parse(proformaData.client || '{}');
-      
-      setSelectedStock(proformaData.stock_id);
-      setInvoiceType(proformaData.invoice_type || "PROFORMA");
-      setSaleDate(proformaData.sale_date ? new Date(proformaData.sale_date).toISOString().slice(0, 16) : new Date().toISOString().slice(0, 16));
-      setNote(proformaData.note || "");
-      setPaidAmount(parseFloat(proformaData.paid_amount) || 0);
-      
-      if (clientData.id) {
-        setSelectedClient(clientData);
-        setClientSearch(clientData.name || clientData.societe || "");
-      }
-      
-      const cartItems = proformaItems.map((item, index) => ({
-        product_id: item.product_id,
-        name: `Produit ${item.product_id}`,
-        code: `PROD${item.product_id}`,
-        quantity: parseFloat(item.quantity) || 1,
-        sale_price: parseFloat(item.sale_price) || 0,
-        discount: 0,
-        discount_fbu: parseFloat(item.discount) || 0,
-        unit: "pcs",
-        available_stock: 999,
-        image: null
-      }));
-      
-      loadCart(cartItems);
-      showToast("success", "Données chargées avec succès");
-      
-    } catch (error) {
-      showToast("error", "Erreur lors du chargement des données");
+  try {
+    const proformaItems = JSON.parse(proformaData.proforma_items || '[]');
+    const clientData = JSON.parse(proformaData.client || '{}');
+
+    setSelectedStock(proformaData.stock_id);
+    setInvoiceType(proformaData.invoice_type || "PROFORMA");
+    setSaleDate(proformaData.sale_date ? new Date(proformaData.sale_date).toISOString().slice(0, 16) : new Date().toISOString().slice(0, 16));
+    setNote(proformaData.note || "");
+    setPaidAmount(parseFloat(proformaData.paid_amount) || 0);
+
+    if (clientData.id) {
+      setSelectedClient(clientData);
+      setClientSearch(clientData.name || clientData.societe || "");
     }
-  };
+
+    // Utiliser Promise.all pour récupérer toutes les infos produit
+    const cartItems = await Promise.all(
+      proformaItems.map(async (item) => {
+        try {
+          console.log("proforma stock id: "+proformaData.stock_id);
+          const response = await ApiService.get(`/api/proformas/products/${item.product_id}/stock?stock_id=${proformaData.stock_id}`);
+          const result =  response.data;
+          if (!response.success) {
+            throw new Error(result.message || 'Erreur API');
+
+          }
+
+          const { product, available_stock } = result;
+
+          return {
+            product_id: product.id,
+            name: product.name || `Produit ${product.id}`,
+            code: product.code || `PROD${product.id}`,
+            quantity: parseFloat(item.quantity) || 1,
+            sale_price: parseFloat(item.sale_price) || 0,
+            discount: 0,
+            discount_fbu: parseFloat(item.discount) || 0,
+            unit: product.unit || "pcs",
+            available_stock: available_stock || 0,
+            image: product.image || null
+          };
+        } catch (err) {
+          console.error(`Erreur pour le produit ID ${item.product_id}:`, err);
+          // fallback
+          return {
+            product_id: item.product_id,
+            name: `Produit ${item.product_id}`,
+            code: `PROD${item.product_id}`,
+            quantity: parseFloat(item.quantity) || 1,
+            sale_price: parseFloat(item.sale_price) || 0,
+            discount: 0,
+            discount_fbu: parseFloat(item.discount) || 0,
+            unit: "pcs",
+            available_stock: 0,
+            image: null
+          };
+        }
+      })
+    );
+
+    loadCart(cartItems);
+    showToast("success", "Données chargées avec succès");
+
+  } catch (error) {
+    showToast("error", "Erreur lors du chargement des données: " + error.message);
+  }
+};
+
 
   const loadProfoma = async () => {
     try {

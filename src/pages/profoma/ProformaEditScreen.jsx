@@ -74,17 +74,6 @@ const ProformaEditScreen = () => {
     }
   };
 
-  const getProductDetails = async (productId, stockId) => {
-    try {
-      const response = await ApiService.get(`/api/products/${productId}`, {
-        stock_id: stockId
-      });
-      return response.success ? response.data.product : null;
-    } catch (error) {
-      return null;
-    }
-  };
-
   const initializeProformaData = async (proformaData) => {
     try {
       const proformaItems = JSON.parse(proformaData.proforma_items || '[]');
@@ -94,32 +83,25 @@ const ProformaEditScreen = () => {
       setInvoiceType(proformaData.invoice_type || "PROFORMA");
       setSaleDate(proformaData.sale_date ? new Date(proformaData.sale_date).toISOString().slice(0, 16) : new Date().toISOString().slice(0, 16));
       setNote(proformaData.note || "");
+      setPaidAmount(parseFloat(proformaData.paid_amount) || 0);
       
       if (clientData.id) {
         setSelectedClient(clientData);
         setClientSearch(clientData.name || clientData.societe || "");
       }
       
-      const cartItems = [];
-      
-      for (const item of proformaItems) {
-        const productDetails = await getProductDetails(item.product_id, proformaData.stock_id);
-        
-        const cartItem = {
-          product_id: item.product_id,
-          name: productDetails?.name || `Produit ${item.product_id}`,
-          code: productDetails?.code || `PROD${item.product_id}`,
-          quantity: parseFloat(item.quantity) || 1,
-          sale_price: parseFloat(item.sale_price) || 0,
-          discount: 0,
-          discount_fbu: parseFloat(item.discount) || 0,
-          unit: productDetails?.unit || "pcs",
-          available_stock: productDetails?.quantity_disponible || 0,
-          image: productDetails?.image
-        };
-        
-        cartItems.push(cartItem);
-      }
+      const cartItems = proformaItems.map((item, index) => ({
+        product_id: item.product_id,
+        name: `Produit ${item.product_id}`,
+        code: `PROD${item.product_id}`,
+        quantity: parseFloat(item.quantity) || 1,
+        sale_price: parseFloat(item.sale_price) || 0,
+        discount: 0,
+        discount_fbu: parseFloat(item.discount) || 0,
+        unit: "pcs",
+        available_stock: 999,
+        image: null
+      }));
       
       loadCart(cartItems);
       showToast("success", "Données chargées avec succès");

@@ -1,41 +1,73 @@
-import React, { useState, useEffect } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
-import { API_CONFIG } from '../../services/config.js';
+import React, { useState, useEffect, useRef } from 'react';
+import { Toast } from 'primereact/toast';
 import ApiService from '../../services/api.js';
+import { API_CONFIG } from '../../services/config.js';
+import { useDispatch, useSelector } from 'react-redux';
 import { fetchApiData } from '../../stores/slicer/apiDataSlicer.js';
-import ImportHeader from './ImportHeader.jsx';
-import { Table, Pagination, Container, Card, Badge, Form } from 'react-bootstrap';
+import { useNavigate, Link } from 'react-router-dom';
+import ImportHeader  from './ImportHeader.jsx';
 import useFormat from '../../hooks/useFormat.js';
-import { Link } from 'react-router-dom';
 
-function CommandesListsScreen() {
-    const [currentPage, setCurrentPage] = useState(1);
-    const [search, setSearch] = useState('');
-    const { data } = useSelector(state => ({
-        data: state.apiData.data?.commandes
-    }));
-    
-    const dispatch = useDispatch();
-    const formatDate = useFormat().formatDate;
 
-    useEffect(() => {
-        loadCommandes(currentPage);
-    }, [currentPage]);
 
-    useEffect(() => {
-        const delayDebounce = setTimeout(() => {
-            loadCommandes(1); // reset to page 1 on search
-        }, 500);
+const CommandesListsScreen = () => {
+  const [commandes, setCommandes] = useState([]);
+  const [filters, setFilters] = useState({
+    search: ''
+  });
+  const [pagination, setPagination] = useState({
+    current_page: 1,
+    last_page: 1,
+    total: 0,
+    from: 0,
+    to: 0
+  });
+  const [deleteModal, setDeleteModal] = useState({ show: false, commandeId: null });
+  const toast = useRef(null);
+  const navigate = useNavigate();
 
-        return () => clearTimeout(delayDebounce);
-    }, [search]);
+  const dispatch = useDispatch();
+  const { data, loading } = useSelector(state => state.apiData);
+  const formatDate = useFormat().formatDate;
 
-    function loadCommandes(page = 1, per_page = 10) {
-        dispatch(fetchApiData({
-            url: `${API_CONFIG.ENDPOINTS.COMMANDES}?page=${page}&per_page=${per_page}`,
-            itemKey: 'commandes',
-            params: { page, per_page, search }
-        }));
+  useEffect(() => {
+    loadCommandes();
+  }, []);
+
+  useEffect(() => {
+    if (data.commandes) {
+      setCommandes(data.commandes.data || []);
+      setPagination({
+        current_page: data.commandes.current_page,
+        last_page: data.commandes.last_page,
+        total: data.commandes.total,
+        from: data.commandes.from,
+        to: data.commandes.to
+      });
+    }
+  }, [data]);
+
+  // Debounced search effect
+  useEffect(() => {
+    const delayDebounce = setTimeout(() => {
+      if (filters.search !== '') {
+        loadCommandes(1);
+      }
+    }, 500);
+
+    return () => clearTimeout(delayDebounce);
+  }, [filters.search]);
+
+  async function loadCommandes(page = 1, per_page = 10) {
+    try {
+      const params = { page, per_page, ...filters };
+      dispatch(fetchApiData({ 
+        url: API_CONFIG.ENDPOINTS.COMMANDES, 
+        itemKey: 'commandes', 
+        params 
+      }));
+    } catch (error) {
+      showToast('error', error.message);
     }
 
     const handlePageChange = (page) => {
@@ -69,6 +101,7 @@ function CommandesListsScreen() {
                 </Pagination.Item>
             );
         }
+
         items.push(
             <Pagination.Next key="next" onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === totalPages} />
         );
@@ -76,12 +109,44 @@ function CommandesListsScreen() {
             <Pagination.Last key="last" onClick={() => handlePageChange(totalPages)} disabled={currentPage === totalPages} />
         );
 
-        return (
-            <div className="d-flex justify-content-center mt-4">
-                <Pagination>{items}</Pagination>
-            </div>
-        );
-    };
+    return (
+      <nav>
+        <ul className="pagination pagination-sm mb-0">
+          <li className={`page-item ${pagination.current_page === 1 ? 'disabled' : ''}`}>
+            <button 
+              className="page-link" 
+              onClick={() => loadCommandes(pagination.current_page - 1)} 
+              disabled={pagination.current_page === 1}
+            >
+              <i className="pi pi-chevron-left"></i>
+            </button>
+          </li>
+          
+          {getVisiblePages().map((page, index) => (
+            <li key={index} className={`page-item ${page === pagination.current_page ? 'active' : ''} ${page === '...' ? 'disabled' : ''}`}>
+              {page === '...' ? (
+                <span className="page-link">...</span>
+              ) : (
+                <button className="page-link" onClick={() => loadCommandes(page)}>
+                  {page}
+                </button>
+              )}
+            </li>
+          ))}
+          
+          <li className={`page-item ${pagination.current_page === pagination.last_page ? 'disabled' : ''}`}>
+            <button 
+              className="page-link" 
+              onClick={() => loadCommandes(pagination.current_page + 1)} 
+              disabled={pagination.current_page === pagination.last_page}
+            >
+              <i className="pi pi-chevron-right"></i>
+            </button>
+          </li>
+        </ul>
+      </nav>
+    );
+  };
 
     return (
         <Container fluid className="py-4">
@@ -144,10 +209,6 @@ function CommandesListsScreen() {
                                                 <td>{commande.commentaire || <em>Aucun</em>}</td>
                                                 <td></td>
                                                 <td>
-                                                    <Link to={`/commandes/${commande.id}/edit`} className="btn btn-outline-primary btn-sm">
-                                                        Modifier
-                                                    </Link>
-
                                                     <Link to={`/commandes/${commande.id}`} className="btn btn-outline-primary btn-sm">
                                                         <i className="bi bi-eye me-1"></i>Afficher
                                                     </Link>

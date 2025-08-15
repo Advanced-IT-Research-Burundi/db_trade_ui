@@ -1,0 +1,22 @@
+// Commandes liste pour le bon de livraison 
+
+{
+  "commandes": [
+    {
+      "id": 1,
+      "matricule": "ABC-123",
+      "poids": 1500.50,
+      "products": [
+        {
+          "id": 1,
+          "company_code": "COMP01",
+          "item_name": "Produit 1",
+          "product_code": "P001",
+          "weight_kg": 25.5,
+          "quantity": 10,
+          "pu": 1500
+        }
+      ]
+    }
+  ]
+}

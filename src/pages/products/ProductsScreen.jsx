@@ -432,15 +432,15 @@ const ProductScreen = () => {
                       </td>
                       <td className="px-4">
                         <div className="btn-group" role="group">
-                          <a 
+                          {/* <a 
                             href={`/products/${product.id}`} 
                             className="btn btn-sm btn-outline-info" 
                             title="Voir"
                           >
                             <i className="pi pi-eye"></i>
-                          </a>
+                          </a> */}
                           <a 
-                            href={`/products/${product.id}/edit`} 
+                            onClick={() => navigate(`/products/${product.id}/edit`)}
                             className="btn btn-sm btn-outline-warning" 
                             title="Modifier"
                           >

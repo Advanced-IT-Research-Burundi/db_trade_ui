@@ -24,6 +24,8 @@ import StockCreateScreen from '../pages/stocks/StockCreateScreen.jsx';
 //products
 import ProductsScreen from '../pages/products/ProductsScreen';
 import AddProductScreen from '../pages/stocks/AddProductScreen.jsx';
+import ProductCreateScreen from '../pages/products/ProductCreateScreen.jsx';
+import ProductEditScreen from '../pages/products/ProductEditScreen.jsx';
 //category
 import CategoriesScreen from '../pages/categories/CategoriesScreen';
 import CategoryCreateScreen from '../pages/categories/CategoryCreateScreen.jsx';
@@ -126,6 +128,8 @@ const protectedRoutes = [
   //products
   { path: '/products', component: ProductsScreen },
   { path: '/add/product/:id', component: AddProductScreen },
+  { path: '/products/create', component: ProductCreateScreen },
+  { path: '/products/:id/edit', component: ProductEditScreen },
   //category
   { path: '/categories', component: CategoriesScreen },
   { path: '/categories/create', component: CategoryCreateScreen },

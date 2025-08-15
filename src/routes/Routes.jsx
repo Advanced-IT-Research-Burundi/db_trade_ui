@@ -9,9 +9,10 @@ import DashboardScreen from '../pages/DashboardScreen';
 //sales
 import SalesScreen from '../pages/sales/SalesScreen';
 import SalesCreateScreen from '../pages/sales/SalesCreateScreen.jsx';
-
+//proforma
 import ProformaScreen from '../pages/profoma/ProformaScreen'
 import ProformaCreateScreen from '../pages/profoma/ProformaCreateScreen.jsx';
+import ProformaEditScreen from '../pages/profoma/ProformaEditScreen.jsx';
 //stocks
 import StocksScreen from '../pages/stocks/StocksScreen';
 import StockShowScreen from '../pages/stocks/StockShowScreen.jsx';
@@ -116,6 +117,7 @@ const protectedRoutes = [
   { path: '/proforma',component : ProformaScreen},
   { path: '/proforma/create', component: ProformaCreateScreen },
   { path: '/proforma/:id', component: ProformaShowScreen },
+  { path: '/proforma/:id/edit', component: ProformaEditScreen },
   //stocks
   { path: '/stocks', component: StocksScreen },
   { path: '/stocks/:id', component: StockShowScreen },

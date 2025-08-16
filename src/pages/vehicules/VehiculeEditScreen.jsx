@@ -1,12 +1,14 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Toast } from 'primereact/toast';
+import { useNavigate, useParams } from 'react-router-dom';
+
 import { useForm } from '../../hooks/useForm';
 import FormField from '../../components/input/FormField';
 import ApiService from '../../services/api.js';
-import { Toast } from 'primereact/toast';
 
-const VehiculeCreateScreen = () => {
+const VehiculeEditScreen = () => {
   const navigate = useNavigate();
+  const { id } = useParams();
   const toast = React.useRef(null);
 
   const initialValues = {
@@ -65,7 +67,32 @@ const VehiculeCreateScreen = () => {
     // { value: 'reserve', label: 'Réservé' }
   ];
 
-  const handleSubmit = async (values) => {
+  const loadData = async (vehiculeId) => {
+    const response = await ApiService.get(`/api/vehicules/${vehiculeId}`);
+
+    if (response.success) {
+      const data = { ...response.data };
+      
+      // Convertir les valeurs null en chaînes vides pour les inputs
+      Object.keys(data).forEach(key => {
+        if (data[key] === null) {
+          data[key] = '';
+        }
+      });
+      
+      return { success: true, data };
+    } else {
+      toast.current.show({
+        severity: 'error',
+        summary: 'Erreur',
+        detail: response.message || 'Erreur lors du chargement',
+        life: 3000
+      });
+      throw new Error(response.message || 'Erreur lors du chargement');
+    }
+  };
+
+  const handleSubmit = async (values, isEditing, entityId) => {
     // Nettoyer les valeurs vides (convertir en null pour les champs nullable)
     const cleanedValues = {};
     Object.keys(values).forEach(key => {
@@ -76,27 +103,28 @@ const VehiculeCreateScreen = () => {
       }
     });
 
-    const response = await ApiService.post('/api/vehicules', cleanedValues);
+    const response = await ApiService.put(`/api/vehicules/${entityId}`, cleanedValues);
 
     if (response.success) {
       // Afficher un toast de succès
       toast.current.show({
         severity: 'success',
         summary: 'Succès',
-        detail: 'Véhicule créé avec succès',
+        detail: 'Véhicule modifié avec succès',
         life: 3000
       });
       
+      // Attendre un peu avant de naviguer pour que l'utilisateur voie le toast
       setTimeout(() => {
         navigate('/vehicles');
       }, 1000);
       
-      return { success: true, message: 'Véhicule créé avec succès' };
+      return { success: true, message: 'Véhicule modifié avec succès' };
     } else {
       toast.current.show({
         severity: 'error',
         summary: 'Erreur',
-        detail: response.message || 'Erreur lors de la création du véhicule',
+        detail: response.message || 'Erreur lors de la modification du véhicule',
         life: 3000
       });
       
@@ -109,27 +137,34 @@ const VehiculeCreateScreen = () => {
   const form = useForm({
     initialValues,
     validationRules,
-    onSubmit: handleSubmit
+    onSubmit: handleSubmit,
+    loadData,
+    entityId: id
   });
 
   return (
     <div className="container-fluid py-4">
+      {/* Ajout du composant Toast */}
       <Toast ref={toast} />
       
       <div className="row justify-content-center">
         <div className="col-12 col-md-10 col-lg-8">
-          {/* Card avec Bootstrap */}
-          <div className="card shadow-sm">
-            {/* Header de la card */}
-            <div className="card-header bg-white border-bottom">
+          <div className="card">
+            <div className="card-header">
               <div className="d-flex justify-content-between align-items-center">
-                <h4 className="m-0 text-primary">
-                  <i className="pi pi-plus me-2"></i>
-                  Nouveau véhicule
+                <h4 className="m-0">
+                  <i className="pi pi-pencil me-2"></i>
+                  Modifier le véhicule
+                  {form.values.name && (
+                    <span className="text-muted ms-2">- {form.values.name}</span>
+                  )}
+                  {!form.values.name && form.values.immatriculation && (
+                    <span className="text-muted ms-2">- {form.values.immatriculation}</span>
+                  )}
                 </h4>
                 <button
                   type="button"
-                  className="btn btn-outline-secondary btn-sm"
+                  className="btn btn-outline-secondary"
                   title="Retour à la liste"
                   onClick={() => navigate('/vehicules')}
                 >
@@ -137,8 +172,6 @@ const VehiculeCreateScreen = () => {
                 </button>
               </div>
             </div>
-
-            {/* Body de la card */}
             <div className="card-body">
               <form onSubmit={form.handleSubmit}>
                 <div className="row">
@@ -152,6 +185,7 @@ const VehiculeCreateScreen = () => {
                       placeholder="Ex: Véhicule de service 1"
                       icon="pi pi-car"
                       helperText="Nom ou désignation du véhicule (optionnel)"
+                      disabled={form.loading}
                     />
                   </div>
 
@@ -164,6 +198,7 @@ const VehiculeCreateScreen = () => {
                       placeholder="Ex: Toyota, Renault, Ford"
                       icon="pi pi-bookmark"
                       helperText="Marque du véhicule (optionnel)"
+                      disabled={form.loading}
                     />
                   </div>
 
@@ -176,6 +211,7 @@ const VehiculeCreateScreen = () => {
                       placeholder="Ex: Hilux, Clio, Transit"
                       icon="pi pi-cog"
                       helperText="Modèle du véhicule (optionnel)"
+                      disabled={form.loading}
                     />
                   </div>
 
@@ -188,6 +224,7 @@ const VehiculeCreateScreen = () => {
                       placeholder="Ex: AB-123-CD"
                       icon="pi pi-id-card"
                       helperText="Numéro d'immatriculation (optionnel)"
+                      disabled={form.loading}
                     />
                   </div>
 
@@ -203,6 +240,7 @@ const VehiculeCreateScreen = () => {
                       helperText="Année de fabrication"
                       min="1900"
                       max={new Date().getFullYear() + 2}
+                      disabled={form.loading}
                     />
                   </div>
 
@@ -215,6 +253,7 @@ const VehiculeCreateScreen = () => {
                       placeholder="Ex: Blanc, Noir, Rouge"
                       icon="pi pi-palette"
                       helperText="Couleur du véhicule"
+                      disabled={form.loading}
                     />
                   </div>
 
@@ -229,6 +268,7 @@ const VehiculeCreateScreen = () => {
                       helperText="Poids du véhicule en kilogrammes"
                       step="0.1"
                       min="0"
+                      disabled={form.loading}
                     />
                   </div>
 
@@ -244,6 +284,7 @@ const VehiculeCreateScreen = () => {
                       helperText="Prix d'achat ou valeur du véhicule"
                       step="0.01"
                       min="0"
+                      disabled={form.loading}
                     />
                   </div>
 
@@ -258,6 +299,7 @@ const VehiculeCreateScreen = () => {
                       required
                       helperText="Statut actuel du véhicule"
                       options={statusOptions}
+                      disabled={form.loading}
                     />
                   </div>
 
@@ -271,29 +313,43 @@ const VehiculeCreateScreen = () => {
                       icon="pi pi-align-left"
                       helperText="Description détaillée du véhicule (maximum 1000 caractères)"
                       rows={4}
+                      disabled={form.loading}
                     />
                   </div>
                 </div>
 
-                {/* Boutons d'action */}
-                <div className="d-flex justify-content-end gap-2 mt-4">
-                  <button
-                    type="button"
-                    className="btn btn-secondary"
-                    onClick={() => navigate('/vehicles')}
-                    disabled={form.submitting}
-                  >
-                    <i className="pi pi-times me-2"></i>
-                    Annuler
-                  </button>
-                  <button
-                    type="submit"
-                    className="btn btn-success"
-                    disabled={!form.canSubmit}
-                  >
-                    <i className={`${form.submitting ? 'pi pi-spin pi-spinner' : 'pi pi-check'} me-2`}></i>
-                    {form.submitting ? 'Création...' : 'Créer'}
-                  </button>
+                <div className="d-flex justify-content-between align-items-center mt-4">
+                  <div>
+                    <button
+                      type="button"
+                      className="btn btn-outline-warning"
+                      onClick={form.reset}
+                      disabled={form.submitting || form.loading}
+                    >
+                      <i className="pi pi-refresh me-2"></i>
+                      Réinitialiser
+                    </button>
+                  </div>
+                  
+                  <div className="d-flex gap-2">
+                    <button
+                      type="button"
+                      className="btn btn-secondary"
+                      onClick={() => navigate('/vehicles')}
+                      disabled={form.submitting || form.loading}
+                    >
+                      <i className="pi pi-times me-2"></i>
+                      Annuler
+                    </button>
+                    <button
+                      type="submit"
+                      className="btn btn-success"
+                      disabled={!form.canSubmit || form.loading}
+                    >
+                      <i className={`${form.submitting ? 'pi pi-spin pi-spinner' : 'pi pi-check'} me-2`}></i>
+                      {form.submitting ? 'Modification...' : 'Modifier'}
+                    </button>
+                  </div>
                 </div>
               </form>
             </div>
@@ -304,4 +360,4 @@ const VehiculeCreateScreen = () => {
   );
 };
 
-export default VehiculeCreateScreen;
+export default VehiculeEditScreen;

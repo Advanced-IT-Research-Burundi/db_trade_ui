@@ -113,20 +113,6 @@ const ProformaScreen = () => {
     setDeleteModal({ show: false, proformaId: null });
   };
 
-  const handlePrintProforma = async (proformaId) => {
-    try {
-      const response = await ApiService.get(`/api/proformas/${proformaId}/print`);
-      if (response.success) {
-        // Ouvrir l'impression ou télécharger le PDF
-        window.open(response.data.print_url, '_blank');
-        showToast('success', 'Impression lancée');
-      } else {
-        showToast('error', 'Erreur lors de l\'impression');
-      }
-    } catch (error) {
-      showToast('error', 'Erreur lors de l\'impression : '+error.message);
-    }
-  };
 
   const showToast = (severity, detail) => {
     toast.current?.show({ 
@@ -491,14 +477,14 @@ const ProformaScreen = () => {
                             >
                               <i className="pi pi-eye"></i>
                             </Link>
-                            <button 
-                              type="button" 
-                              className="btn btn-sm btn-outline-info" 
-                              title="Imprimer"
-                              onClick={() => handlePrintProforma(proforma.id)}
+                            <Link 
+                              to={`/proforma/${proforma.id}/edit`} 
+                              className="btn btn-sm btn-outline-success" 
+                              title="Modifier"
                             >
-                              <i className="pi pi-print"></i>
-                            </button>
+                              <i className="pi pi-pencil"></i>
+                            </Link>
+                            
                             <button 
                               type="button" 
                               className="btn btn-sm btn-outline-danger" 

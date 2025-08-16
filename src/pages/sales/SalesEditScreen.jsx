@@ -4,7 +4,7 @@ import { useCart } from "../../contexts/cartReducer.jsx";
 import ApiService from "../../services/api.js";
 import { useNavigate } from "react-router-dom";
 
-const SalesCreateScreen = () => {
+const SalesEditScreen = () => {
   const {
     items,
     totals,
@@ -1181,4 +1181,4 @@ const SalesCreateScreen = () => {
   );
 };
 
-export default SalesCreateScreen;
+export default SalesEditScreen;

@@ -161,7 +161,7 @@ const InputField = ({
               type="button"
               onClick={() => setShowPassword(!showPassword)}
             >
-              <i className={`bi ${showPassword ? 'bi-eye-slash' : 'bi-eye'}`}></i>
+              <i className={`pi ${showPassword ? 'pi-eye-slash' : 'pi-eye'}`}></i>
             </button>
           </div>
         );
@@ -401,7 +401,7 @@ const InputField = ({
                 onClick={() => onChange(name, star)}
                 disabled={disabled}
               >
-                <i className="bi bi-star-fill"></i>
+                <i className="pi pi-star-fill"></i>
               </button>
             ))}
             <span className="ms-2 text-muted small">({value || 0}/5)</span>
@@ -469,13 +469,13 @@ const InputField = ({
       <div className="mt-1">
         {error && (
           <div className="invalid-feedback d-block">
-            <i className="bi bi-exclamation-circle me-1"></i>
+            <i className="pi pi-exclamation-circle me-1"></i>
             {error}
           </div>
         )}
         {!error && helperText && (
           <div className="form-text">
-            <i className="bi bi-info-circle me-1"></i>
+            <i className="pi pi-info-circle me-1"></i>
             {helperText}
           </div>
         )}

@@ -9,9 +9,10 @@ import DashboardScreen from '../pages/DashboardScreen';
 //sales
 import SalesScreen from '../pages/sales/SalesScreen';
 import SalesCreateScreen from '../pages/sales/SalesCreateScreen.jsx';
-
+//proforma
 import ProformaScreen from '../pages/profoma/ProformaScreen'
 import ProformaCreateScreen from '../pages/profoma/ProformaCreateScreen.jsx';
+import ProformaEditScreen from '../pages/profoma/ProformaEditScreen.jsx';
 //stocks
 import StocksScreen from '../pages/stocks/StocksScreen';
 import StockShowScreen from '../pages/stocks/StockShowScreen.jsx';
@@ -49,6 +50,7 @@ import UsersEditScreen from '../pages/users/UsersEditScreen.jsx';
 import UsersShowScreen from '../pages/users/UsersShowScreen.jsx';
 //vehicles
 import VehiclesScreen from '../pages/vehicules/VehiclesScreen.jsx';
+import VehiculeEditScreen from '../pages/vehicules/VehiculeEditScreen.jsx';
 import CashRegistersScreen from '../pages/cashregister/CashRegistersScreen';
 import TransactionsScreen from '../pages/transactions/TransactionsScreen';
 
@@ -116,6 +118,7 @@ const protectedRoutes = [
   { path: '/proforma',component : ProformaScreen},
   { path: '/proforma/create', component: ProformaCreateScreen },
   { path: '/proforma/:id', component: ProformaShowScreen },
+  { path: '/proforma/:id/edit', component: ProformaEditScreen },
   //stocks
   { path: '/stocks', component: StocksScreen },
   { path: '/stocks/:id', component: StockShowScreen },
@@ -155,6 +158,7 @@ const protectedRoutes = [
   //vehicules
   { path: '/vehicles', component: VehiclesScreen },
   { path: '/vehicles/create', component: VehicleCreateScreen },
+  { path: '/vehicles/:id/edit', component: VehiculeEditScreen },
   { path: '/cash-registers', component: CashRegistersScreen },
   { path: '/transactions', component: TransactionsScreen },
   //expenses

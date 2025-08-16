@@ -67,22 +67,16 @@ const UserEditScreen = () => {
   const statusOptions = [
     { value: 'active', label: 'Actif' },
     { value: 'inactive', label: 'Inactif' },
-    { value: 'suspended', label: 'Suspendu' },
-    { value: 'pending', label: 'En attente' }
   ];
-
   const roleOptions = [
     { value: 'admin', label: 'Administrateur' },
     { value: 'manager', label: 'Manager' },
     { value: 'salesperson', label: 'Commercial' },
-    { value: 'accountant', label: 'Comptable' },
-    { value: 'user', label: 'Utilisateur' }
   ];
 
   const genderOptions = [
     { value: 'male', label: 'Homme' },
     { value: 'female', label: 'Femme' },
-    { value: 'other', label: 'Autre' }
   ];
 
   const loadData = async (userId) => {
@@ -125,37 +119,26 @@ const UserEditScreen = () => {
   };
 
   const handleSubmit = async (values, isEditing, entityId) => {
-    // Créer un FormData pour gérer le fichier photo
-    const formData = new FormData();
-    
-    // Ajouter tous les champs au FormData
-    Object.keys(values).forEach(key => {
-      if (key === 'profile_photo' && values[key]) {
-        // Pour les fichiers, ajouter le premier fichier seulement si un nouveau fichier est sélectionné
-        formData.append(key, values[key][0]);
-      } else if (key === 'permissions' && values[key]) {
-        // Traiter les permissions JSON
-        try {
-          // Vérifier si c'est du JSON valide
-          JSON.parse(values[key]);
-          formData.append(key, values[key]);
-        } catch (e) {
-          // Si ce n'est pas du JSON valide, on l'ignore
-          console.warn('Permissions JSON non valide:', values[key]);
-        }
-      } else if (key === 'password' && values[key]) {
-        // N'envoyer le mot de passe que s'il est rempli
-        formData.append(key, values[key]);
-      } else if (key !== 'password_confirmation' && key !== 'password' && key !== 'profile_photo' && values[key] !== null && values[key] !== '') {
-        formData.append(key, values[key]);
-      }
-    });
+    // const formData = new FormData();
+    // Object.keys(values).forEach(key => {
+    //   if (key === 'profile_photo' && values[key]) {
+        
+    //     formData.append(key, values[key][0]);
+    //   } else if (key === 'permissions' && values[key]) {
+    //     try {
+    //       JSON.parse(values[key]);
+    //       formData.append(key, values[key]);
+    //     } catch (e) {
+    //       console.warn('Permissions JSON non valide:', values[key]);
+    //     }
+    //   } else if (key === 'password' && values[key]) {
+    //     formData.append(key, values[key]);
+    //   } else if (key !== 'password_confirmation' && key !== 'password' && key !== 'profile_photo' && values[key] !== null && values[key] !== '') {
+    //     formData.append(key, values[key]);
+    //   }
+    // });
 
-    const response = await ApiService.put(`/api/users/${entityId}`, formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data'
-      }
-    });
+    const response = await ApiService.put(`/api/users/${entityId}`, values);
 
     if (response.success) {
       // Afficher un toast de succès

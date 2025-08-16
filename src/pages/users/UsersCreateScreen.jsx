@@ -66,53 +66,43 @@ const UserCreateScreen = () => {
   const statusOptions = [
     { value: 'active', label: 'Actif' },
     { value: 'inactive', label: 'Inactif' },
-    { value: 'suspended', label: 'Suspendu' },
-    { value: 'pending', label: 'En attente' }
   ];
-
   const roleOptions = [
     { value: 'admin', label: 'Administrateur' },
     { value: 'manager', label: 'Manager' },
     { value: 'salesperson', label: 'Commercial' },
-    { value: 'accountant', label: 'Comptable' },
-    { value: 'user', label: 'Utilisateur' }
   ];
 
   const genderOptions = [
     { value: 'male', label: 'Homme' },
     { value: 'female', label: 'Femme' },
-    { value: 'other', label: 'Autre' }
   ];
 
   const handleSubmit = async (values) => {
-    // Créer un FormData pour gérer le fichier photo
-    const formData = new FormData();
     
-    // Ajouter tous les champs au FormData
-    Object.keys(values).forEach(key => {
-      if (key === 'profile_photo' && values[key]) {
-        // Pour les fichiers, ajouter le premier fichier
-        formData.append(key, values[key][0]);
-      } else if (key === 'permissions' && values[key]) {
-        // Traiter les permissions JSON
-        try {
-          // Vérifier si c'est du JSON valide
-          JSON.parse(values[key]);
-          formData.append(key, values[key]);
-        } catch (e) {
-          // Si ce n'est pas du JSON valide, on l'ignore ou on envoie une chaîne vide
-          console.warn('Permissions JSON non valide:', values[key]);
-        }
-      } else if (key !== 'password_confirmation' && values[key] !== null && values[key] !== '') {
-        formData.append(key, values[key]);
-      }
-    });
+  //  console.log(values);   
+    
+    // const formData = new FormData();    
+    
+    // Object.keys(values).forEach(key => {
+    //   if (key === 'profile_photo' && values[key]) {
+        
+    //     formData.append(key, values[key][0]);
+    //   } else if (key === 'permissions' && values[key]) {
+    //     try {
+          
+    //       JSON.parse(values[key]);
+    //       formData.append(key, values[key]);
+    //     } catch (e) {
+          
+    //       console.warn('Permissions JSON non valide:', values[key]);
+    //     }
+    //   } else {
+    //     formData.append(key, values[key]);
+    //   }
+    // });    
 
-    const response = await ApiService.post('/api/users', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data'
-      }
-    });
+    const response = await ApiService.post('/api/users', values);
 
     if (response.success) {
       // Afficher un toast de succès
@@ -123,7 +113,6 @@ const UserCreateScreen = () => {
         life: 3000
       });
       
-      // Attendre un peu avant de naviguer pour que l'utilisateur voie le toast
       setTimeout(() => {
         navigate('/users');
       }, 1000);

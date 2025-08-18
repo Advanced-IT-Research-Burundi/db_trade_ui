@@ -176,7 +176,7 @@ const protectedRoutes = [
   //imports
   { path: '/imports', component: ImportsScreen},
   { path: '/commandes', component: CommandesScreen},
-  { path: '/commandes/:id', component: CommandesShowScreen},
+  { path: '/commandes/:id', component: CommandesShowScreen},  
   { path: '/commandes/:id/edit', component: CommandesEditScreen},
   { path: '/depenses/:id', component: DepenseScreen},
   { path: '/commandes-lists', component: CommandesListsScreen},

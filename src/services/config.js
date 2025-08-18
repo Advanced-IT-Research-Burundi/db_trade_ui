@@ -32,6 +32,7 @@ export const API_CONFIG = {
     EXPENSE_TYPES: '/api/expense-types',
     PRODUCTSCOMPANY: '/api/product-company-names',
     COMMANDES: '/api/commandes',
+    LIVRAISONS: '/api/commande/livraison',
     TYPES_DEPENSES_IMPORTATION: '/api/depense-importation-types',
     DEPENSES_IMPORTATION: '/api/depenses-importations/commandes',
     DEPENSES_IMPORTATION_MODEL: '/api/depenses-importations',

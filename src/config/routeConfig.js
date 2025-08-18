@@ -54,12 +54,12 @@ export const routesConfig = [
     label: 'Imports',
     component: 'ImportsScreen'
   },
-  {
-    path: '/purchases',
-    icon: 'pi pi-shopping-cart',
-    label: 'Achats',
-    component: 'PurchasesScreen'
-  },
+  // {
+  //   path: '/purchases',
+  //   icon: 'pi pi-shopping-cart',
+  //   label: 'Achats',
+  //   component: 'PurchasesScreen'
+  // },
   {
     path: '/users',
     icon: 'pi pi-users',

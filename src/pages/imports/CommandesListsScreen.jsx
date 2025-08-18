@@ -367,13 +367,7 @@ const CommandesListsScreen = () => {
                           >
                             <i className="pi pi-eye"></i>
                           </Link>
-                          <Link 
-                            to={`/depenses/${commande.id}`} 
-                            className="btn btn-sm btn-outline-success" 
-                            title="Dépenses"
-                          >
-                            <i className="pi pi-dollar"></i>
-                          </Link>
+                         
                           <Link 
                             to={`/commandes/${commande.id}/edit`} 
                             className="btn btn-sm btn-outline-warning" 

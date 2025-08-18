@@ -71,8 +71,8 @@ const LivraisonScreen = () => {
         search: filters.search
       };
       dispatch(fetchApiData({ 
-        url: API_CONFIG.ENDPOINTS.COMMANDES, 
-        itemKey: 'commandes', 
+        url: API_CONFIG.ENDPOINTS.LIVRAISONS, 
+        itemKey: 'livraisoncommandes', 
         params 
       }));
       dispatch(fetchApiData({ url: API_CONFIG.ENDPOINTS.STOCKS, itemKey: 'stocks' }));

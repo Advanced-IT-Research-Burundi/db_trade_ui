@@ -191,7 +191,7 @@ const VehiculeDepenseEditScreen = () => {
                   type="button"
                   className="btn btn-outline-secondary btn-sm"
                   title="Retour à la liste"
-                  onClick={() => navigate(`/vehicules/${vehiculeId}/depenses`)}
+                  onClick={() => navigate(`/vehicles/${vehiculeId}/expenses`)}
                 >
                   <i className="pi pi-arrow-left"></i>
                 </button>
@@ -246,7 +246,7 @@ const VehiculeDepenseEditScreen = () => {
                   <button
                     type="button"
                     className="btn btn-secondary"
-                    onClick={() => navigate(`/vehicules/${vehiculeId}/depenses`)}
+                    onClick={() => navigate(`/vehicles/${vehiculeId}/expenses`)}
                     disabled={form.submitting}
                   >
                     <i className="pi pi-times me-2"></i>

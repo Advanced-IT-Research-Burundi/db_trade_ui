@@ -234,9 +234,7 @@ const VehiculeDepenceScreen = () => {
                             </div>
                           </td>
                           <td>
-                          fsd
-                            <div className="d-flex gap-1">
-                            
+                           <div className="d-flex gap-1">                            
                               <button
                                 type="button"
                                 className="btn btn-sm btn-outline-primary"

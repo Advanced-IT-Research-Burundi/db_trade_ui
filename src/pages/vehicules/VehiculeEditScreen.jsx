@@ -166,7 +166,7 @@ const VehiculeEditScreen = () => {
                   type="button"
                   className="btn btn-outline-secondary"
                   title="Retour à la liste"
-                  onClick={() => navigate('/vehicules')}
+                  onClick={() => navigate('/vehicles')}
                 >
                   <i className="pi pi-arrow-left"></i>
                 </button>

@@ -131,7 +131,7 @@ const VehiculeCreateScreen = () => {
                   type="button"
                   className="btn btn-outline-secondary btn-sm"
                   title="Retour à la liste"
-                  onClick={() => navigate('/vehicules')}
+                  onClick={() => navigate('/vehicles')}
                 >
                   <i className="pi pi-arrow-left"></i>
                 </button>

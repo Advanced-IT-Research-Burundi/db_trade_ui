@@ -335,7 +335,7 @@ const CommandesListsScreen = () => {
                       <td className="px-4">
                         <div className="d-flex align-items-center">
                           <i className="pi pi-car text-info me-2"></i>
-                          {commande.vehicule || 'N/A'}
+                          {commande?.vehicule?.model || commande?.vehicule?.name || 'N/A'}
                         </div>
                       </td>
                       <td className="px-4">

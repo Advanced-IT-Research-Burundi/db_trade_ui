@@ -49,7 +49,7 @@ export const routesConfig = [
     component: 'SuppliersScreen'
   },
   {
-    path: '/imports',
+    path: '/commandes',
     icon: 'pi pi-upload',
     label: 'Imports',
     component: 'ImportsScreen'

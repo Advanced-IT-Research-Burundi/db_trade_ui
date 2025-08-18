@@ -185,7 +185,7 @@ const protectedRoutes = [
   { path: '/commandes', component: CommandesScreen},
   { path: '/commandes/:id', component: CommandesShowScreen},  
   { path: '/commandes/:id/edit', component: CommandesEditScreen},
-  { path: '/depenses/:id', component: DepenseScreen},
+  { path: '/depenses/:id/depenses', component: DepenseScreen},
   { path: '/commandes-lists', component: CommandesListsScreen},
   { path: '/livraison', component: LivraisonScreen},
   { path: '/importFile', component: ExcelReader},

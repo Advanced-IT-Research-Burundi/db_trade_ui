@@ -384,13 +384,13 @@ const VehicleScreen = () => {
                       </td>
                       <td className="px-4">
                         <div className="btn-group" role="group">
-                          {/* <a 
-                            href={`/vehicles/${vehicle.id}`} 
+                           <a 
+                           onClick={()=>{navigate(`/vehicles/${vehicle.id}/expenses`);}}
                             className="btn btn-sm btn-outline-info" 
-                            title="Voir"
+                            title="Depenses"
                           >
-                            <i className="pi pi-eye"></i>
-                          </a> */}
+                            <i className="pi pi-chart-line"></i>
+                          </a> 
                           <a 
                             onClick={()=>{navigate(`/vehicles/${vehicle.id}/edit`);}}
                             className="btn btn-sm btn-outline-warning" 

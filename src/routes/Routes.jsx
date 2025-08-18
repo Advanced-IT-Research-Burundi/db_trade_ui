@@ -53,6 +53,9 @@ import VehiclesScreen from '../pages/vehicules/VehiclesScreen.jsx';
 import VehiculeEditScreen from '../pages/vehicules/VehiculeEditScreen.jsx';
 import CashRegistersScreen from '../pages/cashregister/CashRegistersScreen';
 import TransactionsScreen from '../pages/transactions/TransactionsScreen';
+import VehiculeDepenceScreen from '../pages/vehicules/VehiculeDepenceScreen.jsx';
+import VehiculeDepenceCreateScreen from '../pages/vehicules/VehiculeDepenceCreateScreen.jsx';
+import VehiculeDepenceEditScreen from '../pages/vehicules/VehiculeDepenceEditScreen.jsx';
 
 //expenses
 import ExpensesScreen from '../pages/expenses/ExpensesScreen';
@@ -161,6 +164,10 @@ const protectedRoutes = [
   { path: '/vehicles/:id/edit', component: VehiculeEditScreen },
   { path: '/cash-registers', component: CashRegistersScreen },
   { path: '/transactions', component: TransactionsScreen },
+  { path: '/vehicles/:id/expenses', component: VehiculeDepenceScreen },
+  { path: '/vehicles/:id/expenses/create', component: VehiculeDepenceCreateScreen },
+  { path: '/vehicles/:vehiculeId/expenses/:depenseId/edit', component: VehiculeDepenceEditScreen },
+
   //expenses
   { path: '/expenses', component: ExpensesScreen },
   { path: '/expenses/create', component: ExpenseCreateScreen },

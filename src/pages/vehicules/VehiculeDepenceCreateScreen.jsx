@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useForm } from '../../hooks/useForm';
 import FormField from '../../components/input/FormField';
@@ -9,13 +9,13 @@ const VehiculeDepenceCreateScreen = () => {
   const navigate = useNavigate();
   const { id: vehiculeId } = useParams();
   const toast = React.useRef(null);
-  const [vehicule, setVehicule] = useState(null);
-  const [loading, setLoading] = useState(false);
 
   const initialValues = {
     vehicule_id: vehiculeId,
     amount: '',
     date: '',
+    currency: 'BIF',
+    exchange_rate: '',
     description: ''
   };
 
@@ -27,50 +27,30 @@ const VehiculeDepenceCreateScreen = () => {
     date: {
       required: 'La date est requise'
     },
+    currency: {
+      required: 'La devise est requise'
+    },
+    exchange_rate: {
+      min: 0.01
+    },
     description: {
       maxLength: 1000
     }
   };
 
-  
-  useEffect(() => {
-    const loadVehicule = async () => {
-      try {
-        setLoading(true);
-        const response = await ApiService.get(`/api/vehicules/${vehiculeId}`);
-        if (response.success) {
-          setVehicule(response.data);
-        } else {
-          toast.current.show({
-            severity: 'error',
-            summary: 'Erreur',
-            detail: 'Véhicule non trouvé',
-            life: 3000
-          });
-          navigate('/vehicules');
-        }
-      } catch (error) {
-        toast.current.show({
-          severity: 'error',
-          summary: 'Erreur',
-          detail: 'Erreur lors du chargement du véhicule',
-          life: 3000
-        });
-        navigate('/vehicules');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (vehiculeId) {
-      loadVehicule();
-    }
-  }, [vehiculeId, navigate]);
+  // Options pour les devises
+  const currencyOptions = [
+    { value: 'BIF', label: 'BIF - Franc Burundais' },
+    { value: 'USD', label: 'USD - Dollar Américain' },
+    { value: 'EUR', label: 'EUR - Euro' },
+    { value: 'TSH', label: 'TSH - Shilling Tanzanien' }
+  ];
 
   const handleSubmit = async (values) => {
     const response = await ApiService.post('/api/vehicule-depenses', values);
 
     if (response.success) {
+      // Afficher un toast de succès
       toast.current.show({
         severity: 'success',
         summary: 'Succès',
@@ -78,6 +58,7 @@ const VehiculeDepenceCreateScreen = () => {
         life: 3000
       });
       
+      // Attendre un peu avant de naviguer pour que l'utilisateur voie le toast
       setTimeout(() => {
         navigate(`/vehicles/${vehiculeId}/expenses`);
       }, 1000);
@@ -103,40 +84,22 @@ const VehiculeDepenceCreateScreen = () => {
     onSubmit: handleSubmit
   });
 
-  if (loading) {
-    return (
-      <div className="container-fluid py-4">
-        <div className="text-center py-5">
-          <div className="spinner-border text-primary" role="status">
-            <span className="visually-hidden">Chargement...</span>
-          </div>
-          <p className="mt-2 text-muted">Chargement...</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="container-fluid py-4">
       <Toast ref={toast} />
       
       <div className="row justify-content-center">
         <div className="col-12 col-md-8 col-lg-6">
+          {/* Card avec Bootstrap */}
           <div className="card shadow-sm">
+            {/* Header de la card */}
             <div className="card-header bg-white border-bottom">
               <div className="d-flex justify-content-between align-items-center">
                 <div>
                   <h4 className="m-0 text-primary">
                     <i className="pi pi-plus me-2"></i>
-                    Nouvelle dépense
+                    Nouvelle dépense véhicule
                   </h4>
-                  {vehicule && (
-                    <p className="mb-0 text-muted">
-                      Pour : {vehicule.name || vehicule.immatriculation || 'Véhicule'}
-                      {vehicule.brand && ` - ${vehicule.brand}`}
-                      {vehicule.model && ` ${vehicule.model}`}
-                    </p>
-                  )}
                 </div>
                 <button
                   type="button"
@@ -149,6 +112,7 @@ const VehiculeDepenceCreateScreen = () => {
               </div>
             </div>
 
+            {/* Body de la card */}
             <div className="card-body">
               <form onSubmit={form.handleSubmit}>
                 <div className="row">
@@ -169,6 +133,20 @@ const VehiculeDepenceCreateScreen = () => {
 
                   <div className="col-md-6">
                     <FormField
+                      name="currency"
+                      form={form}
+                      type="select"
+                      label="Devise"
+                      placeholder="Sélectionnez une devise"
+                      icon="pi pi-money-bill"
+                      required
+                      helperText="Devise de la dépense"
+                      options={currencyOptions}
+                    />
+                  </div>
+
+                  <div className="col-md-6">
+                    <FormField
                       name="date"
                       form={form}
                       type="datetime-local"
@@ -179,25 +157,40 @@ const VehiculeDepenceCreateScreen = () => {
                     />
                   </div>
 
+                  <div className="col-md-6">
+                    <FormField
+                      name="exchange_rate"
+                      form={form}
+                      type="number"
+                      label="Taux de change"
+                      placeholder="1.00"
+                      icon="pi pi-percentage"
+                      helperText="Taux de change vers BIF (optionnel)"
+                      step="0.0001"
+                      min="0.0001"
+                    />
+                  </div>
+
                   <div className="col-12">
                     <FormField
                       name="description"
                       form={form}
                       type="textarea"
                       label="Description"
-                      placeholder="Description de la dépense (optionnel)"
+                      placeholder="Décrivez la dépense..."
                       icon="pi pi-align-left"
-                      helperText="Description détaillée de la dépense (maximum 1000 caractères)"
+                      helperText="Description de la dépense (optionnel)"
                       rows={4}
                     />
                   </div>
                 </div>
 
+                {/* Boutons d'action */}
                 <div className="d-flex justify-content-end gap-2 mt-4">
                   <button
                     type="button"
                     className="btn btn-secondary"
-                    onClick={() => navigate(`/vehicules/${vehiculeId}/depenses`)}
+                    onClick={() => navigate(`/vehicles/${vehiculeId}/expenses`)}
                     disabled={form.submitting}
                   >
                     <i className="pi pi-times me-2"></i>

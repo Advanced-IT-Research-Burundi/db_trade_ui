@@ -389,6 +389,7 @@ const VehicleScreen = () => {
                             className="btn btn-sm btn-outline-info" 
                             title="Depenses"
                           >
+                          <span className='me-1'>Depenses</span>
                             <i className="pi pi-chart-line"></i>
                           </a> 
                           <a 

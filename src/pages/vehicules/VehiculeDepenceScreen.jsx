@@ -19,10 +19,9 @@ const VehiculeDepenceScreen = () => {
   
    useEffect(() => {
        if (data) {
-        console.log("data" ,data)
+        
          setVehicule(data[`vehicule${vehiculeId}`] || []);
          setDepenses(data[`depenses${vehiculeId}`]?.data || []);
-         console.log(depenses)
          const total = data[`depenses${vehiculeId}`]?.data.reduce((sum, depense) => sum + depense.amount, 0);
          setTotalAmount(total);
        }
@@ -31,11 +30,11 @@ const VehiculeDepenceScreen = () => {
   useEffect(() => {
     const loadData = async () => {
       try {
+        
         dispatch(fetchApiData({ url: `/api/vehicules/${vehiculeId}`, itemKey: `vehicule${vehiculeId}` }));
         dispatch(fetchApiData({ url: `/api/vehicule-depenses?vehicule_id=${vehiculeId}`, itemKey: `depenses${vehiculeId}` }));
                 
       } catch (error) {
-        console.log(error);
         toast.current.show({
           severity: 'error',
           summary: 'Erreur',
@@ -48,7 +47,6 @@ const VehiculeDepenceScreen = () => {
     if (vehiculeId) {
       loadData();
     }
-    console.log("Id du véhicule: " + vehiculeId)
   }, [vehiculeId]);
 
   const handleDelete = async (depenseId) => {

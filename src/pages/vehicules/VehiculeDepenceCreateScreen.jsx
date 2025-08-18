@@ -32,7 +32,7 @@ const VehiculeDepenceCreateScreen = () => {
     }
   };
 
-  // Charger les informations du véhicule
+  
   useEffect(() => {
     const loadVehicule = async () => {
       try {

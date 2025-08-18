@@ -61,6 +61,7 @@ const VehiculeDepenseEditScreen = () => {
         if (depenseResponse.success) {
             const depenseData = depenseResponse.data;
             setDepense(depenseData);
+            console.log(depenseData)
             form.setValues({
                 vehicule_id: vehiculeId,
                 amount: depenseData.amount || '',

@@ -538,7 +538,7 @@ const SalesScreen = () => {
                     className="btn-close"
                     onClick={() => {
                       setCancelModal({ show: false, saleId: null });
-                      setCancelReason(""); // reset reason
+                      setCancelReason(""); 
                     }}
                   ></button>
                 </div>
@@ -552,14 +552,13 @@ const SalesScreen = () => {
                     <label htmlFor="cancelReason" className="form-label">
                       Motif de l'annulation
                     </label>
-                    <input
-                      type="text"
+                    <textarea
                       id="cancelReason"
                       className="form-control"
                       value={cancelReason}
                       onChange={(e) => setCancelReason(e.target.value)}
                       placeholder="Entrez le motif de l'annulation"
-                    />
+                    ></textarea>
                   </div>
                 </div>
                 <div className="modal-footer">

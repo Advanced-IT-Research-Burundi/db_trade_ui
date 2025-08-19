@@ -157,6 +157,18 @@ function StockPrintAll() {
     }
 
     const totalStockValue = data?.stock_products?.data?.reduce((total, product) => total + (product.product?.sale_price * product.quantity), 0);
+
+    // Groupe Data by categories
+
+    const groupedData = data?.stock_products?.data?.reduce((acc, product) => {
+        if (!acc[product?.product?.category?.name]) {
+            acc[product?.product?.category?.name] = [];
+        }
+        acc[product?.product?.category?.name].push(product);
+        return acc;
+    }, {});
+    
+    let counterLine = 1;
     return (
         <div className="print-wrapper">
             <Button variant="primary" onClick={() => print("stock-product-details")}>Imprimer</Button>
@@ -195,13 +207,14 @@ function StockPrintAll() {
                 }}>
 
                 </div>
+               
 
                 <table className="print-table" border={1}>
                     <thead>
                         <tr>
                             <th>ID</th>
                             <th>CODE</th>
-                            <th>Catégorie</th>
+                            {/* <th>Catégorie</th> */}
                             <th>Nom du Produit</th>
                             <th style={{ textAlign: 'right' }}>Qté</th>
                             <th style={{ textAlign: 'right' }}>Prix Unit.</th>
@@ -209,21 +222,40 @@ function StockPrintAll() {
                         </tr>
                     </thead>
                     <tbody>
-                        {data?.stock_products?.data?.filter((product) => product.quantity > 0)?.map((product, index) => (
-                            <tr key={product.id}>
-                                <td>{index + 1}</td>
+
+                        {
+                           
+                            Object.entries(groupedData)?.map((category, index) => (
+                               <>
+                                 <tr key={index}>
+                                    <td colSpan={5} style={{ textAlign: 'left' }}> <b> {category[0]}</b> </td>
+                                </tr>
+
+                                {category[1].map((product) => (
+                                <tr key={product.id}>
+                                <td>{counterLine++}</td>
                                 <td>{product.product?.code}</td>
-                                <td>{product?.product?.category?.name}</td>
+                               {/*  <td>{product?.product?.category?.name}</td> */}
                                 <td>{product.product_name}</td>
                                 <td style={{ textAlign: 'right' }}>{product.quantity}</td>
                                 <td style={{ textAlign: 'right' }}>{formatNumber(product.product?.sale_price)} </td>
                                 <th style={{ textAlign: 'right' }}>{formatNumber((product.product?.sale_price * product.quantity))}
                                     
-                                </th>
-                            </tr>
-                        ))}
+                                    </th>
+                                    </tr>))}
+                                    <tr>
+                                    <th colSpan={5}>Total</th>
+                                    <th style={{ textAlign: 'right' }}>{formatNumber(category[1].reduce((total, product) => total + (product.product?.sale_price * product.quantity), 0))}</th>
+                                    </tr>
+                               </>
+
+                            ))
+                        }
+                        
+
+                        
                         <tr>
-                            <th colSpan={6}>Total</th>
+                            <th colSpan={5}>Total Général</th>
                             <th style={{ textAlign: 'right' }}>{formatNumber(totalStockValue)}</th>
                             </tr>
                     </tbody>

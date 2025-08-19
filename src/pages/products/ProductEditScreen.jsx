@@ -11,7 +11,7 @@ const ProductEditScreen = () => {
   const { id } = useParams();
   const toast = React.useRef(null);
   
-  // États pour les options des selects
+  
   const [categoryOptions, setCategoryOptions] = useState([]);
   const [loadingOptions, setLoadingOptions] = useState(true);
   const [currentImage, setCurrentImage] = useState(null);
@@ -23,6 +23,7 @@ const ProductEditScreen = () => {
     category_id: '',
     purchase_price: '',
     sale_price_ht: '',
+    tva: '18', // TVA par défaut à 18%
     sale_price_ttc: '',
     unit: '',
     alert_quantity: '',
@@ -51,10 +52,15 @@ const ProductEditScreen = () => {
       min: 0
     },
     sale_price_ht: {
+      required: 'Le prix de vente HT est requis',
       min: 0
     },
+    tva: {
+      required: 'Le taux de TVA est requis',
+      min: 0,
+      max: 100
+    },
     sale_price_ttc: {
-      required: 'Le prix de vente TTC est requis',
       min: 0
     },
     unit: {
@@ -67,13 +73,27 @@ const ProductEditScreen = () => {
     }
   };
 
-  // Charger les options pour les selects
+  // Options de TVA courantes
+  const tvaOptions = [
+    { value: '0', label: '0% ' },
+    { value: '4', label: '4% ' },
+    { value: '10', label: '10% ' },
+    { value: '18', label: '18% ' }
+  ];
+
+  const calculateTTC = (priceHT, tva) => {
+    const ht = parseFloat(priceHT) || 0;
+    const tvaTaux = parseFloat(tva) || 0;
+    return (ht * (1 + tvaTaux / 100)).toFixed(2);
+  };
+
+  
   useEffect(() => {
     const loadOptions = async () => {
       try {
         setLoadingOptions(true);
         
-        // Charger les catégories
+        
         const categoriesResponse = await ApiService.get('/api/categories');
         if (categoriesResponse.success) {
           const categoriesFormatted = categoriesResponse.data.categories.data.map(category => ({
@@ -104,13 +124,24 @@ const ProductEditScreen = () => {
     if (response.success) {
       const data = { ...response.data };
       
-      // Stocker l'image actuelle si elle existe
+      
       if (data.image) {
         setCurrentImage(data.image);
       }
       
-      // Ne pas inclure l'image dans les valeurs du formulaire
-      // (le champ file sera vide par défaut)
+      if (!data.tva && data.sale_price_ht && data.sale_price_ttc) {
+        const ht = parseFloat(data.sale_price_ht);
+        const ttc = parseFloat(data.sale_price_ttc);
+        if (ht > 0) {
+          const tvaTaux = ((ttc - ht) / ht * 100).toFixed(1);
+          data.tva = tvaTaux;
+        } else {
+          data.tva = '18';
+        }
+      } else if (!data.tva) {
+        data.tva = '18'; 
+      }
+      
       delete data.image;
       
       return { success: true, data };
@@ -126,35 +157,39 @@ const ProductEditScreen = () => {
   };
 
   const handleSubmit = async (values, isEditing, entityId) => {
-    // Créer un FormData pour gérer le fichier image
+    
+    const calculatedTTC = calculateTTC(values.sale_price_ht, values.tva);
+    const finalValues = {
+      ...values,
+      sale_price_ttc: calculatedTTC
+    };
+    
+    
     const formData = new FormData();
     
-    // Ajouter tous les champs au FormData
-    Object.keys(values).forEach(key => {
-      if (key === 'image' && values[key] && values[key].length > 0) {
-        // Pour les fichiers, ajouter le premier fichier seulement si un nouveau fichier est sélectionné
-        formData.append(key, values[key][0]);
+    
+    Object.keys(finalValues).forEach(key => {
+      if (key === 'image' && finalValues[key] && finalValues[key].length > 0) {
+        formData.append(key, finalValues[key][0]);
       } else if (key !== 'image') {
-        // Ajouter tous les autres champs, même s'ils sont vides
-        formData.append(key, values[key] || '');
+        formData.append(key, finalValues[key] || '');
       }
     });
 
-    // Debug FormData
-    console.log('Form values:', values);
+    console.log('Form values:', finalValues);
     console.log('FormData contents:');
     for (let [key, value] of formData.entries()) {
       console.log(key, value);
     }
 
-    const response = await ApiService.put(`/api/products/${entityId}`, values, {
+    const response = await ApiService.put(`/api/products/${entityId}`, finalValues, {
       headers: {
         'Content-Type': 'multipart/form-data'
       }
     });
 
     if (response.success) {
-      // Afficher un toast de succès
+      
       toast.current.show({
         severity: 'success',
         summary: 'Succès',
@@ -162,7 +197,6 @@ const ProductEditScreen = () => {
         life: 3000
       });
       
-      // Attendre un peu avant de naviguer pour que l'utilisateur voie le toast
       setTimeout(() => {
         navigate('/products');
       }, 1000);
@@ -190,6 +224,20 @@ const ProductEditScreen = () => {
     entityId: id
   });
 
+  
+  const [calculatedTTC, setCalculatedTTC] = useState('');
+
+  useEffect(() => {
+    if (form.values.sale_price_ht && form.values.tva) {
+      const ttc = calculateTTC(form.values.sale_price_ht, form.values.tva);
+      setCalculatedTTC(ttc);
+      
+      if (form.values.sale_price_ttc !== ttc) {
+        form.values.sale_price_ttc = ttc;
+      }
+    }
+  }, [form.values.sale_price_ht, form.values.tva]);
+
   return (
     <div className="container-fluid py-4">
       {/* Ajout du composant Toast */}
@@ -197,10 +245,10 @@ const ProductEditScreen = () => {
       
       <div className="row justify-content-center">
         <div className="col-12 col-md-10 col-lg-8">
-          <div className="card">
-            <div className="card-header">
+          <div className="card shadow-sm">
+            <div className="card-header bg-white border-bottom">
               <div className="d-flex justify-content-between align-items-center">
-                <h4 className="m-0">
+                <h4 className="m-0 text-primary">
                   <i className="pi pi-pencil me-2"></i>
                   Modifier le produit
                   {form.values.name && (
@@ -209,7 +257,7 @@ const ProductEditScreen = () => {
                 </h4>
                 <button
                   type="button"
-                  className="btn btn-outline-secondary"
+                  className="btn btn-outline-secondary btn-sm"
                   title="Retour à la liste"
                   onClick={() => navigate('/products')}
                 >
@@ -273,7 +321,7 @@ const ProductEditScreen = () => {
                       />
                     </div>
 
-                    <div className="col-md-6">
+                    <div className="col-md-4">
                       <FormField
                         name="category_id"
                         form={form}
@@ -288,7 +336,7 @@ const ProductEditScreen = () => {
                       />
                     </div>
 
-                    <div className="col-md-6">
+                    <div className="col-md-4">
                       <FormField
                         name="unit"
                         form={form}
@@ -325,11 +373,27 @@ const ProductEditScreen = () => {
                         form={form}
                         type="number"
                         label="Prix de vente HT"
-                        placeholder="0.00 (optionnel)"
+                        placeholder="0.00"
                         icon="pi pi-money-bill"
+                        required
                         helperText="Prix de vente hors taxes"
                         step="0.01"
                         min="0"
+                        disabled={form.loading}
+                      />
+                    </div>
+
+                    <div className="col-md-4">
+                      <FormField
+                        name="tva"
+                        form={form}
+                        type="select"
+                        label="TVA (%)"
+                        placeholder="Taux de TVA"
+                        icon="pi pi-percentage"
+                        required
+                        helperText="Taux de TVA applicable"
+                        options={tvaOptions}
                         disabled={form.loading}
                       />
                     </div>
@@ -340,13 +404,14 @@ const ProductEditScreen = () => {
                         form={form}
                         type="number"
                         label="Prix de vente TTC"
-                        placeholder="0.00"
+                        placeholder="Calculé automatiquement"
                         icon="pi pi-dollar"
-                        required
-                        helperText="Prix de vente toutes taxes comprises"
+                        helperText="Prix calculé automatiquement (HT + TVA)"
                         step="0.01"
                         min="0"
-                        disabled={form.loading}
+                        value={calculatedTTC || form.values.sale_price_ttc}
+                        readOnly
+                        disabled
                       />
                     </div>
 
@@ -366,7 +431,7 @@ const ProductEditScreen = () => {
                       />
                     </div>
 
-                    <div className="col-md-6">
+                    <div className="col-6">
                       <FormField
                         name="image"
                         form={form}

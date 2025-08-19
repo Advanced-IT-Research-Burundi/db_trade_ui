@@ -144,7 +144,7 @@ const ReportsScreen = () => {
         </h5>
       </div>
       
-      <StatCard 
+      {/* <StatCard 
         icon="shopping-cart" 
         title="Chiffre d'affaires" 
         value={formatCurrency(reportData.total_sales)} 
@@ -175,7 +175,7 @@ const ReportsScreen = () => {
         color="primary" 
         loading={loading}
         subtitle="Ce mois"
-      />
+      /> */}
 
       <div className="col-12 mt-4">
         <div className="row">

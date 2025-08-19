@@ -20,6 +20,7 @@ const ProductCreateScreen = () => {
     category_id: '',
     purchase_price: '',
     sale_price_ht: '',
+    tva: '18', // TVA par défaut à 18%
     sale_price_ttc: '',
     unit: '',
     alert_quantity: '',
@@ -48,10 +49,15 @@ const ProductCreateScreen = () => {
       min: 0
     },
     sale_price_ht: {
+      required: 'Le prix de vente HT est requis',
       min: 0
     },
+    tva: {
+      required: 'Le taux de TVA est requis',
+      min: 0,
+      max: 100
+    },
     sale_price_ttc: {
-      required: 'Le prix de vente TTC est requis',
       min: 0
     },
     unit: {
@@ -64,13 +70,17 @@ const ProductCreateScreen = () => {
     }
   };
 
-  // Charger les options pour les selects
+  const tvaOptions = [
+    { value: '0', label: '0%' },
+    { value: '4', label: '4%' },
+    { value: '10', label: '10%' },
+    { value: '18', label: '18%' }
+  ];
+
   useEffect(() => {
     const loadOptions = async () => {
       try {
         setLoadingOptions(true);
-        
-        // Charger les catégories
         const categoriesResponse = await ApiService.get('/api/categories');
         if (categoriesResponse.success) {
           const categoriesFormatted = categoriesResponse.data.categories.data.map(category => ({
@@ -95,29 +105,39 @@ const ProductCreateScreen = () => {
     loadOptions();
   }, []);
 
+  // Fonction pour calculer le prix TTC
+  const calculateTTC = (priceHT, tva) => {
+    const ht = parseFloat(priceHT) || 0;
+    const tvaTaux = parseFloat(tva) || 0;
+    return (ht * (1 + tvaTaux / 100)).toFixed(2);
+  };
+
   const handleSubmit = async (values) => {
-    // Créer un FormData pour gérer le fichier image
+    
     const formData = new FormData();
     
-    // Ajouter tous les champs au FormData
-    Object.keys(values).forEach(key => {
-      if (key === 'image' && values[key] && values[key].length > 0) {
-        // Pour les fichiers, ajouter le premier fichier
-        formData.append(key, values[key][0]);
+    
+    const calculatedTTC = calculateTTC(values.sale_price_ht, values.tva);
+    const finalValues = {
+      ...values,
+      sale_price_ttc: calculatedTTC
+    };
+    
+    Object.keys(finalValues).forEach(key => {
+      if (key === 'image' && finalValues[key] && finalValues[key].length > 0) {
+        formData.append(key, finalValues[key][0]);
       } else if (key !== 'image') {
-        // Ajouter tous les autres champs, même s'ils sont vides
-        formData.append(key, values[key] || '');
+        formData.append(key, finalValues[key] || '');
       }
     });
 
-    // Debug FormData
-    console.log('Form values:', values);
+    console.log('Form values:', finalValues);
     console.log('FormData contents:');
     for (let [key, value] of formData.entries()) {
       console.log(key, value);
     }
 
-    const response = await ApiService.post('/api/products', values, {
+    const response = await ApiService.post('/api/products', finalValues, {
       headers: {
         'Content-Type': 'multipart/form-data'
       }
@@ -132,7 +152,6 @@ const ProductCreateScreen = () => {
         life: 3000
       });
       
-      // Attendre un peu avant de naviguer pour que l'utilisateur voie le toast
       setTimeout(() => {
         navigate('/products');
       }, 1000);
@@ -158,15 +177,26 @@ const ProductCreateScreen = () => {
     onSubmit: handleSubmit
   });
 
+  
+  const [calculatedTTC, setCalculatedTTC] = useState('');
+
+  useEffect(() => {
+    if (form.values.sale_price_ht && form.values.tva) {
+      const ttc = calculateTTC(form.values.sale_price_ht, form.values.tva);
+      setCalculatedTTC(ttc);
+      if (form.values.sale_price_ttc !== ttc) {
+        form.values.sale_price_ttc = ttc;
+      }
+    }
+  }, [form.values.sale_price_ht, form.values.tva]);
+
   return (
     <div className="container-fluid py-4">
       <Toast ref={toast} />
       
       <div className="row justify-content-center">
         <div className="col-12 col-md-10 col-lg-8">
-          {/* Card avec Bootstrap */}
           <div className="card shadow-sm">
-            {/* Header de la card */}
             <div className="card-header bg-white border-bottom">
               <div className="d-flex justify-content-between align-items-center">
                 <h4 className="m-0 text-primary">
@@ -238,7 +268,7 @@ const ProductCreateScreen = () => {
                       />
                     </div>
 
-                    <div className="col-md-6">
+                    <div className="col-md-4">
                       <FormField
                         name="category_id"
                         form={form}
@@ -252,7 +282,7 @@ const ProductCreateScreen = () => {
                       />
                     </div>
 
-                    <div className="col-md-6">
+                    <div className="col-md-4">
                       <FormField
                         name="unit"
                         form={form}
@@ -287,11 +317,26 @@ const ProductCreateScreen = () => {
                         form={form}
                         type="number"
                         label="Prix de vente HT"
-                        placeholder="0.00 (optionnel)"
+                        placeholder="0.00"
                         icon="pi pi-money-bill"
+                        required
                         helperText="Prix de vente hors taxes"
                         step="0.01"
                         min="0"
+                      />
+                    </div>
+
+                    <div className="col-md-4">
+                      <FormField
+                        name="tva"
+                        form={form}
+                        type="select"
+                        label="TVA (%)"
+                        placeholder="Taux de TVA"
+                        icon="pi pi-percentage"
+                        required
+                        helperText="Taux de TVA applicable"
+                        options={tvaOptions}
                       />
                     </div>
 
@@ -301,12 +346,14 @@ const ProductCreateScreen = () => {
                         form={form}
                         type="number"
                         label="Prix de vente TTC"
-                        placeholder="0.00"
+                        placeholder="Calculé automatiquement"
                         icon="pi pi-dollar"
-                        required
-                        helperText="Prix de vente toutes taxes comprises"
+                        helperText="Prix calculé automatiquement (HT + TVA)"
                         step="0.01"
                         min="0"
+                        value={calculatedTTC || form.values.sale_price_ttc}
+                        readOnly
+                        disabled
                       />
                     </div>
 
@@ -325,7 +372,7 @@ const ProductCreateScreen = () => {
                       />
                     </div>
 
-                    <div className="col-md-6">
+                    <div className="col-6">
                       <FormField
                         name="image"
                         form={form}
@@ -337,7 +384,6 @@ const ProductCreateScreen = () => {
                       />
                     </div>
                   </div>
-
                   {/* Boutons d'action */}
                   <div className="d-flex justify-content-end gap-2 mt-4">
                     <button

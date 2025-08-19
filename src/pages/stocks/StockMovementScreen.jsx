@@ -381,7 +381,7 @@ const StockMovementScreen = () => {
                           type="number"
                           className={`form-control ${errors.item_purchase_or_sale_price ? 'is-invalid' : ''}`}
                           value={formData.item_purchase_or_sale_price}
-                          onChange={(e) => handleInputChange('item_purchase_or_sale_price', parseFloat(e.target.value) || 0)}
+                          onChange={(e) => handleInputChange('item_purchase_or_sale_price', (e.target.value))}
                           step="0.01"
                           min="0"
                           placeholder="0.00"
@@ -417,9 +417,9 @@ const StockMovementScreen = () => {
                           type="number"
                           className={`form-control ${errors.item_quantity ? 'is-invalid' : ''}`}
                           value={formData.item_quantity}
-                          onChange={(e) => handleInputChange('item_quantity', parseFloat(e.target.value) || 0)}
+                          onChange={(e) => handleInputChange('item_quantity', (e.target.value))}
                           step="0.01"
-                          min="0.01"
+                          min="0"
                           required
                         />
                         <span className="input-group-text">{stockProduct.measurement_unit || 'pcs'}</span>

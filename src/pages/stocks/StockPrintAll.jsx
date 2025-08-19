@@ -224,7 +224,7 @@ function StockPrintAll() {
                     <tbody>
 
                         {
-                           
+                            groupedData != null &&
                             Object.entries(groupedData)?.map((category, index) => (
                                <>
                                  <tr key={index}>

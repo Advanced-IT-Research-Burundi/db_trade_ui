@@ -90,10 +90,12 @@ import DepenseScreen from '../pages/imports/DepenseScreen.jsx';
 import ReportAnnuelScreen from '../pages/reports/ReportAnnuelScreen.jsx';
 import CommandesEditScreen from '../pages/imports/CommandesEditScreen.jsx';
 import BonEntreScreen from '../pages/imports/BonEntreScreen.jsx';
+import BonEntreShowScreen from '../pages/imports/BonEntreShowScreen.jsx';
 
 // Composant pour les routes protégées
 const ProtectedRoute = ({ children }) => {
-const { isAuthenticated } = useAuth();
+  const { isAuthenticated } = useAuth();
+ 
 
   return isAuthenticated ? (
     <MainLayout>
@@ -191,6 +193,7 @@ const protectedRoutes = [
   { path: '/livraison', component: LivraisonScreen},
   { path: '/importFile', component: ExcelReader},
   { path: '/bonEntre', component: BonEntreScreen},
+  { path: '/bon-entree/:id', component: BonEntreShowScreen},
 
   // Errors
   { path: '/404', component: NotFound },

@@ -417,7 +417,7 @@ const StockMovementScreen = () => {
                           type="number"
                           className={`form-control ${errors.item_quantity ? 'is-invalid' : ''}`}
                           value={formData.item_quantity}
-                          onChange={(e) => handleInputChange('item_quantity', parseFloat(e.target.value) || 1)}
+                          onChange={(e) => handleInputChange('item_quantity', parseFloat(e.target.value) || 0)}
                           step="0.01"
                           min="0.01"
                           required

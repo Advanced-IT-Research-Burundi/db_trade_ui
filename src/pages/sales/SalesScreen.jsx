@@ -11,6 +11,8 @@ const SalesScreen = () => {
   const [stats, setStats] = useState({});
   const [loading, setLoading] = useState(false);
   const [statsLoading, setStatsLoading] = useState(false);
+  const [cancelReason, setCancelReason] = useState("");
+
   const [filters, setFilters] = useState({
     search: '',
     date_from: '',
@@ -25,6 +27,15 @@ const SalesScreen = () => {
     to: 0
   });
   const [deleteModal, setDeleteModal] = useState({ show: false, saleId: null });
+  const [cancelModal, setCancelModal] = useState({ show: false, saleId: null });
+  const [paymentModal, setPaymentModal] = useState({ 
+    show: false, 
+    saleId: null, 
+    dueAmount: 0, 
+    paymentAmount: '', 
+    paymentMethod: 'cash',
+    processing: false 
+  });
   const toast = useRef(null);
   const navigate = useNavigate();
 
@@ -100,12 +111,83 @@ const SalesScreen = () => {
         loadSales(pagination.current_page);
         loadStats();
       } else {
-        showToast('error', response.message || 'Erreur lors de la suppression');
+        showToast('error', response.error || 'Erreur lors de la suppression');
       }
     } catch (error) {
       showToast('error', error.message);
     }
     setDeleteModal({ show: false, saleId: null });
+  };
+
+  const handleCancelSale = async (saleId, reason) => {
+    try {
+      const response = await ApiService.put(`/api/sales/${saleId}/cancel`, { description: reason });
+      if (response.success) {
+        showToast('success', 'Vente annulée avec succès');
+        loadSales(pagination.current_page);
+        loadStats();
+      } else {
+        showToast('error', response.error || 'Erreur lors de l\'annulation');
+      }
+    } catch (error) {
+      showToast('error', error.message);
+    }
+    setCancelModal({ show: false, saleId: null });
+  };
+
+  const handlePaymentSubmit = async () => {
+    const { saleId, paymentAmount, paymentMethod } = paymentModal;
+    
+    if (!paymentAmount || parseFloat(paymentAmount) <= 0) {
+      showToast('error', 'Veuillez saisir un montant valide');
+      return;
+    }
+
+    if (parseFloat(paymentAmount) > paymentModal.dueAmount) {
+      showToast('error', 'Le montant saisi dépasse le montant dû');
+      return;
+    }
+
+    try {
+      setPaymentModal(prev => ({ ...prev, processing: true }));
+      
+      const response = await ApiService.post(`/api/sales/${saleId}/payment`, {
+        amount: parseFloat(paymentAmount),
+        payment_method: paymentMethod,
+        payment_date: new Date().toISOString().split('T')[0]
+      });
+
+      if (response.success) {
+        showToast('success', 'Paiement enregistré avec succès');
+        loadSales(pagination.current_page);
+        loadStats();
+        setPaymentModal({ 
+          show: false, 
+          saleId: null, 
+          dueAmount: 0, 
+          paymentAmount: '', 
+          paymentMethod: 'cash',
+          processing: false 
+        });
+      } else {
+        showToast('error', response.error || 'Erreur lors de l\'enregistrement du paiement');
+      }
+    } catch (error) {
+      showToast('error', error.message);
+    } finally {
+      setPaymentModal(prev => ({ ...prev, processing: false }));
+    }
+  };
+
+  const openPaymentModal = (sale) => {
+    setPaymentModal({
+      show: true,
+      saleId: sale.id,
+      dueAmount: sale.due_amount,
+      paymentAmount: sale.due_amount.toString(),
+      paymentMethod: 'cash',
+      processing: false
+    });
   };
 
   const showToast = (severity, detail) => {
@@ -116,11 +198,19 @@ const SalesScreen = () => {
   const formatDate = (date) => new Date(date).toLocaleDateString('fr-FR');
 
   const getStatusBadge = (sale) => {
+    if (sale.status === 'cancelled') return <span className="badge bg-secondary"><i className="pi pi-ban me-1"></i>Annulée</span>;
     if (sale.due_amount == 0) return <span className="badge bg-success"><i className="pi pi-check-circle me-1"></i>Payé</span>;
     if (sale.paid_amount > 0) return <span className="badge bg-warning"><i className="pi pi-clock me-1"></i>Partiel</span>;
     return <span className="badge bg-danger"><i className="pi pi-x-circle me-1"></i>Impayé</span>;
   };
 
+  const canCancelSale = (sale) => {
+    return sale.status !== 'cancelled' ;
+  };
+
+  const canPaySale = (sale) => {
+    return sale.status !== 'cancelled' && sale.due_amount > 0;
+  };
 
   const Pagination = () => {
     if (pagination.last_page <= 1) return null;
@@ -243,6 +333,7 @@ const SalesScreen = () => {
                 <option value="paid">Payé</option>
                 <option value="partial">Partiel</option>
                 <option value="unpaid">Impayé</option>
+                <option value="cancelled">Annulée</option>
               </select>
             </div>
             <div className="col-md-3 d-flex align-items-end gap-2">
@@ -281,7 +372,7 @@ const SalesScreen = () => {
               <tbody>
                 {loading ? (
                   <tr>
-                    <td colSpan="10" className="text-center py-5">
+                    <td colSpan="9" className="text-center py-5">
                       <div className="spinner-border text-primary" role="status">
                         <span className="visually-hidden">Chargement...</span>
                       </div>
@@ -345,13 +436,37 @@ const SalesScreen = () => {
                           <Link to={`/sales/${sale.id}`} className="btn btn-sm btn-outline-primary" title="Voir">
                             <i className="pi pi-eye"></i>
                           </Link>
-                          <a href={`/sales/${sale.id}/edit`} className="btn btn-sm btn-outline-warning" title="Modifier">
-                            <i className="pi pi-pencil"></i>
-                          </a>
-                          <button type="button" className="btn btn-sm btn-outline-danger" title="Supprimer"
-                                  onClick={() => setDeleteModal({ show: true, saleId: sale.id })}>
-                            <i className="pi pi-trash"></i>
-                          </button>
+                          {sale.status !== 'cancelled' && (
+                            <a href={`/sales/${sale.id}/edit`} className="btn btn-sm btn-outline-warning" title="Modifier">
+                              <i className="pi pi-pencil"></i>
+                            </a>
+                          )}
+                          {canPaySale(sale) && (
+                            <button 
+                              type="button" 
+                              className="btn btn-sm btn-outline-success" 
+                              title="Payer"
+                              onClick={() => openPaymentModal(sale)}
+                            >
+                              <i className="pi pi-credit-card"></i>
+                            </button>
+                          )}
+                          {canCancelSale(sale) && (
+                            <button 
+                              type="button" 
+                              className="btn btn-sm btn-outline-secondary" 
+                              title="Annuler"
+                              onClick={() => setCancelModal({ show: true, saleId: sale.id })}
+                            >
+                              <i className="pi pi-ban"></i>
+                            </button>
+                          )}
+                          {sale.status !== 'cancelled' && (
+                            <button type="button" className="btn btn-sm btn-outline-danger" title="Supprimer"
+                                    onClick={() => setDeleteModal({ show: true, saleId: sale.id })}>
+                              <i className="pi pi-trash"></i>
+                            </button>
+                          )}
                         </div>
                       </td>
                     </tr>
@@ -405,6 +520,201 @@ const SalesScreen = () => {
             </div>
           </div>
           <div className="modal-backdrop show" onClick={() => setDeleteModal({ show: false, saleId: null })}></div>
+        </>
+      )}
+
+      {/* Cancel Sale Modal */}
+      {cancelModal.show && (
+        <>
+          <div className="modal show d-block" tabIndex="-1">
+            <div className="modal-dialog">
+              <div className="modal-content">
+                <div className="modal-header bg-warning text-dark">
+                  <h5 className="modal-title">
+                    <i className="pi pi-ban me-2"></i>Confirmer l'annulation
+                  </h5>
+                  <button
+                    type="button"
+                    className="btn-close"
+                    onClick={() => {
+                      setCancelModal({ show: false, saleId: null });
+                      setCancelReason(""); // reset reason
+                    }}
+                  ></button>
+                </div>
+                <div className="modal-body">
+                  <p>
+                    Êtes-vous sûr de vouloir annuler cette vente ? Cette action ne peut
+                    être effectuée que sur cette vente.
+                  </p>
+
+                  <div className="mb-3">
+                    <label htmlFor="cancelReason" className="form-label">
+                      Motif de l'annulation
+                    </label>
+                    <input
+                      type="text"
+                      id="cancelReason"
+                      className="form-control"
+                      value={cancelReason}
+                      onChange={(e) => setCancelReason(e.target.value)}
+                      placeholder="Entrez le motif de l'annulation"
+                    />
+                  </div>
+                </div>
+                <div className="modal-footer">
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    onClick={() => {
+                      setCancelModal({ show: false, saleId: null });
+                      setCancelReason(""); // reset reason
+                    }}
+                  >
+                    Fermer
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-warning"
+                    onClick={() => {
+                      handleCancelSale(cancelModal.saleId, cancelReason);
+                      setCancelReason(""); 
+                    }}
+                    disabled={!cancelReason.trim()} // disable if reason is empty
+                  >
+                    <i className="pi pi-ban me-1"></i>Annuler la vente
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div
+            className="modal-backdrop show"
+            onClick={() => {
+              setCancelModal({ show: false, saleId: null });
+              setCancelReason("");
+            }}
+          ></div>
+        </>
+      )}
+
+      {/* Payment Modal */}
+      {paymentModal.show && (
+        <>
+          <div className="modal show d-block" tabIndex="-1">
+            <div className="modal-dialog">
+              <div className="modal-content">
+                <div className="modal-header bg-success text-white">
+                  <h5 className="modal-title">
+                    <i className="pi pi-credit-card me-2"></i>Enregistrer un paiement
+                  </h5>
+                  <button type="button" className="btn-close btn-close-white"
+                          onClick={() => setPaymentModal({ 
+                            show: false, 
+                            saleId: null, 
+                            dueAmount: 0, 
+                            paymentAmount: '', 
+                            paymentMethod: 'cash',
+                            processing: false 
+                          })}></button>
+                </div>
+                <div className="modal-body">
+                  <div className="mb-3">
+                    <label className="form-label">Montant dû</label>
+                    <div className="form-control-plaintext fw-bold text-warning">
+                      {formatCurrency(paymentModal.dueAmount)}
+                    </div>
+                  </div>
+                  
+                  <div className="mb-3">
+                    <label className="form-label">Montant à payer <span className="text-danger">*</span></label>
+                    <div className="input-group">
+                      <span className="input-group-text">
+                        <i className="pi pi-money-bill-wave"></i>
+                      </span>
+                      <input 
+                        type="number" 
+                        className="form-control" 
+                        placeholder="Montant"
+                        value={paymentModal.paymentAmount}
+                        onChange={(e) => setPaymentModal(prev => ({ 
+                          ...prev, 
+                          paymentAmount: e.target.value 
+                        }))}
+                        min="0"
+                        max={paymentModal.dueAmount}
+                        step="0.01"
+                      />
+                      <span className="input-group-text">F</span>
+                    </div>
+                  </div>
+
+                  <div className="mb-3">
+                    <label className="form-label">Méthode de paiement</label>
+                    <select 
+                      className="form-select"
+                      value={paymentModal.paymentMethod}
+                      onChange={(e) => setPaymentModal(prev => ({ 
+                        ...prev, 
+                        paymentMethod: e.target.value 
+                      }))}
+                    >
+                      <option value="cash">Espèces</option>
+                      <option value="card">Carte bancaire</option>
+                      <option value="transfer">Virement</option>
+                      <option value="mobile">Mobile Money</option>
+                      <option value="check">Chèque</option>
+                    </select>
+                  </div>
+
+                  {parseFloat(paymentModal.paymentAmount) === paymentModal.dueAmount && (
+                    <div className="alert alert-success">
+                      <i className="pi pi-check-circle me-2"></i>
+                      Cette vente sera marquée comme entièrement payée
+                    </div>
+                  )}
+                </div>
+                <div className="modal-footer">
+                  <button type="button" className="btn btn-secondary"
+                          onClick={() => setPaymentModal({ 
+                            show: false, 
+                            saleId: null, 
+                            dueAmount: 0, 
+                            paymentAmount: '', 
+                            paymentMethod: 'cash',
+                            processing: false 
+                          })}>
+                    Annuler
+                  </button>
+                  <button 
+                    type="button" 
+                    className="btn btn-success"
+                    onClick={handlePaymentSubmit}
+                    disabled={paymentModal.processing}
+                  >
+                    {paymentModal.processing ? (
+                      <>
+                        <span className="spinner-border spinner-border-sm me-1" role="status"></span>
+                        Traitement...
+                      </>
+                    ) : (
+                      <>
+                        <i className="pi pi-check me-1"></i>Enregistrer le paiement
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="modal-backdrop show" onClick={() => setPaymentModal({ 
+            show: false, 
+            saleId: null, 
+            dueAmount: 0, 
+            paymentAmount: '', 
+            paymentMethod: 'cash',
+            processing: false 
+          })}></div>
         </>
       )}
     </div>

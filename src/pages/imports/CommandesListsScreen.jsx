@@ -380,7 +380,7 @@ const CommandesListsScreen = () => {
                             className="btn btn-sm btn-outline-success" 
                             title="Depenses"
                           >
-                            Depenses
+                            <span className="me-2">Depenses</span>
                             <i className="pi pi-money-bill"></i>
                           </Link>
                           <button 

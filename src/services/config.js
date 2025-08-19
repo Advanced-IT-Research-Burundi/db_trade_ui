@@ -36,6 +36,7 @@ export const API_CONFIG = {
     TYPES_DEPENSES_IMPORTATION: '/api/depense-importation-types',
     DEPENSES_IMPORTATION: '/api/depenses-importations/commandes',
     DEPENSES_IMPORTATION_MODEL: '/api/depenses-importations',
+    BON_ENTRE: '/api/bon-entre',
   },
   HEADERS: {
     'Content-Type': 'application/json',
@@ -44,5 +45,5 @@ export const API_CONFIG = {
 };
 
 export const APP_CONSTANT = {
-  APP_CURRENCIES : [ 'USD','EURO', 'BIF',]
+  APP_CURRENCIES : [ 'USD','EURO', 'BIF','TZS','RWF','UGX','KES']
 }

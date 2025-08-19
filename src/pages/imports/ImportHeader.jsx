@@ -7,6 +7,8 @@ const ImportHeader = () => {
         <NavItem to="/commandes" label="Bon de commandes" />
         <NavItem to="/commandes-lists" label="Liste des commandes" />
         <NavItem to="/livraison" label="Bon de livraison" />
+       
+        <NavItem to="/bonEntre" label="Historique des bons d'entre" />
         <NavItem to="/importFile" label="Import de fichier des données d'usines" />
       </ul>
     </div>

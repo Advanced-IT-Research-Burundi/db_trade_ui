@@ -11,7 +11,6 @@ Chart.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Too
 
 const DashboardScreen = () => {
   const [dashboardData, setDashboardData] = useState(null);
-  const [loading, setLoading] = useState(true);
   const [period, setPeriod] = useState('30');
   const [agencyId, setAgencyId] = useState('');
   const toast = useRef(null);
@@ -19,8 +18,9 @@ const DashboardScreen = () => {
 
   const dispatch = useDispatch()
 
-  const { data } = useSelector((state) => ({
+  const { data, loading } = useSelector((state) => ({
       data: state.apiData?.data?.DASHBOAR_DATA,
+      loading: state.apiData?.loading
   }))
 
   useEffect(() => {
@@ -34,8 +34,7 @@ const DashboardScreen = () => {
   } , [data])
 
   const loadDashboard = async () => {
-    try {
-      setLoading(true);
+      try {
       const params = new URLSearchParams();
       if (period) params.append('period', period);
       if (agencyId) params.append('agency_id', agencyId);
@@ -48,9 +47,7 @@ const DashboardScreen = () => {
         detail: error.message,
         life: 3000
       });
-    } finally {
-      setLoading(false);
-    }
+    } 
   };
 
   const formatCurrency = (amount) => {
@@ -188,7 +185,7 @@ const DashboardScreen = () => {
     </div>
   );
 
-  if (loading) {
+  if (dashboardData === null && loading) {
     return (
       <div className="container-fluid">
         <style>

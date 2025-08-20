@@ -1,148 +1,122 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import { Toast } from 'primereact/toast';
-import ApiService from '../../services/api.js';
+import React, { useState, useEffect, useRef } from "react";
+import { Toast } from "primereact/toast";
+import ApiService from "../../services/api.js";
+import { useNavigate, useParams } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchApiData } from "../../stores/slicer/apiDataSlicer.js";
+import { API_CONFIG } from "../../services/config.js";
 
-const UsersShowScreen = () => {
+const UserShowScreen = () => {
+  const [user, setUser] = useState(null);
+  const [deleteModal, setDeleteModal] = useState({
+    show: false,
+    userId: null,
+  });
+  const toast = useRef(null);
   const navigate = useNavigate();
   const { id } = useParams();
-  const toast = useRef(null);
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
 
-  // Charger les données de l'utilisateur
-  const loadUser = async () => {
-    setLoading(true);
-    try {
-      const response = await ApiService.get(`/api/users/${id}`);
-      
-      if (response.success) {
-        setUser(response.data);
-      } else {
-        toast.current.show({
-          severity: 'error',
-          summary: 'Erreur',
-          detail: response.message || 'Erreur lors du chargement de l\'utilisateur',
-          life: 3000
-        });
-      }
-    } catch (error) {
-      toast.current.show({
-        severity: 'error',
-        summary: 'Erreur',
-        detail: 'Erreur lors du chargement de l\'utilisateur' + error.message,
-        life: 3000
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
+  const dispatch = useDispatch();
+  const { data, loading } = useSelector((state) => state.apiData);
 
   useEffect(() => {
-    loadUser();
+    if (id) {
+      loadUser();
+    }
   }, [id]);
 
-  // Formater le nom complet
-  const getFullName = () => {
-    if (!user) return 'Utilisateur';
-    const parts = [];
-    if (user.first_name) parts.push(user.first_name);
-    if (user.last_name) parts.push(user.last_name);
-    return parts.join(' ') || 'Utilisateur';
-  };
-
-  // Obtenir le badge de statut
-  const getStatusBadge = (status) => {
-    switch (status) {
-      case 'active':
-        return <span className="badge bg-success fs-6">Actif</span>;
-      case 'inactive':
-        return <span className="badge bg-danger fs-6">Inactif</span>;
-      case 'suspended':
-        return <span className="badge bg-warning fs-6">Suspendu</span>;
-      default:
-        return <span className="badge bg-secondary fs-6">{status}</span>;
+  useEffect(() => {
+    if (data[`user${id}`]) {
+      setUser(data[`user${id}`]);
     }
-  };
+  }, [data]);
 
-  // Obtenir le badge de rôle
-  const getRoleBadge = (role) => {
-    switch (role) {
-      case 'admin':
-        return <span className="badge bg-primary fs-6">Administrateur</span>;
-      case 'manager':
-        return <span className="badge bg-info fs-6">Manager</span>;
-      case 'salesperson':
-        return <span className="badge bg-secondary fs-6">Vendeur</span>;
-      default:
-        return <span className="badge bg-secondary fs-6">{role}</span>;
+  async function loadUser() {
+    try {
+      dispatch(
+        fetchApiData({
+          url: `${API_CONFIG.ENDPOINTS.USERS}/${id}`,
+          itemKey: `user${id}`,
+        })
+      );
+    } catch (error) {
+      showToast("error", error.message);
     }
-  };
+  }
 
-  // Formater la date
-  const formatDate = (dateString) => {
-    if (!dateString) return 'N/A';
-    return new Date(dateString).toLocaleDateString('fr-FR', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
-  };
-
-  // Formater la date et l'heure
-  const formatDateTime = (dateString) => {
-    if (!dateString) return 'N/A';
-    return new Date(dateString).toLocaleString('fr-FR', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
-
-  // Supprimer l'utilisateur
-  const handleDelete = async () => {
-    if (window.confirm(`Êtes-vous sûr de vouloir supprimer l'utilisateur "${getFullName()}" ?`)) {
-      try {
-        const response = await ApiService.delete(`/api/users/${id}`);
-        
-        if (response.success) {
-          toast.current.show({
-            severity: 'success',
-            summary: 'Succès',
-            detail: 'Utilisateur supprimé avec succès',
-            life: 3000
-          });
-          
-          setTimeout(() => {
-            navigate('/users');
-          }, 1000);
-        } else {
-          toast.current.show({
-            severity: 'error',
-            summary: 'Erreur',
-            detail: response.message || 'Erreur lors de la suppression',
-            life: 3000
-          });
-        }
-      } catch (error) {
-        toast.current.show({
-          severity: 'error',
-          summary: 'Erreur',
-          detail: 'Erreur lors de la suppression' + error.message,
-          life: 3000
-        });
+  const handleDeleteUser = async (userId) => {
+    try {
+      const response = await ApiService.delete(`/api/users/${userId}`);
+      if (response.success) {
+        showToast("success", "Utilisateur supprimé avec succès");
+        navigate("/users");
+      } else {
+        showToast("error", response.error || "Erreur lors de la suppression");
       }
+    } catch (error) {
+      showToast("error", error.message);
     }
+    setDeleteModal({ show: false, userId: null });
   };
 
-  if (loading) {
+  const showToast = (severity, detail) => {
+    toast.current?.show({
+      severity,
+      summary: severity === "error" ? "Erreur" : "Succès",
+      detail,
+      life: 3000,
+    });
+  };
+
+  const formatDate = (date) => {
+    if (!date) return "N/A";
+    const d = new Date(date);
+    return d.toLocaleDateString("fr-FR") + " à " + d.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
+  };
+
+  const formatDateOnly = (date) => {
+    if (!date) return "N/A";
+    return new Date(date).toLocaleDateString("fr-FR");
+  };
+
+  const getRoleColor = (role) => {
+    const colors = {
+      admin: "bg-danger",
+      manager: "bg-warning",
+      user: "bg-info",
+      employee: "bg-success",
+    };
+    return colors[role?.toLowerCase()] || "bg-secondary";
+  };
+
+  const getStatusColor = (status) => {
+    const colors = {
+      active: "bg-success",
+      inactive: "bg-secondary",
+      suspended: "bg-danger",
+    };
+    return colors[status?.toLowerCase()] || "bg-secondary";
+  };
+
+  const calculateAge = (dateOfBirth) => {
+    if (!dateOfBirth) return null;
+    const today = new Date();
+    const birth = new Date(dateOfBirth);
+    let age = today.getFullYear() - birth.getFullYear();
+    const monthDiff = today.getMonth() - birth.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+      age--;
+    }
+    return age;
+  };
+
+  if (loading && !user) {
     return (
-      <div className="container-fluid py-4">
-        <div className="text-center py-5">
-          <i className="pi pi-spin pi-spinner me-2"></i>
-          Chargement des données...
+      <div className="container-fluid">
+        <div className="d-flex justify-content-center align-items-center" style={{ height: "400px" }}>
+          <div className="spinner-border text-primary" role="status">
+            <span className="visually-hidden">Chargement...</span>
+          </div>
         </div>
       </div>
     );
@@ -150,8 +124,8 @@ const UsersShowScreen = () => {
 
   if (!user) {
     return (
-      <div className="container-fluid py-4">
-        <div className="text-center py-5">
+      <div className="container-fluid">
+        <div className="alert alert-danger" role="alert">
           <i className="pi pi-exclamation-triangle me-2"></i>
           Utilisateur non trouvé
         </div>
@@ -160,210 +134,386 @@ const UsersShowScreen = () => {
   }
 
   return (
-    <div className="container-fluid py-4">
+    <div className="container-fluid px-4">
       <Toast ref={toast} />
-      
+
+      {/* Actions Header */}
+      <div className="d-flex justify-content-between align-items-center mb-4">
+        <div>
+          <h1 className="h3 mb-0 text-gray-800">
+            <i className="pi pi-user me-2"></i>
+            Profil Utilisateur
+          </h1>
+        </div>
+        <div className="btn-group">
+          <button 
+            className="btn btn-secondary"
+            onClick={() => navigate("/users")}
+          >
+            <i className="pi pi-arrow-left me-2"></i>
+            Retour
+          </button>
+          <button 
+            className="btn btn-info"
+            onClick={() => navigate(`/users/${user.id}/stocks`)}
+          >
+            <i className="pi pi-box me-2"></i>
+            Gestion des Stocks
+          </button>
+          <button 
+            className="btn btn-warning"
+            onClick={() => navigate(`/users/${user.id}/edit`)}
+          >
+            <i className="pi pi-pencil me-2"></i>
+            Modifier
+          </button>
+          <button
+            type="button"
+            className="btn btn-danger"
+            onClick={() => setDeleteModal({ show: true, userId: user.id })}
+          >
+            <i className="pi pi-trash me-2"></i>
+            Supprimer
+          </button>
+        </div>
+      </div>
+
       <div className="row">
-        <div className="col-12">
-          <div className="card shadow-sm">
-            {/* Header */}
-            <div className="card-header bg-white border-bottom">
-              <div className="d-flex justify-content-between align-items-center">
-                <h4 className="m-0 text-primary">
-                  <i className="pi pi-user me-2"></i>
-                  Détails de l'utilisateur
-                </h4>
-                <div className="d-flex gap-2">
-                  <button
-                    className="btn btn-outline-primary btn-sm"
-                    onClick={() => navigate(`/users/${id}/edit`)}
-                    title="Modifier"
-                  >
-                    <i className="pi pi-pencil me-2"></i>
-                    Modifier
-                  </button>
-                  <button
-                    className="btn btn-outline-danger btn-sm"
-                    onClick={handleDelete}
-                    title="Supprimer"
-                  >
-                    <i className="pi pi-trash me-2"></i>
-                    Supprimer
-                  </button>
-                  <button
-                    className="btn btn-outline-secondary btn-sm"
-                    onClick={() => navigate('/users')}
-                    title="Retour à la liste"
-                  >
-                    <i className="pi pi-arrow-left"></i>
-                  </button>
+        {/* Profile Card */}
+        <div className="col-md-4">
+          <div className="card shadow-sm mb-4">
+            <div className="card-body text-center">
+              {user.profile_photo ? (
+                <img 
+                  src={user.profile_photo} 
+                  alt="Photo de profil"
+                  className="rounded-circle mb-3"
+                  width="120" 
+                  height="120"
+                  style={{ objectFit: "cover" }}
+                />
+              ) : (
+                <div 
+                  className="rounded-circle bg-secondary d-flex align-items-center justify-content-center text-white mx-auto mb-3"
+                  style={{ width: "120px", height: "120px" }}
+                >
+                  <i className="pi pi-user" style={{ fontSize: "3rem" }}></i>
                 </div>
+              )}
+
+              <h4 className="mb-1">{user.first_name} {user.last_name}</h4>
+              <p className="text-muted mb-2">{user.email}</p>
+
+              <div className="d-flex justify-content-center gap-2 mb-3">
+                <span className={`badge ${getRoleColor(user.role)}`}>
+                  {user.role ? user.role.charAt(0).toUpperCase() + user.role.slice(1) : "N/A"}
+                </span>
+                <span className={`badge ${getStatusColor(user.status)}`}>
+                  {user.status === "active" ? "Actif" : 
+                   user.status === "inactive" ? "Inactif" : "Suspendu"}
+                </span>
+              </div>
+
+              {user.phone && (
+                <p className="mb-1">
+                  <i className="pi pi-phone text-muted me-1"></i>
+                  {user.phone}
+                </p>
+              )}
+
+              {user.last_login_at && (
+                <small className="text-muted">
+                  <i className="pi pi-clock text-muted me-1"></i>
+                  Dernière connexion: {formatDate(user.last_login_at)}
+                </small>
+              )}
+            </div>
+          </div>
+
+          {/* Security Card */}
+          <div className="card shadow-sm mb-4">
+            <div className="card-header bg-warning text-dark">
+              <h6 className="card-title mb-0">
+                <i className="pi pi-shield me-2"></i>
+                Sécurité
+              </h6>
+            </div>
+            <div className="card-body">
+              <div className="d-flex justify-content-between align-items-center mb-2">
+                <span>Email vérifié</span>
+                {user.email_verified_at ? (
+                  <i className="pi pi-check-circle text-success"></i>
+                ) : (
+                  <i className="pi pi-times-circle text-danger"></i>
+                )}
+              </div>
+
+              <div className="d-flex justify-content-between align-items-center mb-2">
+                <span>Authentification 2FA</span>
+                {user.two_factor_enabled ? (
+                  <i className="pi pi-check-circle text-success"></i>
+                ) : (
+                  <i className="pi pi-times-circle text-muted"></i>
+                )}
+              </div>
+
+              <div className="d-flex justify-content-between align-items-center">
+                <span>Changement de mot de passe requis</span>
+                {user.must_change_password ? (
+                  <i className="pi pi-exclamation-triangle text-warning"></i>
+                ) : (
+                  <i className="pi pi-check-circle text-success"></i>
+                )}
               </div>
             </div>
+          </div>
 
+          {/* Stocks Assignment Card */}
+          <div className="card shadow-sm mb-4">
+            <div className="card-header bg-info text-white">
+              <h6 className="card-title mb-0">
+                <i className="pi pi-box me-2"></i>
+                Stocks Assignés
+              </h6>
+            </div>
             <div className="card-body">
-              <div className="row">
-                {/* Informations principales */}
-                <div className="col-lg-4">
-                  <div className="card h-100">
-                    <div className="card-body text-center">
-                      <div className="mb-3">
-                        {user.profile_photo ? (
-                          <img
-                            src={user.profile_photo}
-                            alt={getFullName()}
-                            className="rounded-circle mb-3"
-                            width="120"
-                            height="120"
-                          />
-                        ) : (
-                          <div 
-                            className="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3"
-                            style={{width: '120px', height: '120px', fontSize: '48px'}}
-                          >
-                            {getFullName().charAt(0).toUpperCase()}
-                          </div>
-                        )}
-                      </div>
-                      
-                      <h5 className="card-title mb-1">{getFullName()}</h5>
-                      <p className="text-muted mb-3">{user.email}</p>
-                      
-                      <div className="d-flex justify-content-center gap-2 mb-3">
-                        {getRoleBadge(user.role)}
-                        {getStatusBadge(user.status)}
-                      </div>
-                      
-                      {user.email_verified_at && (
-                        <div className="text-success mb-2">
-                          <i className="pi pi-check-circle me-1"></i>
-                          Email vérifié
-                        </div>
-                      )}
-                    </div>
+              {user.stocks && user.stocks.length > 0 ? (
+                <>
+                  <div className="mb-3">
+                    <strong>{user.stocks.length}</strong> stock(s) assigné(s)
                   </div>
-                </div>
+                  {user.stocks.slice(0, 3).map((stock, index) => (
+                    <div key={index} className="d-flex align-items-center mb-2">
+                      <i className="pi pi-box text-info me-2"></i>
+                      <span>{stock.name}</span>
+                    </div>
+                  ))}
+                  {user.stocks.length > 3 && (
+                    <small className="text-muted">
+                      et {user.stocks.length - 3} autre(s)...
+                    </small>
+                  )}
+                </>
+              ) : (
+                <p className="text-muted mb-0">Aucun stock assigné</p>
+              )}
 
-                {/* Détails */}
-                <div className="col-lg-8">
-                  <div className="card h-100">
-                    <div className="card-body">
-                      <h5 className="card-title mb-4">
-                        <i className="pi pi-info-circle me-2"></i>
-                        Informations détaillées
-                      </h5>
-                      
-                      <div className="row">
-                        <div className="col-md-6 mb-3">
-                          <label className="form-label text-muted">
-                            <i className="pi pi-user me-2"></i>
-                            Prénom
-                          </label>
-                          <div className="fw-bold">{user.first_name || 'N/A'}</div>
-                        </div>
-                        
-                        <div className="col-md-6 mb-3">
-                          <label className="form-label text-muted">
-                            <i className="pi pi-user me-2"></i>
-                            Nom
-                          </label>
-                          <div className="fw-bold">{user.last_name || 'N/A'}</div>
-                        </div>
-                        
-                        <div className="col-md-6 mb-3">
-                          <label className="form-label text-muted">
-                            <i className="pi pi-envelope me-2"></i>
-                            Email
-                          </label>
-                          <div className="fw-bold">{user.email}</div>
-                        </div>
-                        
-                        <div className="col-md-6 mb-3">
-                          <label className="form-label text-muted">
-                            <i className="pi pi-phone me-2"></i>
-                            Téléphone
-                          </label>
-                          <div className="fw-bold">{user.phone || 'N/A'}</div>
-                        </div>
-                        
-                        <div className="col-md-6 mb-3">
-                          <label className="form-label text-muted">
-                            <i className="pi pi-calendar me-2"></i>
-                            Date de naissance
-                          </label>
-                          <div className="fw-bold">{formatDate(user.date_of_birth)}</div>
-                        </div>
-                        
-                        <div className="col-md-6 mb-3">
-                          <label className="form-label text-muted">
-                            <i className="pi pi-users me-2"></i>
-                            Genre
-                          </label>
-                          <div className="fw-bold">
-                            {user.gender === 'male' ? 'Homme' : 
-                             user.gender === 'female' ? 'Femme' : 
-                             user.gender || 'N/A'}
-                          </div>
-                        </div>
-                        
-                        <div className="col-12 mb-3">
-                          <label className="form-label text-muted">
-                            <i className="pi pi-map-marker me-2"></i>
-                            Adresse
-                          </label>
-                          <div className="fw-bold">{user.address || 'N/A'}</div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              
-              {/* Informations système */}
-              <div className="row mt-4">
-                <div className="col-12">
-                  <div className="card">
-                    <div className="card-body">
-                      <h5 className="card-title mb-3">
-                        <i className="pi pi-cog me-2"></i>
-                        Informations système
-                      </h5>
-                      
-                      <div className="row">
-                        <div className="col-md-4 mb-3">
-                          <label className="form-label text-muted">
-                            <i className="pi pi-calendar-plus me-2"></i>
-                            Date de création
-                          </label>
-                          <div className="fw-bold">{formatDateTime(user.created_at)}</div>
-                        </div>
-                        
-                        <div className="col-md-4 mb-3">
-                          <label className="form-label text-muted">
-                            <i className="pi pi-calendar-minus me-2"></i>
-                            Dernière modification
-                          </label>
-                          <div className="fw-bold">{formatDateTime(user.updated_at)}</div>
-                        </div>
-                        
-                        <div className="col-md-4 mb-3">
-                          <label className="form-label text-muted">
-                            <i className="pi pi-check-circle me-2"></i>
-                            Email vérifié le
-                          </label>
-                          <div className="fw-bold">{formatDateTime(user.email_verified_at)}</div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+              <div className="mt-3">
+                <button 
+                  className="btn btn-sm btn-outline-info w-100"
+                  onClick={() => navigate(`/users/${user.id}/stocks`)}
+                >
+                  <i className="pi pi-cog me-1"></i>
+                  Gérer les stocks
+                </button>
               </div>
             </div>
           </div>
         </div>
+
+        {/* Details Card */}
+        <div className="col-md-8">
+          <div className="card shadow-sm mb-4">
+            <div className="card-header bg-primary text-white">
+              <h6 className="card-title mb-0">
+                <i className="pi pi-info-circle me-2"></i>
+                Informations détaillées
+              </h6>
+            </div>
+            <div className="card-body">
+              <div className="row">
+                <div className="col-md-6">
+                  <h6 className="text-muted mb-3">Informations personnelles</h6>
+
+                  <div className="mb-3">
+                    <strong>Nom complet:</strong><br />
+                    {user.first_name} {user.last_name}
+                  </div>
+
+                  <div className="mb-3">
+                    <strong>Email:</strong><br />
+                    {user.email}
+                  </div>
+
+                  {user.phone && (
+                    <div className="mb-3">
+                      <strong>Téléphone:</strong><br />
+                      {user.phone}
+                    </div>
+                  )}
+
+                  {user.date_of_birth && (
+                    <div className="mb-3">
+                      <strong>Date de naissance:</strong><br />
+                      {formatDateOnly(user.date_of_birth)}
+                      {calculateAge(user.date_of_birth) && (
+                        <span> ({calculateAge(user.date_of_birth)} ans)</span>
+                      )}
+                    </div>
+                  )}
+
+                  {user.gender && (
+                    <div className="mb-3">
+                      <strong>Genre:</strong><br />
+                      {user.gender.charAt(0).toUpperCase() + user.gender.slice(1)}
+                    </div>
+                  )}
+
+                  {user.address && (
+                    <div className="mb-3">
+                      <strong>Adresse:</strong><br />
+                      {user.address}
+                    </div>
+                  )}
+                </div>
+
+                <div className="col-md-6">
+                  <h6 className="text-muted mb-3">Informations professionnelles</h6>
+
+                  <div className="mb-3">
+                    <strong>Rôle:</strong><br />
+                    <span className={`badge ${getRoleColor(user.role)}`}>
+                      {user.role ? user.role.charAt(0).toUpperCase() + user.role.slice(1) : "N/A"}
+                    </span>
+                  </div>
+
+                  <div className="mb-3">
+                    <strong>Statut:</strong><br />
+                    <span className={`badge ${getStatusColor(user.status)}`}>
+                      {user.status === "active" ? "Actif" : 
+                       user.status === "inactive" ? "Inactif" : "Suspendu"}
+                    </span>
+                  </div>
+
+                  {user.company && (
+                    <div className="mb-3">
+                      <strong>Entreprise:</strong><br />
+                      <i className="pi pi-building text-info me-1"></i>
+                      {user.company.name}
+                    </div>
+                  )}
+
+                  {user.agency && (
+                    <div className="mb-3">
+                      <strong>Agence:</strong><br />
+                      <i className="pi pi-map-marker text-warning me-1"></i>
+                      {user.agency.name}
+                    </div>
+                  )}
+
+                  {user.created_by && (
+                    <div className="mb-3">
+                      <strong>Créé par:</strong><br />
+                      <i className="pi pi-user text-success me-1"></i>
+                      {user.created_by.first_name} {user.created_by.last_name}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Timestamps Card */}
+          <div className="card shadow-sm">
+            <div className="card-header bg-light">
+              <h6 className="card-title mb-0">
+                <i className="pi pi-clock me-2"></i>
+                Historique
+              </h6>
+            </div>
+            <div className="card-body">
+              <div className="row">
+                <div className="col-md-6">
+                  <strong>Créé le:</strong><br />
+                  <small className="text-muted">
+                    {formatDate(user.created_at)}
+                  </small>
+                </div>
+                <div className="col-md-6">
+                  <strong>Dernière modification:</strong><br />
+                  <small className="text-muted">
+                    {formatDate(user.updated_at)}
+                  </small>
+                </div>
+              </div>
+
+              {user.last_login_at && (
+                <>
+                  <hr />
+                  <div className="row">
+                    <div className="col-12">
+                      <strong>Dernière connexion:</strong><br />
+                      <small className="text-muted">
+                        {formatDate(user.last_login_at)}
+                      </small>
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
       </div>
+
+      {/* Delete Modal */}
+      {deleteModal.show && (
+        <>
+          <div className="modal show d-block" tabIndex="-1">
+            <div className="modal-dialog">
+              <div className="modal-content">
+                <div className="modal-header bg-danger text-white">
+                  <h5 className="modal-title">
+                    <i className="pi pi-exclamation-triangle me-2"></i>Confirmer
+                    la suppression
+                  </h5>
+                  <button
+                    type="button"
+                    className="btn-close btn-close-white"
+                    onClick={() =>
+                      setDeleteModal({ show: false, userId: null })
+                    }
+                  ></button>
+                </div>
+                <div className="modal-body">
+                  <p>
+                    Êtes-vous sûr de vouloir supprimer cet utilisateur ? Cette
+                    action est irréversible.
+                  </p>
+                  <div className="alert alert-warning mt-3">
+                    <i className="pi pi-info-circle me-2"></i>
+                    <strong>Attention :</strong> La suppression de cet
+                    utilisateur pourrait affecter les données associées.
+                  </div>
+                </div>
+                <div className="modal-footer">
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    onClick={() =>
+                      setDeleteModal({ show: false, userId: null })
+                    }
+                  >
+                    Annuler
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-danger"
+                    onClick={() => handleDeleteUser(deleteModal.userId)}
+                  >
+                    <i className="pi pi-trash me-1"></i>Supprimer
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div
+            className="modal-backdrop show"
+            onClick={() => setDeleteModal({ show: false, userId: null })}
+          ></div>
+        </>
+      )}
     </div>
   );
 };
 
-export default UsersShowScreen;
+export default UserShowScreen;

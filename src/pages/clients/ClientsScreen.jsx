@@ -441,16 +441,16 @@ const ClientScreen = () => {
                       </td>
                       <td className="px-4">
                         <div className="btn-group" role="group">
-                          <a 
+                          {/* <a 
                             href={`/clients/${client.id}`} 
                             className="btn btn-sm btn-outline-info" 
                             title="Voir"
                           >
                             <i className="pi pi-eye"></i>
-                          </a>
-                          <a 
-                            href={`/clients/${client.id}/edit`} 
-                            className="btn btn-sm btn-outline-warning" 
+                          </a> */}
+                          <a
+                            onClick={() => navigate(`/clients/${client.id}/edit`)}
+                            className="btn btn-sm btn-outline-warning"
                             title="Modifier"
                           >
                             <i className="pi pi-pencil"></i>

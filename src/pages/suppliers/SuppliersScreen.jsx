@@ -363,15 +363,15 @@ const SupplierScreen = () => {
                       </td>
                       <td className="px-4">
                         <div className="btn-group" role="group">
-                          <a 
+                          {/* <a 
                             href={`/suppliers/${supplier.id}`} 
                             className="btn btn-sm btn-outline-info" 
                             title="Voir"
                           >
                             <i className="pi pi-eye"></i>
-                          </a>
+                          </a> */}
                           <a 
-                            href={`/suppliers/${supplier.id}/edit`} 
+                            onClick={() => navigate(`/suppliers/${supplier.id}/edit`)}
                             className="btn btn-sm btn-outline-warning" 
                             title="Modifier"
                           >

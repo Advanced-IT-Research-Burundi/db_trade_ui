@@ -25,12 +25,12 @@ const CashRegisterScreen = () => {
   });
   const [deleteModal, setDeleteModal] = useState({ show: false, cashRegisterId: null });
   const [closeModal, setCloseModal] = useState({ show: false, cashRegisterId: null });
+  const [openModal, setOpenModal] = useState({ show: false, cashRegisterId: null });
   const toast = useRef(null);
-   const navigate = useNavigate();
+  const navigate = useNavigate();
     
-    
-        const dispatch = useDispatch();
-        const { data , loading} = useSelector(state => state.apiData);
+  const dispatch = useDispatch();
+  const { data , loading} = useSelector(state => state.apiData);
 
   useEffect(() => {
     loadCashRegisters();
@@ -59,7 +59,6 @@ const CashRegisterScreen = () => {
             showToast('error', error.message);
           } 
         };
-
 
   const handleFilterChange = (name, value) => {
     setFilters(prev => ({ ...prev, [name]: value }));
@@ -92,7 +91,7 @@ const CashRegisterScreen = () => {
 
   const handleCloseCashRegister = async (cashRegisterId) => {
     try {
-      const response = await ApiService.post(`/api/cash-registers/${cashRegisterId}/close`);
+      const response = await ApiService.post(`/api/cash-register/${cashRegisterId}/close`);
       if (response.success) {
         showToast('success', 'Caisse fermée avec succès');
         loadCashRegisters(pagination.current_page);
@@ -103,6 +102,21 @@ const CashRegisterScreen = () => {
       showToast('error', error.message);
     }
     setCloseModal({ show: false, cashRegisterId: null });
+  };
+
+  const handleOpenCashRegister = async (cashRegisterId) => {
+    try {
+      const response = await ApiService.post(`/api/cash-register/${cashRegisterId}/open`);
+      if (response.success) {
+        showToast('success', 'Caisse ouverte avec succès');
+        loadCashRegisters(pagination.current_page);
+      } else {
+        showToast('error', response.message || 'Erreur lors de l\'ouverture');
+      }
+    } catch (error) {
+      showToast('error', error.message);
+    }
+    setOpenModal({ show: false, cashRegisterId: null });
   };
 
   const showToast = (severity, detail) => {
@@ -239,7 +253,9 @@ const CashRegisterScreen = () => {
                 <i className="pi pi-refresh me-1"></i>
                 {loading ? 'Actualisation...' : 'Actualiser'}
               </button>
-              <a href="/cash-registers/create" className="btn btn-primary">
+              <a 
+               onClick={() => navigate('/cash-registers/create')}
+               className="btn btn-primary">
                 <i className="pi pi-plus-circle me-1"></i>Nouvelle Caisse
               </a>
             </div>
@@ -428,20 +444,25 @@ const CashRegisterScreen = () => {
                       </td>
                       <td className="px-4">
                         <div className="btn-group" role="group">
-                          <a 
-                            href={`/cash-registers/${cashRegister.id}`} 
+                          <a                           
+                            onClick={() => navigate(`/cash-registers/${cashRegister.id}`)}
                             className="btn btn-sm btn-outline-info" 
                             title="Voir"
                           >
                             <i className="pi pi-eye"></i>
                           </a>
-                          <a 
-                            href={`/cash-registers/${cashRegister.id}/edit`} 
-                            className="btn btn-sm btn-outline-warning" 
-                            title="Modifier"
-                          >
-                            <i className="pi pi-pencil"></i>
-                          </a>
+                          {/* Bouton d'ouverture - visible uniquement si la caisse est fermée ou suspendue */}
+                          {(cashRegister.status === 'closed' || cashRegister.status === 'suspended') && (
+                            <button 
+                              type="button" 
+                              className="btn btn-sm btn-outline-success" 
+                              title="Ouvrir la caisse"
+                              onClick={() => setOpenModal({ show: true, cashRegisterId: cashRegister.id })}
+                            >
+                              <i className="pi pi-unlock"></i>
+                            </button>
+                          )}
+                          {/* Bouton de fermeture - visible uniquement si la caisse est ouverte */}
                           {cashRegister.status === 'open' && (
                             <button 
                               type="button" 
@@ -482,6 +503,55 @@ const CashRegisterScreen = () => {
           </div>
         )}
       </div>
+
+      {/* Open Modal */}
+      {openModal.show && (
+        <>
+          <div className="modal show d-block" tabIndex="-1">
+            <div className="modal-dialog">
+              <div className="modal-content">
+                <div className="modal-header bg-success text-white">
+                  <h5 className="modal-title">
+                    <i className="pi pi-unlock me-2"></i>Ouvrir la caisse
+                  </h5>
+                  <button 
+                    type="button" 
+                    className="btn-close btn-close-white"
+                    onClick={() => setOpenModal({ show: false, cashRegisterId: null })}
+                  ></button>
+                </div>
+                <div className="modal-body">
+                  <p>Êtes-vous sûr de vouloir ouvrir cette caisse ?</p>
+                  <div className="alert alert-info">
+                    <i className="pi pi-info-circle me-2"></i>
+                    <strong>Information :</strong> Une fois ouverte, la caisse pourra être utilisée pour les transactions.
+                  </div>
+                </div>
+                <div className="modal-footer">
+                  <button 
+                    type="button" 
+                    className="btn btn-secondary"
+                    onClick={() => setOpenModal({ show: false, cashRegisterId: null })}
+                  >
+                    Annuler
+                  </button>
+                  <button 
+                    type="button" 
+                    className="btn btn-success"
+                    onClick={() => handleOpenCashRegister(openModal.cashRegisterId)}
+                  >
+                    <i className="pi pi-unlock me-1"></i>Ouvrir
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div 
+            className="modal-backdrop show" 
+            onClick={() => setOpenModal({ show: false, cashRegisterId: null })}
+          ></div>
+        </>
+      )}
 
       {/* Close Modal */}
       {closeModal.show && (

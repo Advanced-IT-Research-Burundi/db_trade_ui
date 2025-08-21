@@ -53,7 +53,11 @@ import UserStockHistoryScreen from '../pages/users/UserStockHistoryScreen.jsx';
 //vehicles
 import VehiclesScreen from '../pages/vehicules/VehiclesScreen.jsx';
 import VehiculeEditScreen from '../pages/vehicules/VehiculeEditScreen.jsx';
+// Cash Register
 import CashRegistersScreen from '../pages/cashregister/CashRegistersScreen';
+import CashRegisterCreateScreen from '../pages/cashregister/CashRegisterCreateScreen.jsx';
+import CashRegisterEditScreen from '../pages/cashregister/CashRegisterEditScreen.jsx';
+//transactions
 import TransactionsScreen from '../pages/transactions/TransactionsScreen';
 import VehiculeDepenceScreen from '../pages/vehicules/VehiculeDepenceScreen.jsx';
 import VehiculeDepenceCreateScreen from '../pages/vehicules/VehiculeDepenceCreateScreen.jsx';
@@ -169,7 +173,10 @@ const protectedRoutes = [
   { path: '/vehicles', component: VehiclesScreen },
   { path: '/vehicles/create', component: VehicleCreateScreen },
   { path: '/vehicles/:id/edit', component: VehiculeEditScreen },
+  // Cash Registers
   { path: '/cash-registers', component: CashRegistersScreen },
+  { path: '/cash-registers/create', component: CashRegisterCreateScreen },
+  { path: '/cash-registers/:id/edit', component: CashRegisterEditScreen },
   { path: '/transactions', component: TransactionsScreen },
   { path: '/vehicles/:id/expenses', component: VehiculeDepenceScreen },
   { path: '/vehicles/:id/expenses/create', component: VehiculeDepenceCreateScreen },

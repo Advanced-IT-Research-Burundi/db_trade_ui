@@ -49,6 +49,7 @@ import UsersCreateScreen from '../pages/users/UsersCreateScreen.jsx';
 import UsersEditScreen from '../pages/users/UsersEditScreen.jsx';
 import UsersShowScreen from '../pages/users/UsersShowScreen.jsx';
 import UserStocksScreen from '../pages/users/UserStocksScreen.jsx';
+import UserStockHistoryScreen from '../pages/users/UserStockHistoryScreen.jsx';
 //vehicles
 import VehiclesScreen from '../pages/vehicules/VehiclesScreen.jsx';
 import VehiculeEditScreen from '../pages/vehicules/VehiculeEditScreen.jsx';
@@ -163,6 +164,7 @@ const protectedRoutes = [
   { path: '/users/:id/edit', component: UsersEditScreen },
   { path: '/users/:id', component: UsersShowScreen },
   { path: '/users/:id/stocks', component: UserStocksScreen },
+  { path: '/users/:id/stocks/history', component: UserStockHistoryScreen },
   //vehicules
   { path: '/vehicles', component: VehiclesScreen },
   { path: '/vehicles/create', component: VehicleCreateScreen },

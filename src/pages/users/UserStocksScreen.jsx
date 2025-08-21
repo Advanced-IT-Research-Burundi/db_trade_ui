@@ -42,7 +42,7 @@ const UserStocksScreen = () => {
     try {
       dispatch(
         fetchApiData({
-          url: `${API_CONFIG.ENDPOINTS.USERS}/${id}/stocks`,
+          url: `${API_CONFIG.ENDPOINTS.USERS}/${id}/stocks/manage`,
           itemKey: "userStocks",
         })
       );
@@ -166,41 +166,6 @@ const UserStocksScreen = () => {
     <div className="container-fluid px-4">
       <Toast ref={toast} />
 
-      {/* Breadcrumb */}
-      <nav aria-label="breadcrumb" className="mb-4">
-        <ol className="breadcrumb">
-          <li className="breadcrumb-item">
-            <a 
-              href="#" 
-              onClick={(e) => { e.preventDefault(); navigate("/dashboard"); }}
-              className="text-decoration-none"
-            >
-              <i className="pi pi-home me-1"></i> Accueil
-            </a>
-          </li>
-          <li className="breadcrumb-item">
-            <a 
-              href="#" 
-              onClick={(e) => { e.preventDefault(); navigate("/users"); }}
-              className="text-decoration-none"
-            >
-              <i className="pi pi-users me-1"></i> Utilisateurs
-            </a>
-          </li>
-          <li className="breadcrumb-item">
-            <a 
-              href="#" 
-              onClick={(e) => { e.preventDefault(); navigate(`/users/${user.id}`); }}
-              className="text-decoration-none"
-            >
-              {user.first_name} {user.last_name}
-            </a>
-          </li>
-          <li className="breadcrumb-item active" aria-current="page">
-            Gestion des Stocks
-          </li>
-        </ol>
-      </nav>
 
       {/* Header */}
       <div className="d-flex justify-content-between align-items-center mb-4">

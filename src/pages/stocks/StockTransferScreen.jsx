@@ -263,30 +263,36 @@ const StockTransferScreen = () => {
           product_code: product.code
         }))
       };
-      if(validatingProformaIds.length > 0) {
-        const responsevalidate = await ApiService.post('/api/proformas/validate/bulk', {
-          proforma_ids: validatingProformaIds
-        });
-        if (!responsevalidate.success) {
-          showToast('error', 'Erreur lors de la validation des proformas');
-          return;
-        }else {
-          setValidatingProformaIds([]);
-        }
-      }
+      
 
       const response = await ApiService.post('/api/stock-transfers/stocks/transfer', transferData);
 
       if (response.success) {
+        if(validatingProformaIds.length > 0) {
+          const responsevalidate = await ApiService.post('/api/proformas/validate/bulk', {
+            proforma_ids: validatingProformaIds
+          });
+          if (!responsevalidate.success) {
+            showToast('error', `${responsevalidate.error || 'Erreur lors de la validation des proformas'}`);
+            return;
+          }else {
+            setValidatingProformaIds([]);
+          }
+        }else {
+          showToast('error', 'Aucun proforma à valider');
+        }
+
         showToast('success', 'Transfert effectué avec succès !');
         
         setSelectedProducts([]);
         setQuantities({});
+
         
         // updateProductList(formData.selectedCategory);
         updateStockSource(formData.stockSource);
       } else {
-        showToast('error', response.message || 'Erreur lors du transfert');
+        
+        showToast('error', response.error || 'Erreur lors du transfert');
       }
     } catch (error) {
       showToast('error', error.message || 'Erreur lors du transfert');

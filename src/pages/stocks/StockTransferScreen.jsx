@@ -191,8 +191,8 @@ const StockTransferScreen = () => {
   }, [formData.selectedCategory]);
 
   const updateQuantity = useCallback((productId, quantity) => {
-    const validQuantity = Math.max(1, parseInt(quantity) || 1);
-    setQuantities(prev => ({ ...prev, [productId]: validQuantity }));
+    
+    setQuantities(prev => ({ ...prev, [productId]: quantity }));
   }, []);
 
   const validateProforma = async (proforma) => {
@@ -723,7 +723,7 @@ const StockTransferScreen = () => {
                     <tbody>
                       {selectedProducts.map(product => {
                         const maxQty = product.stock_quantity || 0;
-                        const currentQty = quantities[product.id] || 1;
+                        const currentQty = quantities[product.id];
                         const hasInsufficient = hasInsufficientStock(product.id);
                         
                         return (

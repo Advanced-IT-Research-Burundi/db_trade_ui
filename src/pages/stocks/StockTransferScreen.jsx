@@ -317,29 +317,13 @@ const StockTransferScreen = () => {
           quantity: quantities[product.id] || 1,
           product_name: product.name,
           product_code: product.code
-        }))
+        })),
+        proforma_id: Array.from(validatedProformaIds)[0]
       };
 
       const response = await ApiService.post('/api/stock-transfers/stocks/transfer', transferData);
 
-      if (response.success) {
-        if (validatedProformaIds.size > 0) {
-          const responseValidate = await ApiService.post('/api/proformas/validate/bulk', {
-            proforma_ids: Array.from(validatedProformaIds)
-          });
-          
-          if (!responseValidate.success) {
-            showToast('error', `${responseValidate.error || 'Erreur lors de la validation des proformas'}`);
-            return;
-          }
-        }
-
-        showToast('success', 'Transfert effectué avec succès !');
-        resetSelection();
-        updateStockSource(formData.stockSource);
-      } else {
-        showToast('error', response.error || 'Erreur lors du transfert');
-      }
+      console.log("response", response);
     } catch (error) {
       showToast('error', error.message || 'Erreur lors du transfert');
     } finally {

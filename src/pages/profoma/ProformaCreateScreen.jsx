@@ -850,7 +850,7 @@ const ProformaCreateScreen = () => {
                                 onChange={(e) =>
                                   updateQuantity(
                                     item.product_id,
-                                    parseFloat(e.target.value) || 0
+                                    e.target.value 
                                   )
                                 }
                                 min="0.01"
@@ -977,99 +977,13 @@ const ProformaCreateScreen = () => {
           <div className="card shadow-sm border-0 mb-4">
             <div className="card-header bg-warning text-white">
               <h6 className="mb-0">
-                <i className="pi pi-credit-card me-2"></i>Paiement
+                <i className="pi pi-credit-card me-2"></i>Note (optionnel)
               </h6>
             </div>
             <div className="card-body">
-              <div className="mb-3">
-                <label className="form-label fw-semibold">
-                  Montant payé <span className="text-danger">*</span>
-                </label>
-                <div className="input-group">
-                  <input
-                    type="number"
-                    className="form-control"
-                    value={paidAmount}
-                    onChange={(e) =>
-                      setPaidAmount(parseFloat(e.target.value) || 0)
-                    }
-                    min="0"
-                    step="0.01"
-                    placeholder="0"
-                    disabled={paymentStatus.type === "success"}
-                  />
-                  <span className="input-group-text">FBU</span>
-                </div>
-              </div>
-
-              {totals.totalAmount > 0 && (
-                <div
-                  className={`alert alert-${
-                    paymentStatus.type === "success"
-                      ? "success"
-                      : paymentStatus.type === "info"
-                      ? "info"
-                      : "warning"
-                  } border-0`}
-                >
-                  <div className="d-flex align-items-center">
-                    <i
-                      className={`pi ${
-                        paymentStatus.type === "success"
-                          ? "pi-check-circle"
-                          : paymentStatus.type === "info"
-                          ? "pi-info-circle"
-                          : "pi-exclamation-triangle"
-                      } me-2`}
-                    ></i>
-                    <small>{paymentStatus.message}</small>
-                  </div>
-                </div>
-              )}
-
-              {/* Boutons de montant rapide */}
-              {totals.totalAmount > 0 && (
-                <div className="mb-3">
-                  <label className="form-label fw-semibold small">
-                    Montant rapide:
-                  </label>
-                  <div className="d-flex flex-wrap gap-2">
-                    <button
-                      type="button"
-                      className="btn btn-outline-secondary btn-sm"
-                      onClick={() => setQuickAmount(totals.totalAmount)}
-                    >
-                      Exact
-                    </button>
-                    {[
-                      Math.ceil(totals.totalAmount / 1000) * 1000,
-                      Math.ceil(totals.totalAmount / 5000) * 5000,
-                      Math.ceil(totals.totalAmount / 10000) * 10000,
-                    ]
-                      .filter(
-                        (amount, index, arr) =>
-                          amount > totals.totalAmount &&
-                          arr.indexOf(amount) === index
-                      )
-                      .slice(0, 3)
-                      .map((amount, index) => (
-                        <button
-                          key={index}
-                          type="button"
-                          className="btn btn-outline-secondary btn-sm"
-                          onClick={() => setQuickAmount(amount)}
-                        >
-                          {formatCurrency(amount)}
-                        </button>
-                      ))}
-                  </div>
-                </div>
-              )}
+                     
 
               <div className="mb-3">
-                <label className="form-label fw-semibold">
-                  Note (optionnel)
-                </label>
                 <textarea
                   className="form-control"
                   value={note}

@@ -60,12 +60,12 @@ const cartReducer = (state, action) => {
     case CART_ACTIONS.UPDATE_QUANTITY: {
       const { productId, quantity } = action.payload;
       
-      if (quantity <= 0) {
-        return {
-          ...state,
-          items: state.items.filter(item => item.product_id !== productId)
-        };
-      }
+      // if (quantity <= 0) {
+      //   return {
+      //     ...state,
+      //     items: state.items.filter(item => item.product_id !== productId)
+      //   };
+      // }
       
       return {
         ...state,

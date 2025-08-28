@@ -196,7 +196,7 @@ const StockTransferScreen = () => {
   }, []);
 
   const validateProforma = async (proforma) => {
-    
+
     if (validatedProformaIds.size > 0) {
       showToast('info', 'Validation déjà effectuée faire le transfert de l\'existant ou supprime le pour en créer un nouveau'+validatedProformaIds.size);
       return;
@@ -274,7 +274,12 @@ const StockTransferScreen = () => {
         }
       });
 
-      setSelectedProducts(newSelectedProducts);
+      const updatedProducts = newSelectedProducts.map(product => ({
+        ...product,
+        is_proforma: true
+      }));
+
+      setSelectedProducts(updatedProducts);
       setQuantities(newQuantities);
       setValidatedProformaIds(prev => new Set([...prev, proforma.id]));
 
@@ -728,6 +733,7 @@ const StockTransferScreen = () => {
                         const maxQty = product.stock_quantity || 0;
                         const currentQty = quantities[product.id];
                         const hasInsufficient = hasInsufficientStock(product.id);
+                        const is_proforma = product.is_proforma || false;
                         
                         return (
                           <tr key={`selected-${product.id}`} className={hasInsufficient ? 'border-danger bg-light' : ''}>
@@ -753,6 +759,7 @@ const StockTransferScreen = () => {
                                 style={{ width: '70px', display: 'inline-block' }}
                                 min="1"
                                 value={currentQty}
+                                disabled={is_proforma}
                                 onChange={(e) => updateQuantity(product.id, e.target.value)}
                               />
                               <small className={`d-block ${hasInsufficient ? 'text-danger' : 'text-muted'}`}>
@@ -764,6 +771,7 @@ const StockTransferScreen = () => {
                                 className="btn btn-sm btn-outline-danger"
                                 onClick={() => removeFromTransfer(product.id)}
                                 title="Retirer"
+                                disabled={is_proforma}
                               >
                                 <i className="pi pi-times"></i>
                               </button>

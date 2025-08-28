@@ -4,8 +4,14 @@ import { useCart } from '../contexts/cartReducer.jsx';
 import { Badge } from 'primereact/badge';
 import { Button } from 'primereact/button';
 import { Avatar } from 'primereact/avatar';
+
 //imprt useNavigate
 import { useNavigate } from 'react-router-dom';
+import LanguageSelector from './LanguageSelector.jsx';
+
+import { useIntl } from "react-intl"
+
+
 
 const Header = ({ onSidebarToggle, pageTitle = 'Tableau de bord' }) => {
   const { user, logout, isLoading, getUserInfo } = useAuth();
@@ -15,6 +21,8 @@ const Header = ({ onSidebarToggle, pageTitle = 'Tableau de bord' }) => {
   const [isUserMenuOpen, setIsUserMenuOpen] = React.useState(false);
   const [isNotificationMenuOpen, setIsNotificationMenuOpen] = React.useState(false);
 
+
+  const intl=useIntl()
 
     const navigate = useNavigate();
 
@@ -61,6 +69,10 @@ const Header = ({ onSidebarToggle, pageTitle = 'Tableau de bord' }) => {
     setIsUserMenuOpen(false);
   };
 
+  const closeAllMenus = () => {
+    
+  };
+
   // Obtenir les informations utilisateur avec la fonction du contexte
   const userInfo = getUserInfo ? getUserInfo() : {
     name: isLoading ? 'Chargement...' : (user?.name || user?.username || user?.firstName || 'Utilisateur'),
@@ -71,6 +83,7 @@ const Header = ({ onSidebarToggle, pageTitle = 'Tableau de bord' }) => {
     <nav className="navbar no-print navbar-expand-lg navbar-light bg-white shadow-sm sticky-top border-bottom">
       <div className="container-fluid px-4">
         {/* Section gauche */}
+        
         <div className="d-flex align-items-center">
           <Button
             icon="pi pi-bars"
@@ -81,7 +94,7 @@ const Header = ({ onSidebarToggle, pageTitle = 'Tableau de bord' }) => {
           />
           <div>
             <h5 className="mb-0 fw-normal text-dark">
-              {pageTitle}
+              {intl.formatMessage({id:"header.dashboard"})}
             </h5>
           </div>
         </div>
@@ -89,6 +102,9 @@ const Header = ({ onSidebarToggle, pageTitle = 'Tableau de bord' }) => {
         {/* Section droite */}
         <div className="d-flex align-items-center">
           {/* Panier */}
+          <div className="mx-4">
+            <LanguageSelector onToggleParent={closeAllMenus} />
+          </div>
           <div 
           onClick={() => navigate('/sales/create')}
           className="position-relative me-3">
@@ -194,6 +210,8 @@ const Header = ({ onSidebarToggle, pageTitle = 'Tableau de bord' }) => {
               </div>
               <i className={`pi pi-angle-${isUserMenuOpen ? 'up' : 'down'} text-muted`}></i>
             </div>
+
+          
 
             {/* Dropdown Menu Utilisateur */}
             {isUserMenuOpen && (

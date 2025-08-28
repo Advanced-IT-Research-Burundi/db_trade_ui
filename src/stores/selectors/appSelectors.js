@@ -1,0 +1,1 @@
+export const localeSelector = ({ app }) => app.locale

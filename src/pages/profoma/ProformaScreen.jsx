@@ -367,23 +367,16 @@ const ProformaScreen = () => {
             <table className="table table-hover align-middle mb-0">
               <thead className="bg-light">
                 <tr>
-                  <th className="border-0 px-4 py-3">
-                    <input 
-                      type="checkbox" 
-                      className="form-check-input"
-                      checked={selectAll}
-                      onChange={(e) => handleSelectAll(e.target.checked)}
-                    />
-                  </th>
-                  <th className="border-0 px-4 py-3">Proforma #</th>
-                  <th className="border-0 px-4 py-3">Client</th>
-                  <th className="border-0 px-4 py-3">Date</th>
-                  <th className="border-0 px-4 py-3">Montant Total</th>
-                  <th className="border-0 px-4 py-3">Reste</th>
-                  <th className="border-0 px-4 py-3">Statut</th>
-                  <th className="border-0 px-4 py-3">Agence</th>
-                  <th className="border-0 px-4 py-3">Facture</th>
-                  <th className="border-0 px-4 py-3">Actions</th>
+                 
+                  <th className="border-0 px-2 py-2">Proforma #</th>
+                  <th className="border-0 px-2 py-2">Client</th>
+                  <th className="border-0 px-2 py-2">Date</th>
+                  <th className="border-0 px-2 py-2">Montant Total</th>
+                  <th className="border-0 px-2 py-2">Reste</th>
+                  <th className="border-0 px-2 py-2">Statut</th>
+                  <th className="border-0 px-2 py-2">Stock</th>
+                  <th className="border-0 px-2 py-2">Facture</th>
+                  <th className="border-0 px-2 py-2">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -410,14 +403,7 @@ const ProformaScreen = () => {
                     const client = getClientInfo(proforma.client);
                     return (
                       <tr key={proforma.id}>
-                        <td className="px-4">
-                          <input 
-                            type="checkbox" 
-                            className="form-check-input"
-                            checked={selectedProformas.includes(proforma.id)}
-                            onChange={(e) => handleSelectProforma(proforma.id, e.target.checked)}
-                          />
-                        </td>
+                       
                         <td className="px-4">
                           <div className="d-flex align-items-center">
                             <div className="bg-primary bg-opacity-10 p-2 rounded me-2">
@@ -437,38 +423,38 @@ const ProformaScreen = () => {
                             </div>
                           </div>
                         </td>
-                        <td className="px-4">
+                        <td className="px-2">
                           <div>
                             <strong>{client.name || 'Client non spécifié'}</strong>
                             <br />
                             <small className="text-muted">{client.phone || ''}</small>
                           </div>
                         </td>
-                        <td className="px-4">
+                        <td className="px-2">
                           <div>
                             <strong>{formatDate(proforma.sale_date)}</strong>
                             <br />
                             <small className="text-muted">{getTimeAgo(proforma.sale_date)}</small>
                           </div>
                         </td>
-                        <td className="px-4">
+                        <td className="px-2">
                           <strong className="text-dark">{formatCurrency(proforma.total_amount)}</strong>
                         </td>
-                        <td className="px-4">
+                        <td className="px-2">
                           {proforma.due_amount > 0 ? (
                             <span className="text-warning">{formatCurrency(proforma.due_amount)}</span>
                           ) : (
                             <span className="text-success">0 FBU</span>
                           )}
                         </td>
-                        <td className="px-4">{getStatusBadge(proforma)}</td>
-                        <td className="px-4">
-                          <small className="text-muted">{proforma.agency?.name || 'Non spécifiée'}</small>
+                        <td className="px-2">{getStatusBadge(proforma)}</td>
+                        <td className="px-2">
+                          <small className="text-muted">{proforma.stock?.name || 'Non spécifiée'}</small>
                         </td>
-                        <td className="px-4">
+                        <td className="px-2">
                           <strong>{proforma.invoice_type || 'Non Valide'}</strong>
                         </td>
-                        <td className="px-4">
+                        <td className="px-2">
                           <div className="btn-group" role="group">
                             <Link 
                               to={`/proforma/${proforma.id}`} 

@@ -1,3 +1,20 @@
 {
-    "header.dashboard": "Dashboard"
+  "header.dashboard": "Dashboard",
+  "header.toggleMenu": "Toggle menu",
+  "header.cart": "Cart",
+  "header.notifications": "Notifications",
+  "header.recentNotifications": "Recent notifications",
+  "header.newOrderReceived": "New order received",
+  "header.lowStock": "Low stock for product X",
+  "header.pendingPayment": "Pending payment",
+  "header.viewAllNotifications": "View all notifications",
+  "header.profile": "Profile",
+  "header.settings": "Settings",
+  "header.messages": "Messages",
+  "header.logout": "Logout",
+  "header.loading": "Loading...",
+  "header.user": "User",
+  "header.emailNotAvailable": "Email not available",
+  "header.timeAgo.minutes": "min",
+  "header.timeAgo.hour": "h"
 }

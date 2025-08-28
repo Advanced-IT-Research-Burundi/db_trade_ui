@@ -1,3 +1,20 @@
 {
-    "header.dashboard": "Tableau de bord"
+  "header.dashboard": "Tableau de bord",
+  "header.toggleMenu": "Basculer le menu",
+  "header.cart": "Panier",
+  "header.notifications": "Notifications",
+  "header.recentNotifications": "Notifications récentes",
+  "header.newOrderReceived": "Nouvelle commande reçue",
+  "header.lowStock": "Stock faible pour le produit X",
+  "header.pendingPayment": "Paiement en attente",
+  "header.viewAllNotifications": "Voir toutes les notifications",
+  "header.profile": "Profil",
+  "header.settings": "Paramètres",
+  "header.messages": "Messages",
+  "header.logout": "Déconnexion",
+  "header.loading": "Chargement...",
+  "header.user": "Utilisateur",
+  "header.emailNotAvailable": "Email non disponible",
+  "header.timeAgo.minutes": "min",
+  "header.timeAgo.hour": "h"
 }

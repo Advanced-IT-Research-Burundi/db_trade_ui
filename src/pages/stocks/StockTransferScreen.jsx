@@ -196,7 +196,11 @@ const StockTransferScreen = () => {
   }, []);
 
   const validateProforma = async (proforma) => {
-
+    
+    if (validatedProformaIds.size > 0) {
+      showToast('info', 'Validation déjà effectuée faire le transfert de l\'existant ou supprime le pour en créer un nouveau'+validatedProformaIds.size);
+      return;
+    }
     if (!formData.stockSource) {
       showToast('error', 'Veuillez d\'abord sélectionner un stock source');
       return;
@@ -260,8 +264,8 @@ const StockTransferScreen = () => {
           
           const maxStock = productFromAPI.stock_quantity || 0;
           const requestedQty = item.quantity || 1;
-          newQuantities[item.product_id] = Math.min(requestedQty, maxStock);
-          
+          newQuantities[item.product_id] = requestedQty;
+
           if (requestedQty > maxStock) {
             showToast('warn', `Quantité réduite pour ${productFromAPI.name}: ${requestedQty} → ${maxStock} (stock disponible)`);
           }
@@ -328,7 +332,14 @@ const StockTransferScreen = () => {
 
       const response = await ApiService.post('/api/stock-transfers/stocks/transfer', transferData);
 
-      console.log("response", response);
+      if (response.success) {
+        showToast('success', 'Transfert effectué avec succès');
+        updateStockSource(formData.stockSource);
+        setSelectedProducts([]);
+        setQuantities({});
+        setValidatedProformaIds(new Set());
+      }
+
     } catch (error) {
       showToast('error', error.message || 'Erreur lors du transfert');
     } finally {
@@ -605,38 +616,41 @@ const StockTransferScreen = () => {
                                   </p>
                                 </div>
                               </div>
-                              <div className="dropdown">
-                                <button className="btn btn-sm btn-outline-secondary dropdown-toggle"
-                                        type="button" data-bs-toggle="dropdown">
-                                  <i className="pi pi-ellipsis-v"></i>
+                              <div className="d-flex align-items-center gap-2">
+                                <button
+                                  className="btn btn-sm btn-outline-primary"
+                                  onClick={() => {
+                                    navigate(`/proforma/${proforma.id}/edit`);
+                                  }}
+                                  disabled={isValidated}
+                                >
+                                  <i className="pi pi-pencil me-1"></i> Modifier
                                 </button>
-                                <ul className="dropdown-menu">
-                                  <li>
-                                    <button 
-                                      className="dropdown-item"
-                                      onClick={() => validateProforma(proforma)}
-                                      disabled={validatingProforma || isValidated}
-                                    >
-                                      {validatingProforma ? (
-                                        <>
-                                          <div className="spinner-border spinner-border-sm me-2" role="status">
-                                            <span className="visually-hidden">Chargement...</span>
-                                          </div>
-                                          Validation...
-                                        </>
-                                      ) : isValidated ? (
-                                        <>
-                                          <i className="pi pi-check me-2 text-success"></i>Validé
-                                        </>
-                                      ) : (
-                                        <>
-                                          <i className="pi pi-check me-2"></i>Valider le proforma
-                                        </>
-                                      )}
-                                    </button>
-                                  </li>
-                                </ul>
+
+                                <button
+                                  className="btn btn-sm btn-outline-success"
+                                  onClick={() => validateProforma(proforma)}
+                                  disabled={validatingProforma || isValidated}
+                                >
+                                  {validatingProforma ? (
+                                    <>
+                                      <div className="spinner-border spinner-border-sm me-2" role="status">
+                                        <span className="visually-hidden">Chargement...</span>
+                                      </div>
+                                      Validation...
+                                    </>
+                                  ) : isValidated ? (
+                                    <>
+                                      <i className="pi pi-check me-2 text-success"></i> Validé
+                                    </>
+                                  ) : (
+                                    <>
+                                      <i className="pi pi-check me-2"></i> Valider
+                                    </>
+                                  )}
+                                </button>
                               </div>
+
                             </div>
                             {proforma.note && (
                               <small className="text-muted">

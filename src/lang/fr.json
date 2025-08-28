@@ -16,5 +16,23 @@
   "header.user": "Utilisateur",
   "header.emailNotAvailable": "Email non disponible",
   "header.timeAgo.minutes": "min",
-  "header.timeAgo.hour": "h"
+  "header.timeAgo.hour": "h",
+  
+  "sidebar.brandName": "Advanced IT",
+  "sidebar.dashboard": "Tableau de bord",
+  "sidebar.sales": "Ventes",
+  "sidebar.proforma": "Proforma",
+  "sidebar.stocks": "Stocks",
+  "sidebar.products": "Produits",
+  "sidebar.categories": "Catégories",
+  "sidebar.clients": "Clients",
+  "sidebar.suppliers": "Fournisseurs",
+  "sidebar.imports": "Imports",
+  "sidebar.users": "Utilisateurs",
+  "sidebar.vehicles": "Véhicules",
+  "sidebar.cashRegisters": "Caisse",
+  "sidebar.transactions": "Transactions",
+  "sidebar.expenses": "Dépenses",
+  "sidebar.expenseTypes": "Types de dépenses",
+  "sidebar.reports": "Rapports"
 }

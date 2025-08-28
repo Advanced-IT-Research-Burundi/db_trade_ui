@@ -1,10 +1,12 @@
 import React from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import { Tooltip } from 'primereact/tooltip';
+import { useIntl } from "react-intl";
 import { getMenuItems } from '../config/routeConfig.js';
 
 const Sidebar = ({ isCollapsed, onToggle }) => {
   const location = useLocation();
+  const intl = useIntl();
   const menuItems = getMenuItems();
 
   return (
@@ -37,7 +39,7 @@ const Sidebar = ({ isCollapsed, onToggle }) => {
           <i className="pi pi-desktop me-2" style={{ fontSize: '1.5rem' }}></i>
           {!isCollapsed && (
             <span className="fw-bold" style={{ fontSize: '1.1rem' }}>
-              Advanced IT
+              {intl.formatMessage({id: "sidebar.brandName"})}
             </span>
           )}
         </div>
@@ -72,11 +74,13 @@ const Sidebar = ({ isCollapsed, onToggle }) => {
                     e.currentTarget.style.transform = 'translateX(0)';
                   }
                 }}
-                data-pr-tooltip={isCollapsed ? item.label : ''}
+                data-pr-tooltip={isCollapsed ? intl.formatMessage({id: item.labelKey}) : ''}
               >
                 <i className={`${item.icon}`} style={{ fontSize: '1.2rem' }}></i>
                 {!isCollapsed && (
-                  <span className="ms-3 fw-medium">{item.label}</span>
+                  <span className="ms-3 fw-medium">
+                    {intl.formatMessage({id: item.labelKey})}
+                  </span>
                 )}
                 {location.pathname === item.path && (
                   <div

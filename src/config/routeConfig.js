@@ -1,113 +1,113 @@
-
 export const routesConfig = [
   {
     path: '/dashboard',
     icon: 'pi pi-home',
-    label: 'Dashboard',
+    labelKey: 'sidebar.dashboard',
     component: 'DashboardScreen'
   },
   {
     path: '/sales',
     icon: 'pi pi-dollar',
-    label: 'Ventes',
+    labelKey: 'sidebar.sales',
     component: 'SalesScreen'
   },
   {
     path: '/proforma',
     icon: 'pi pi-file',
-    label: 'Proforma',
+    labelKey: 'sidebar.proforma',
     component: 'SalesScreen'
   },
   {
     path: '/stocks',
     icon: 'pi pi-box',
-    label: 'Stocks',
+    labelKey: 'sidebar.stocks',
     component: 'StocksScreen'
   },
   {
     path: '/products',
     icon: 'pi pi-shopping-bag',
-    label: 'Produits',
+    labelKey: 'sidebar.products',
     component: 'ProductsScreen'
   },
   {
     path: '/categories',
     icon: 'pi pi-tags',
-    label: 'Catégories',
+    labelKey: 'sidebar.categories',
     component: 'CategoriesScreen'
   },
   {
     path: '/clients',
     icon: 'pi pi-user',
-    label: 'Clients',
+    labelKey: 'sidebar.clients',
     component: 'ClientsScreen'
   },
   {
     path: '/suppliers',
     icon: 'pi pi-truck',
-    label: 'Fournisseurs',
+    labelKey: 'sidebar.suppliers',
     component: 'SuppliersScreen'
   },
   {
     path: '/commandes',
     icon: 'pi pi-upload',
-    label: 'Imports',
+    labelKey: 'sidebar.imports',
     component: 'ImportsScreen'
   },
   // {
   //   path: '/purchases',
   //   icon: 'pi pi-shopping-cart',
-  //   label: 'Achats',
+  //   labelKey: 'sidebar.purchases',
   //   component: 'PurchasesScreen'
   // },
   {
     path: '/users',
     icon: 'pi pi-users',
-    label: 'Utilisateurs',
+    labelKey: 'sidebar.users',
     component: 'UsersScreen'
   },
   {
     path: '/vehicles',
     icon: 'pi pi-car',
-    label: 'Véhicules',
+    labelKey: 'sidebar.vehicles',
     component: 'VehiclesScreen'
   },
   {
     path: '/cash-registers',
     icon: 'pi pi-wallet',
-    label: 'Caisse',
+    labelKey: 'sidebar.cashRegisters',
     component: 'CashRegistersScreen'
   },
   {
     path: '/transactions',
     icon: 'pi pi-refresh',
-    label: 'Transactions',
+    labelKey: 'sidebar.transactions',
     component: 'TransactionsScreen'
   },
   {
     path: '/expenses',
     icon: 'pi pi-money-bill',
-    label: 'Dépenses',
+    labelKey: 'sidebar.expenses',
     component: 'ExpensesScreen'
   },
   {
     path: '/expense-types',
     icon: 'pi pi-cog',
-    label: 'Types de dépenses',
+    labelKey: 'sidebar.expenseTypes',
     component: 'ExpenseTypesScreen'
   },
   {
     path: '/reports',
     icon: 'pi pi-chart-bar',
-    label: 'Rapports',
+    labelKey: 'sidebar.reports',
     component: 'ReportsScreen'
   }
 ];
+
 export const getMenuItems = () => {
-  return routesConfig.map(({ path, icon, label }) => ({
+  return routesConfig.map(({ path, icon, labelKey }) => ({
     path,
     icon,
-    label
+    labelKey
   }));
 };
 

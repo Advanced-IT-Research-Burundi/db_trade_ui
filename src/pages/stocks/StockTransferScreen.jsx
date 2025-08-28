@@ -242,7 +242,12 @@ const StockTransferScreen = () => {
       );
 
       proformaItems.forEach(item => {
-        const productFromAPI = productsFromAPI.find(p => p.id === item.product_id);
+        console.log("item", item);
+       
+        const productFromAPI = productsFromAPI.find(p => p.id == item.product_id);
+        console.log("productFromAPI", productsFromAPI);
+        
+        
         if (productFromAPI) {
           const existingProductIndex = newSelectedProducts.findIndex(p => p.id === item.product_id);
           

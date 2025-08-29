@@ -5,8 +5,10 @@ import StatCard from '../../components/Card/StatCard.jsx';
 import { Link, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchApiData } from '../../stores/slicer/apiDataSlicer.js';
+import { useIntl } from 'react-intl';
 
 const SalesScreen = () => {
+  const intl = useIntl();
   const [sales, setSales] = useState([]);
   const [stats, setStats] = useState({});
   const [loading, setLoading] = useState(false);
@@ -107,11 +109,11 @@ const SalesScreen = () => {
     try {
       const response = await ApiService.delete(`/api/sales/${saleId}`);
       if (response.success) {
-        showToast('success', 'Vente supprimée avec succès');
+        showToast('success', intl.formatMessage({id: "sales.saleDeleted"}));
         loadSales(pagination.current_page);
         loadStats();
       } else {
-        showToast('error', response.error || 'Erreur lors de la suppression');
+        showToast('error', response.error || intl.formatMessage({id: "sales.deleteError"}));
       }
     } catch (error) {
       showToast('error', error.message);
@@ -123,11 +125,11 @@ const SalesScreen = () => {
     try {
       const response = await ApiService.put(`/api/sales/${saleId}/cancel`, { description: reason });
       if (response.success) {
-        showToast('success', 'Vente annulée avec succès');
+        showToast('success', intl.formatMessage({id: "sales.saleCancelled"}));
         loadSales(pagination.current_page);
         loadStats();
       } else {
-        showToast('error', response.error || 'Erreur lors de l\'annulation');
+        showToast('error', response.error || intl.formatMessage({id: "sales.cancelError"}));
       }
     } catch (error) {
       showToast('error', error.message);
@@ -139,12 +141,12 @@ const SalesScreen = () => {
     const { saleId, paymentAmount, paymentMethod } = paymentModal;
     
     if (!paymentAmount || parseFloat(paymentAmount) <= 0) {
-      showToast('error', 'Veuillez saisir un montant valide');
+      showToast('error', intl.formatMessage({id: "sales.validAmountRequired"}));
       return;
     }
 
     if (parseFloat(paymentAmount) > paymentModal.dueAmount) {
-      showToast('error', 'Le montant saisi dépasse le montant dû');
+      showToast('error', intl.formatMessage({id: "sales.amountExceedsDue"}));
       return;
     }
 
@@ -158,7 +160,7 @@ const SalesScreen = () => {
       });
 
       if (response.success) {
-        showToast('success', 'Paiement enregistré avec succès');
+        showToast('success', intl.formatMessage({id: "sales.paymentRegistered"}));
         loadSales(pagination.current_page);
         loadStats();
         setPaymentModal({ 
@@ -170,7 +172,7 @@ const SalesScreen = () => {
           processing: false 
         });
       } else {
-        showToast('error', response.error || 'Erreur lors de l\'enregistrement du paiement');
+        showToast('error', response.error || intl.formatMessage({id: "sales.paymentError"}));
       }
     } catch (error) {
       showToast('error', error.message);
@@ -191,17 +193,22 @@ const SalesScreen = () => {
   };
 
   const showToast = (severity, detail) => {
-    toast.current?.show({ severity, summary: severity === 'error' ? 'Erreur' : 'Succès', detail, life: 3000 });
+    toast.current?.show({ 
+      severity, 
+      summary: severity === 'error' ? intl.formatMessage({id: "sales.error"}) : intl.formatMessage({id: "sales.success"}), 
+      detail, 
+      life: 3000 
+    });
   };
 
   const formatCurrency = (amount) => new Intl.NumberFormat('fr-FR').format(amount) + ' F';
   const formatDate = (date) => new Date(date).toLocaleDateString('fr-FR');
 
   const getStatusBadge = (sale) => {
-    if (sale.status === 'cancelled') return <span className="badge bg-secondary"><i className="pi pi-ban me-1"></i>Annulée</span>;
-    if (sale.due_amount == 0) return <span className="badge bg-success"><i className="pi pi-check-circle me-1"></i>Payé</span>;
-    if (sale.paid_amount > 0) return <span className="badge bg-warning"><i className="pi pi-clock me-1"></i>Partiel</span>;
-    return <span className="badge bg-danger"><i className="pi pi-x-circle me-1"></i>Impayé</span>;
+    if (sale.status === 'cancelled') return <span className="badge bg-secondary"><i className="pi pi-ban me-1"></i>{intl.formatMessage({id: "sales.cancelled"})}</span>;
+    if (sale.due_amount == 0) return <span className="badge bg-success"><i className="pi pi-check-circle me-1"></i>{intl.formatMessage({id: "sales.paid"})}</span>;
+    if (sale.paid_amount > 0) return <span className="badge bg-warning"><i className="pi pi-clock me-1"></i>{intl.formatMessage({id: "sales.partial"})}</span>;
+    return <span className="badge bg-danger"><i className="pi pi-x-circle me-1"></i>{intl.formatMessage({id: "sales.unpaid"})}</span>;
   };
 
   const canCancelSale = (sale) => {
@@ -279,17 +286,17 @@ const SalesScreen = () => {
           <div className="d-flex justify-content-between align-items-center">
             <div>
               <h2 className="text-primary mb-1">
-                <i className="pi pi-cart-check-fill me-2"></i>Gestion des Ventes
+                <i className="pi pi-cart-check-fill me-2"></i>{intl.formatMessage({id: "sales.title"})}
               </h2>
-              <p className="text-muted mb-0">{pagination.total} vente(s) au total</p>
+              <p className="text-muted mb-0">{pagination.total} {intl.formatMessage({id: "sales.totalSales"})}</p>
             </div>
             <div className="d-flex gap-2">
               <button className="btn btn-outline-primary" onClick={() => { loadSales(pagination.current_page); loadStats(); }} disabled={loading}>
                 <i className="pi pi-arrow-clockwise me-1"></i>
-                {loading ? 'Actualisation...' : 'Actualiser'}
+                {loading ? intl.formatMessage({id: "sales.refreshing"}) : intl.formatMessage({id: "sales.refresh"})}
               </button>
               <button  onClick={()=>navigate('/sales/create')} className="btn btn-primary">
-                <i className="pi pi-plus-circle me-1"></i>Nouvelle Vente
+                <i className="pi pi-plus-circle me-1"></i>{intl.formatMessage({id: "sales.newSale"})}
               </button>
             </div>
           </div>
@@ -298,10 +305,10 @@ const SalesScreen = () => {
 
       {/* Stats Cards */}
       <div className="row mb-4">
-        <StatCard icon="money-bill" title="Total" value={formatCurrency(stats.totalRevenue || 0)} color="primary" loading={statsLoading} />
-        <StatCard icon="check-circle" title="Ventes Payées" value={stats.paidSales || 0} color="success" loading={statsLoading} />
-        <StatCard icon="clock" title="Créances" value={formatCurrency(stats.totalDue || 0)} color="warning" loading={statsLoading} />
-        <StatCard icon="calendar" title="Aujourd'hui" value={stats.todaySales || 0} color="info" loading={statsLoading} />
+        <StatCard icon="money-bill" title={intl.formatMessage({id: "sales.total"})} value={formatCurrency(stats.totalRevenue || 0)} color="primary" loading={statsLoading} />
+        <StatCard icon="check-circle" title={intl.formatMessage({id: "sales.paidSales"})} value={stats.paidSales || 0} color="success" loading={statsLoading} />
+        <StatCard icon="clock" title={intl.formatMessage({id: "sales.receivables"})} value={formatCurrency(stats.totalDue || 0)} color="warning" loading={statsLoading} />
+        <StatCard icon="calendar" title={intl.formatMessage({id: "sales.today"})} value={stats.todaySales || 0} color="info" loading={statsLoading} />
       </div>
 
       {/* Filters */}
@@ -309,42 +316,42 @@ const SalesScreen = () => {
         <div className="card-body">
           <form onSubmit={handleSearch} className="row g-3">
             <div className="col-md-3">
-              <label className="form-label">Rechercher</label>
+              <label className="form-label">{intl.formatMessage({id: "sales.search"})}</label>
               <div className="input-group">
                 <span className="input-group-text"><i className="pi pi-search"></i></span>
-                <input type="text" className="form-control" placeholder="Rechercher une vente..." 
+                <input type="text" className="form-control" placeholder={intl.formatMessage({id: "sales.searchPlaceholder"})} 
                        value={filters.search} onChange={(e) => handleFilterChange('search', e.target.value)} />
               </div>
             </div>
             <div className="col-md-2">
-              <label className="form-label">Date début</label>
+              <label className="form-label">{intl.formatMessage({id: "sales.startDate"})}</label>
               <input type="date" className="form-control" value={filters.date_from} 
                      onChange={(e) => handleFilterChange('date_from', e.target.value)} />
             </div>
             <div className="col-md-2">
-              <label className="form-label">Date fin</label>
+              <label className="form-label">{intl.formatMessage({id: "sales.endDate"})}</label>
               <input type="date" className="form-control" value={filters.date_to} 
                      onChange={(e) => handleFilterChange('date_to', e.target.value)} />
             </div>
             <div className="col-md-2">
-              <label className="form-label">Statut</label>
+              <label className="form-label">{intl.formatMessage({id: "sales.status"})}</label>
               <select className="form-select" value={filters.status} onChange={(e) => handleFilterChange('status', e.target.value)}>
-                <option value="">Tous</option>
-                <option value="paid">Payé</option>
-                <option value="partial">Partiel</option>
-                <option value="unpaid">Impayé</option>
-                <option value="cancelled">Annulée</option>
+                <option value="">{intl.formatMessage({id: "sales.all"})}</option>
+                <option value="paid">{intl.formatMessage({id: "sales.paid"})}</option>
+                <option value="partial">{intl.formatMessage({id: "sales.partial"})}</option>
+                <option value="unpaid">{intl.formatMessage({id: "sales.unpaid"})}</option>
+                <option value="cancelled">{intl.formatMessage({id: "sales.cancelled"})}</option>
               </select>
             </div>
             <div className="col-md-3 d-flex align-items-end gap-2">
               <a onClick={()=>navigate('/proforma')} className="btn btn-outline-primary">
-                <i className="pi pi-file-earmark-text me-1"></i>Proforma
+                <i className="pi pi-file-earmark-text me-1"></i>{intl.formatMessage({id: "sales.proforma"})}
               </a>
               <button type="submit" className="btn btn-primary" disabled={loading}>
-                <i className="pi pi-funnel me-1"></i>Filtrer
+                <i className="pi pi-funnel me-1"></i>{intl.formatMessage({id: "sales.filter"})}
               </button>
               <button type="button" className="btn btn-outline-secondary" onClick={handleReset}>
-                <i className="pi pi-x-circle me-1"></i>Reset
+                <i className="pi pi-x-circle me-1"></i>{intl.formatMessage({id: "sales.reset"})}
               </button>
             </div>
           </form>
@@ -358,15 +365,15 @@ const SalesScreen = () => {
             <table className="table table-hover align-middle mb-0">
               <thead className="bg-light">
                 <tr>
-                  <th className="border-0 px-4 py-3">Vente #</th>
-                  <th className="border-0 px-4 py-3">Client</th>
-                  <th className="border-0 px-4 py-3">Date</th>
-                  <th className="border-0 px-4 py-3">Montant Total</th>
-                  <th className="border-0 px-4 py-3">Payé</th>
-                  <th className="border-0 px-4 py-3">Reste</th>
-                  <th className="border-0 px-4 py-3">Statut</th>
-                  <th className="border-0 px-4 py-3">Facture</th>
-                  <th className="border-0 px-4 py-3">Actions</th>
+                  <th className="border-0 px-4 py-3">{intl.formatMessage({id: "sales.saleNumber"})}</th>
+                  <th className="border-0 px-4 py-3">{intl.formatMessage({id: "sales.client"})}</th>
+                  <th className="border-0 px-4 py-3">{intl.formatMessage({id: "sales.date"})}</th>
+                  <th className="border-0 px-4 py-3">{intl.formatMessage({id: "sales.totalAmount"})}</th>
+                  <th className="border-0 px-4 py-3">{intl.formatMessage({id: "sales.paidAmount"})}</th>
+                  <th className="border-0 px-4 py-3">{intl.formatMessage({id: "sales.remaining"})}</th>
+                  <th className="border-0 px-4 py-3">{intl.formatMessage({id: "sales.status"})}</th>
+                  <th className="border-0 px-4 py-3">{intl.formatMessage({id: "sales.invoice"})}</th>
+                  <th className="border-0 px-4 py-3">{intl.formatMessage({id: "sales.actions"})}</th>
                 </tr>
               </thead>
               <tbody>
@@ -374,7 +381,7 @@ const SalesScreen = () => {
                   <tr>
                     <td colSpan="9" className="text-center py-5">
                       <div className="spinner-border text-primary" role="status">
-                        <span className="visually-hidden">Chargement...</span>
+                        <span className="visually-hidden">{intl.formatMessage({id: "sales.loading"})}</span>
                       </div>
                     </td>
                   </tr>
@@ -384,8 +391,8 @@ const SalesScreen = () => {
                     <td colSpan="9" className="text-center py-5">
                       <div className="text-muted">
                         <i className="pi pi-inbox display-4 d-block mb-3"></i>
-                        <h5>Aucune vente trouvée</h5>
-                        <p className="mb-0">Commencez par créer votre première vente</p>
+                        <h5>{intl.formatMessage({id: "sales.noSalesFound"})}</h5>
+                        <p className="mb-0">{intl.formatMessage({id: "sales.createFirstSale"})}</p>
                       </div>
                     </td>
                   </tr>
@@ -408,7 +415,7 @@ const SalesScreen = () => {
                       </td>
                       <td className="px-4">
                         <div>
-                          <strong>{sale.client?.name || 'Client supprimé'}</strong>
+                          <strong>{sale.client?.name || intl.formatMessage({id: "sales.deletedClient"})}</strong>
                           <br />
                           <small className="text-muted">{sale.client?.phone || ''}</small>
                         </div>
@@ -430,14 +437,14 @@ const SalesScreen = () => {
                         )}
                       </td>
                       <td className="px-4">{getStatusBadge(sale)}</td>
-                      <td className="px-4"><strong>{sale.type_facture || 'Standard'}</strong></td>
+                      <td className="px-4"><strong>{sale.type_facture || intl.formatMessage({id: "sales.standard"})}</strong></td>
                       <td className="px-4">
                         <div className="btn-group" role="group">
-                          <Link to={`/sales/${sale.id}`} className="btn btn-sm btn-outline-primary" title="Voir">
+                          <Link to={`/sales/${sale.id}`} className="btn btn-sm btn-outline-primary" title={intl.formatMessage({id: "sales.view"})}>
                             <i className="pi pi-eye"></i>
                           </Link>
                           {sale.status !== 'cancelled' && (
-                            <a href={`/sales/${sale.id}/edit`} className="btn btn-sm btn-outline-warning" title="Modifier">
+                            <a href={`/sales/${sale.id}/edit`} className="btn btn-sm btn-outline-warning" title={intl.formatMessage({id: "sales.edit"})}>
                               <i className="pi pi-pencil"></i>
                             </a>
                           )}
@@ -445,7 +452,7 @@ const SalesScreen = () => {
                             <button 
                               type="button" 
                               className="btn btn-sm btn-outline-success" 
-                              title="Payer"
+                              title={intl.formatMessage({id: "sales.pay"})}
                               onClick={() => openPaymentModal(sale)}
                             >
                               <i className="pi pi-credit-card"></i>
@@ -455,14 +462,14 @@ const SalesScreen = () => {
                             <button 
                               type="button" 
                               className="btn btn-sm btn-outline-secondary" 
-                              title="Annuler"
+                              title={intl.formatMessage({id: "sales.cancel"})}
                               onClick={() => setCancelModal({ show: true, saleId: sale.id })}
                             >
                               <i className="pi pi-ban"></i>
                             </button>
                           )}
                           {sale.status !== 'cancelled' && (
-                            <button type="button" className="btn btn-sm btn-outline-danger" title="Supprimer"
+                            <button type="button" className="btn btn-sm btn-outline-danger" title={intl.formatMessage({id: "sales.delete"})}
                                     onClick={() => setDeleteModal({ show: true, saleId: sale.id })}>
                               <i className="pi pi-trash"></i>
                             </button>
@@ -482,7 +489,7 @@ const SalesScreen = () => {
           <div className="card-footer bg-transparent border-0">
             <div className="d-flex justify-content-between align-items-center">
               <div className="text-muted small">
-                Affichage de {pagination.from} à {pagination.to} sur {pagination.total} résultats
+                {intl.formatMessage({id: "sales.showing"})} {pagination.from} {intl.formatMessage({id: "sales.to"})} {pagination.to} {intl.formatMessage({id: "sales.on"})} {pagination.total} {intl.formatMessage({id: "sales.results"})}
               </div>
               <Pagination />
             </div>
@@ -498,22 +505,22 @@ const SalesScreen = () => {
               <div className="modal-content">
                 <div className="modal-header bg-danger text-white">
                   <h5 className="modal-title">
-                    <i className="pi pi-exclamation-triangle me-2"></i>Confirmer la suppression
+                    <i className="pi pi-exclamation-triangle me-2"></i>{intl.formatMessage({id: "sales.confirmDelete"})}
                   </h5>
                   <button type="button" className="btn-close btn-close-white"
                           onClick={() => setDeleteModal({ show: false, saleId: null })}></button>
                 </div>
                 <div className="modal-body">
-                  <p>Êtes-vous sûr de vouloir supprimer cette vente ? Cette action est irréversible.</p>
+                  <p>{intl.formatMessage({id: "sales.deleteMessage"})}</p>
                 </div>
                 <div className="modal-footer">
                   <button type="button" className="btn btn-secondary"
                           onClick={() => setDeleteModal({ show: false, saleId: null })}>
-                    Annuler
+                    {intl.formatMessage({id: "sales.cancel"})}
                   </button>
                   <button type="button" className="btn btn-danger"
                           onClick={() => handleDeleteSale(deleteModal.saleId)}>
-                    <i className="pi pi-trash me-1"></i>Supprimer
+                    <i className="pi pi-trash me-1"></i>{intl.formatMessage({id: "sales.delete"})}
                   </button>
                 </div>
               </div>
@@ -531,7 +538,7 @@ const SalesScreen = () => {
               <div className="modal-content">
                 <div className="modal-header bg-warning text-dark">
                   <h5 className="modal-title">
-                    <i className="pi pi-ban me-2"></i>Confirmer l'annulation
+                    <i className="pi pi-ban me-2"></i>{intl.formatMessage({id: "sales.confirmCancel"})}
                   </h5>
                   <button
                     type="button"
@@ -543,21 +550,18 @@ const SalesScreen = () => {
                   ></button>
                 </div>
                 <div className="modal-body">
-                  <p>
-                    Êtes-vous sûr de vouloir annuler cette vente ? Cette action ne peut
-                    être effectuée que sur cette vente.
-                  </p>
+                  <p>{intl.formatMessage({id: "sales.cancelMessage"})}</p>
 
                   <div className="mb-3">
                     <label htmlFor="cancelReason" className="form-label">
-                      Motif de l'annulation
+                      {intl.formatMessage({id: "sales.cancelReason"})}
                     </label>
                     <textarea
                       id="cancelReason"
                       className="form-control"
                       value={cancelReason}
                       onChange={(e) => setCancelReason(e.target.value)}
-                      placeholder="Entrez le motif de l'annulation"
+                      placeholder={intl.formatMessage({id: "sales.cancelReasonPlaceholder"})}
                     ></textarea>
                   </div>
                 </div>
@@ -567,10 +571,10 @@ const SalesScreen = () => {
                     className="btn btn-secondary"
                     onClick={() => {
                       setCancelModal({ show: false, saleId: null });
-                      setCancelReason(""); // reset reason
+                      setCancelReason("");
                     }}
                   >
-                    Fermer
+                    {intl.formatMessage({id: "sales.close"})}
                   </button>
                   <button
                     type="button"
@@ -579,9 +583,9 @@ const SalesScreen = () => {
                       handleCancelSale(cancelModal.saleId, cancelReason);
                       setCancelReason(""); 
                     }}
-                    disabled={!cancelReason.trim()} // disable if reason is empty
+                    disabled={!cancelReason.trim()}
                   >
-                    <i className="pi pi-ban me-1"></i>Annuler la vente
+                    <i className="pi pi-ban me-1"></i>{intl.formatMessage({id: "sales.cancelSale"})}
                   </button>
                 </div>
               </div>
@@ -605,7 +609,7 @@ const SalesScreen = () => {
               <div className="modal-content">
                 <div className="modal-header bg-success text-white">
                   <h5 className="modal-title">
-                    <i className="pi pi-credit-card me-2"></i>Enregistrer un paiement
+                    <i className="pi pi-credit-card me-2"></i>{intl.formatMessage({id: "sales.registerPayment"})}
                   </h5>
                   <button type="button" className="btn-close btn-close-white"
                           onClick={() => setPaymentModal({ 
@@ -619,14 +623,14 @@ const SalesScreen = () => {
                 </div>
                 <div className="modal-body">
                   <div className="mb-3">
-                    <label className="form-label">Montant dû</label>
+                    <label className="form-label">{intl.formatMessage({id: "sales.amountDue"})}</label>
                     <div className="form-control-plaintext fw-bold text-warning">
                       {formatCurrency(paymentModal.dueAmount)}
                     </div>
                   </div>
                   
                   <div className="mb-3">
-                    <label className="form-label">Montant à payer <span className="text-danger">*</span></label>
+                    <label className="form-label">{intl.formatMessage({id: "sales.amountToPay"})} <span className="text-danger">*</span></label>
                     <div className="input-group">
                       <span className="input-group-text">
                         <i className="pi pi-money-bill-wave"></i>
@@ -634,7 +638,7 @@ const SalesScreen = () => {
                       <input 
                         type="number" 
                         className="form-control" 
-                        placeholder="Montant"
+                        placeholder={intl.formatMessage({id: "sales.amount"})}
                         value={paymentModal.paymentAmount}
                         onChange={(e) => setPaymentModal(prev => ({ 
                           ...prev, 
@@ -649,7 +653,7 @@ const SalesScreen = () => {
                   </div>
 
                   <div className="mb-3">
-                    <label className="form-label">Méthode de paiement</label>
+                    <label className="form-label">{intl.formatMessage({id: "sales.paymentMethod"})}</label>
                     <select 
                       className="form-select"
                       value={paymentModal.paymentMethod}
@@ -658,18 +662,18 @@ const SalesScreen = () => {
                         paymentMethod: e.target.value 
                       }))}
                     >
-                      <option value="cash">Espèces</option>
-                      <option value="card">Carte bancaire</option>
-                      <option value="transfer">Virement</option>
-                      <option value="mobile">Mobile Money</option>
-                      <option value="check">Chèque</option>
+                      <option value="cash">{intl.formatMessage({id: "sales.cash"})}</option>
+                      <option value="card">{intl.formatMessage({id: "sales.card"})}</option>
+                      <option value="transfer">{intl.formatMessage({id: "sales.transfer"})}</option>
+                      <option value="mobile">{intl.formatMessage({id: "sales.mobileMoney"})}</option>
+                      <option value="check">{intl.formatMessage({id: "sales.check"})}</option>
                     </select>
                   </div>
 
                   {parseFloat(paymentModal.paymentAmount) === paymentModal.dueAmount && (
                     <div className="alert alert-success">
                       <i className="pi pi-check-circle me-2"></i>
-                      Cette vente sera marquée comme entièrement payée
+                      {intl.formatMessage({id: "sales.fullyPaidMessage"})}
                     </div>
                   )}
                 </div>
@@ -683,7 +687,7 @@ const SalesScreen = () => {
                             paymentMethod: 'cash',
                             processing: false 
                           })}>
-                    Annuler
+                    {intl.formatMessage({id: "sales.cancel"})}
                   </button>
                   <button 
                     type="button" 
@@ -694,11 +698,11 @@ const SalesScreen = () => {
                     {paymentModal.processing ? (
                       <>
                         <span className="spinner-border spinner-border-sm me-1" role="status"></span>
-                        Traitement...
+                        {intl.formatMessage({id: "sales.processing"})}
                       </>
                     ) : (
                       <>
-                        <i className="pi pi-check me-1"></i>Enregistrer le paiement
+                        <i className="pi pi-check me-1"></i>{intl.formatMessage({id: "sales.registerPaymentBtn"})}
                       </>
                     )}
                   </button>

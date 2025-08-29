@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useIntl } from 'react-intl';
 import { Toast } from 'primereact/toast';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
@@ -6,6 +7,7 @@ import { fetchApiData } from '../../stores/slicer/apiDataSlicer.js';
 import { API_CONFIG } from '../../services/config.js';
 
 const StockScreen = () => {
+  const intl = useIntl();
   const [stocks, setStocks] = useState([]);
   const [agencies, setAgencies] = useState([]);
   const [creators, setCreators] = useState([]);
@@ -60,8 +62,6 @@ const StockScreen = () => {
     } 
   };
 
-
-
   const handleFilterChange = (name, value) => {
     setFilters(prev => ({ ...prev, [name]: value }));
   };
@@ -80,10 +80,10 @@ const StockScreen = () => {
     try {
       dispatch(fetchApiData({ url: API_CONFIG.ENDPOINTS.STOCKS + `/${stockId}`, itemKey: 'stocks', method: 'DELETE' }));
       if (data) {
-        showToast('success', 'Stock supprimé avec succès');
+        showToast('success', intl.formatMessage({id: "stock.stockDeleted"}));
         loadStocks(pagination.current_page);
       } else {
-        showToast('error', 'Erreur lors de la suppression');
+        showToast('error', intl.formatMessage({id: "stock.deleteError"}));
       }
     } catch (error) {
       showToast('error', error.message);
@@ -94,7 +94,7 @@ const StockScreen = () => {
   const showToast = (severity, detail) => {
     toast.current?.show({ 
       severity, 
-      summary: severity === 'error' ? 'Erreur' : 'Succès', 
+      summary: severity === 'error' ? intl.formatMessage({id: "stock.error"}) : intl.formatMessage({id: "stock.success"}), 
       detail, 
       life: 3000 
     });
@@ -184,11 +184,9 @@ const StockScreen = () => {
           <div className="d-flex justify-content-between align-items-center">
             <div>
               <h2 className="text-primary mb-1">
-                <i className="pi pi-box me-2"></i>Gestion des Stocks
-
-               
+                <i className="pi pi-box me-2"></i>{intl.formatMessage({id: "stock.title"})}
               </h2>
-              <p className="text-muted mb-0">{pagination.total} stock(s) au total</p>
+              <p className="text-muted mb-0">{pagination.total} {intl.formatMessage({id: "stock.totalStocks"})}</p>
             </div>
             <div className="d-flex gap-2">
               <button 
@@ -197,14 +195,14 @@ const StockScreen = () => {
                 disabled={loading}
               >
                 <i className="pi pi-refresh me-1"></i>
-                {loading ? 'Actualisation...' : 'Actualiser'}
+                {loading ? intl.formatMessage({id: "stock.refreshing"}) : intl.formatMessage({id: "stock.refresh"})}
               </button>
              <div className="d-flex gap-2">
                <a onClick={() => navigate('/stocks/transfer')} className="btn btn-outline-info">
-                <i className="pi pi-sync me-1"></i>Transfert Entre Stock
+                <i className="pi pi-sync me-1"></i>{intl.formatMessage({id: "stock.transferBetweenStocks"})}
               </a>
               <a onClick={() => navigate('/stocks/create')} className="btn btn-primary">
-                <i className="pi pi-plus-circle me-1"></i>Nouveau Stock
+                <i className="pi pi-plus-circle me-1"></i>{intl.formatMessage({id: "stock.newStock"})}
               </a>
              </div>
             </div>
@@ -216,13 +214,13 @@ const StockScreen = () => {
       <div className="card shadow-sm border-0 mb-4">
         <div className="card-header bg-light">
           <h6 className="mb-0">
-            <i className="pi pi-filter me-2"></i>Filtres de recherche
+            <i className="pi pi-filter me-2"></i>{intl.formatMessage({id: "stock.searchFilters"})}
           </h6>
         </div>
         <div className="card-body">
           <form onSubmit={handleSearch} className="row g-3">
             <div className="col-md-3">
-              <label className="form-label">Recherche</label>
+              <label className="form-label">{intl.formatMessage({id: "stock.search"})}</label>
               <div className="input-group">
                 <span className="input-group-text">
                   <i className="pi pi-search"></i>
@@ -230,7 +228,7 @@ const StockScreen = () => {
                 <input 
                   type="text" 
                   className="form-control" 
-                  placeholder="Nom, localisation ou description..."
+                  placeholder={intl.formatMessage({id: "stock.searchPlaceholder"})}
                   value={filters.search} 
                   onChange={(e) => handleFilterChange('search', e.target.value)} 
                 />
@@ -238,13 +236,13 @@ const StockScreen = () => {
             </div>
             
             <div className="col-md-2">
-              <label className="form-label">Agence</label>
+              <label className="form-label">{intl.formatMessage({id: "stock.agency"})}</label>
               <select 
                 className="form-select" 
                 value={filters.agency_id} 
                 onChange={(e) => handleFilterChange('agency_id', e.target.value)}
               >
-                <option value="">Toutes</option>
+                <option value="">{intl.formatMessage({id: "stock.all"})}</option>
                 {agencies.map(agency => (
                   <option key={agency.id} value={agency.id}>
                     {agency.name}
@@ -254,13 +252,13 @@ const StockScreen = () => {
             </div>
             
             <div className="col-md-2">
-              <label className="form-label">Créé par</label>
+              <label className="form-label">{intl.formatMessage({id: "stock.createdBy"})}</label>
               <select 
                 className="form-select" 
                 value={filters.created_by} 
                 onChange={(e) => handleFilterChange('created_by', e.target.value)}
               >
-                <option value="">Tous</option>
+                <option value="">{intl.formatMessage({id: "stock.all"})}</option>
                 {creators.map(creator => (
                   <option key={creator.id} value={creator.id}>
                     {creator.name}
@@ -270,13 +268,13 @@ const StockScreen = () => {
             </div>
             
             <div className="col-md-2">
-              <label className="form-label">Assigné à</label>
+              <label className="form-label">{intl.formatMessage({id: "stock.assignedTo"})}</label>
               <select 
                 className="form-select" 
                 value={filters.user_id} 
                 onChange={(e) => handleFilterChange('user_id', e.target.value)}
               >
-                <option value="">Tous</option>
+                <option value="">{intl.formatMessage({id: "stock.all"})}</option>
                 {users.map(user => (
                   <option key={user.id} value={user.id}>
                     {user.name}
@@ -287,10 +285,10 @@ const StockScreen = () => {
             
             <div className="col-md-3 d-flex align-items-end gap-2">
               <button type="submit" className="btn btn-primary" disabled={loading}>
-                <i className="pi pi-search me-1"></i>Rechercher
+                <i className="pi pi-search me-1"></i>{intl.formatMessage({id: "stock.searchBtn"})}
               </button>
               <button type="button" className="btn btn-outline-secondary" onClick={handleReset}>
-                <i className="pi pi-refresh me-1"></i>Reset
+                <i className="pi pi-refresh me-1"></i>{intl.formatMessage({id: "stock.reset"})}
               </button>
             </div>
           </form>
@@ -301,7 +299,7 @@ const StockScreen = () => {
       <div className="card shadow-sm border-0">
         <div className="card-header bg-white d-flex justify-content-between align-items-center">
           <h5 className="mb-0">
-            <i className="pi pi-list me-2"></i>Liste des Stocks
+            <i className="pi pi-list me-2"></i>{intl.formatMessage({id: "stock.stocksList"})}
           </h5>
         </div>
         <div className="card-body p-0">
@@ -309,14 +307,14 @@ const StockScreen = () => {
             <table className="table table-hover align-middle mb-0">
               <thead className="bg-light">
                 <tr>
-                  <th className="border-0 px-4 py-3">Nom</th>
-                  <th className="border-0 px-4 py-3">Localisation</th>
-                  <th className="border-0 px-4 py-3">Description</th>
-                  <th className="border-0 px-4 py-3">Agence</th>
-                  <th className="border-0 px-4 py-3">Créé par</th>
-                  <th className="border-0 px-4 py-3">Assigné à</th>
-                  <th className="border-0 px-4 py-3">Créé le</th>
-                  <th className="border-0 px-4 py-3">Actions</th>
+                  <th className="border-0 px-4 py-3">{intl.formatMessage({id: "stock.name"})}</th>
+                  <th className="border-0 px-4 py-3">{intl.formatMessage({id: "stock.location"})}</th>
+                  <th className="border-0 px-4 py-3">{intl.formatMessage({id: "stock.description"})}</th>
+                  <th className="border-0 px-4 py-3">{intl.formatMessage({id: "stock.agency"})}</th>
+                  <th className="border-0 px-4 py-3">{intl.formatMessage({id: "stock.createdBy"})}</th>
+                  <th className="border-0 px-4 py-3">{intl.formatMessage({id: "stock.assignedTo"})}</th>
+                  <th className="border-0 px-4 py-3">{intl.formatMessage({id: "stock.createdOn"})}</th>
+                  <th className="border-0 px-4 py-3">{intl.formatMessage({id: "stock.actions"})}</th>
                 </tr>
               </thead>
               <tbody>
@@ -324,7 +322,7 @@ const StockScreen = () => {
                   <tr>
                     <td colSpan="8" className="text-center py-5">
                       <div className="spinner-border text-primary" role="status">
-                        <span className="visually-hidden">Chargement...</span>
+                        <span className="visually-hidden">{intl.formatMessage({id: "stock.loading"})}</span>
                       </div>
                     </td>
                   </tr>
@@ -333,8 +331,8 @@ const StockScreen = () => {
                     <td colSpan="8" className="text-center py-5">
                       <div className="text-muted">
                         <i className="pi pi-inbox display-4 d-block mb-3"></i>
-                        <h5>Aucun stock trouvé</h5>
-                        <p className="mb-0">Essayez de modifier vos critères de recherche ou créez un nouveau stock</p>
+                        <h5>{intl.formatMessage({id: "stock.noStocksFound"})}</h5>
+                        <p className="mb-0">{intl.formatMessage({id: "stock.tryModifyingCriteria"})}</p>
                       </div>
                     </td>
                   </tr>
@@ -356,7 +354,7 @@ const StockScreen = () => {
                             {stock.location}
                           </div>
                         ) : (
-                          <span className="text-muted">Non spécifiée</span>
+                          <span className="text-muted">{intl.formatMessage({id: "stock.notSpecified"})}</span>
                         )}
                       </td>
                       <td className="px-4">
@@ -365,7 +363,7 @@ const StockScreen = () => {
                             {truncateText(stock.description, 50)}
                           </span>
                         ) : (
-                          <span className="text-muted">Aucune description</span>
+                          <span className="text-muted">{intl.formatMessage({id: "stock.noDescription"})}</span>
                         )}
                       </td>
                       <td className="px-4">
@@ -375,7 +373,7 @@ const StockScreen = () => {
                             {stock.agency.name}
                           </div>
                         ) : (
-                          <span className="text-muted">Non assigné</span>
+                          <span className="text-muted">{intl.formatMessage({id: "stock.notAssigned"})}</span>
                         )}
                       </td>
                       <td className="px-4">
@@ -391,7 +389,7 @@ const StockScreen = () => {
                             {stock.user.name}
                           </div>
                         ) : (
-                          <span className="text-muted">Non assigné</span>
+                          <span className="text-muted">{intl.formatMessage({id: "stock.notAssigned"})}</span>
                         )}
                       </td>
                       <td className="px-4">
@@ -411,21 +409,21 @@ const StockScreen = () => {
                           <a 
                              onClick={() => navigate(`/stocks/${stock.id}`)}
                             className="btn btn-sm btn-outline-info" 
-                            title="Voir"
+                            title={intl.formatMessage({id: "stock.view"})}
                           >
                             <i className="pi pi-eye"></i>
                           </a>
                           <a 
                             onClick={() => navigate(`/stocks/${stock.id}/edit`)}
                             className="btn btn-sm btn-outline-warning" 
-                            title="Modifier"
+                            title={intl.formatMessage({id: "stock.edit"})}
                           >
                             <i className="pi pi-pencil"></i>
                           </a>
                           <button 
                             type="button" 
                             className="btn btn-sm btn-outline-danger" 
-                            title="Supprimer"
+                            title={intl.formatMessage({id: "stock.delete"})}
                             onClick={() => setDeleteModal({ show: true, stockId: stock.id })}
                           >
                             <i className="pi pi-trash"></i>
@@ -445,7 +443,7 @@ const StockScreen = () => {
           <div className="card-footer bg-transparent border-0">
             <div className="d-flex justify-content-between align-items-center">
               <div className="text-muted small">
-                Affichage de {pagination.from} à {pagination.to} sur {pagination.total} résultats
+                {intl.formatMessage({id: "stock.showing"})} {pagination.from} {intl.formatMessage({id: "stock.to"})} {pagination.to} {intl.formatMessage({id: "stock.on"})} {pagination.total} {intl.formatMessage({id: "stock.results"})}
               </div>
               <Pagination />
             </div>
@@ -461,7 +459,7 @@ const StockScreen = () => {
               <div className="modal-content">
                 <div className="modal-header bg-danger text-white">
                   <h5 className="modal-title">
-                    <i className="pi pi-exclamation-triangle me-2"></i>Confirmer la suppression
+                    <i className="pi pi-exclamation-triangle me-2"></i>{intl.formatMessage({id: "stock.confirmDelete"})}
                   </h5>
                   <button 
                     type="button" 
@@ -470,7 +468,7 @@ const StockScreen = () => {
                   ></button>
                 </div>
                 <div className="modal-body">
-                  <p>Êtes-vous sûr de vouloir supprimer ce stock ? Cette action est irréversible.</p>
+                  <p>{intl.formatMessage({id: "stock.deleteMessage"})}</p>
                 </div>
                 <div className="modal-footer">
                   <button 
@@ -478,14 +476,14 @@ const StockScreen = () => {
                     className="btn btn-secondary"
                     onClick={() => setDeleteModal({ show: false, stockId: null })}
                   >
-                    Annuler
+                    {intl.formatMessage({id: "stock.cancel"})}
                   </button>
                   <button 
                     type="button" 
                     className="btn btn-danger"
                     onClick={() => handleDeleteStock(deleteModal.stockId)}
                   >
-                    <i className="pi pi-trash me-1"></i>Supprimer
+                    <i className="pi pi-trash me-1"></i>{intl.formatMessage({id: "stock.delete"})}
                   </button>
                 </div>
               </div>

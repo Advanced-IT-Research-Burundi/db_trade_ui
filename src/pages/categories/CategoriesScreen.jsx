@@ -1,13 +1,14 @@
 import React, { useState, useEffect, useRef } from "react";
+import { useIntl } from "react-intl";
 import { Toast } from "primereact/toast";
 import ApiService from "../../services/api.js";
 import { useNavigate } from "react-router-dom";
-
 import { API_CONFIG } from "../../services/config.js";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchApiData } from "../../stores/slicer/apiDataSlicer.js";
 
 const CategoryScreen = () => {
+  const intl = useIntl();
   const [categories, setCategories] = useState([]);
   const [agencies, setAgencies] = useState([]);
   const [creators, setCreators] = useState([]);
@@ -88,10 +89,10 @@ const CategoryScreen = () => {
     try {
       const response = await ApiService.delete(`/api/categories/${categoryId}`);
       if (response.success) {
-        showToast("success", "Catégorie supprimée avec succès");
+        showToast("success", intl.formatMessage({id: "category.categoryDeleted"}));
         loadCategories(pagination.current_page);
       } else {
-        showToast("error", response.message || "Erreur lors de la suppression");
+        showToast("error", response.message || intl.formatMessage({id: "category.deleteError"}));
       }
     } catch (error) {
       showToast("error", error.message);
@@ -102,7 +103,7 @@ const CategoryScreen = () => {
   const showToast = (severity, detail) => {
     toast.current?.show({
       severity,
-      summary: severity === "error" ? "Erreur" : "Succès",
+      summary: severity === "error" ? intl.formatMessage({id: "category.error"}) : intl.formatMessage({id: "category.success"}),
       detail,
       life: 3000,
     });
@@ -210,10 +211,10 @@ const CategoryScreen = () => {
           <div className="d-flex justify-content-between align-items-center">
             <div>
               <h2 className="text-primary mb-1">
-                <i className="pi pi-tags me-2"></i>Gestion des Catégories
+                <i className="pi pi-tags me-2"></i>{intl.formatMessage({id: "category.title"})}
               </h2>
               <p className="text-muted mb-0">
-                {pagination.total} catégorie(s) au total
+                {pagination.total} {intl.formatMessage({id: "category.totalCategories"})}
               </p>
             </div>
             <div className="d-flex gap-2">
@@ -223,13 +224,13 @@ const CategoryScreen = () => {
                 disabled={loading}
               >
                 <i className="pi pi-refresh me-1"></i>
-                {loading ? "Actualisation..." : "Actualiser"}
+                {loading ? intl.formatMessage({id: "category.refreshing"}) : intl.formatMessage({id: "category.refresh"})}
               </button>
               <a
                 onClick={() => navigate("/categories/create")}
                 className="btn btn-primary"
               >
-                <i className="pi pi-plus-circle me-1"></i>Nouvelle Catégorie
+                <i className="pi pi-plus-circle me-1"></i>{intl.formatMessage({id: "category.newCategory"})}
               </a>
             </div>
           </div>
@@ -240,13 +241,13 @@ const CategoryScreen = () => {
       <div className="card shadow-sm border-0 mb-4">
         <div className="card-header bg-light">
           <h6 className="mb-0">
-            <i className="pi pi-filter me-2"></i>Filtres de recherche
+            <i className="pi pi-filter me-2"></i>{intl.formatMessage({id: "category.searchFilters"})}
           </h6>
         </div>
         <div className="card-body">
           <form onSubmit={handleSearch} className="row g-3">
             <div className="col-md-4">
-              <label className="form-label">Recherche</label>
+              <label className="form-label">{intl.formatMessage({id: "category.search"})}</label>
               <div className="input-group">
                 <span className="input-group-text">
                   <i className="pi pi-search"></i>
@@ -254,7 +255,7 @@ const CategoryScreen = () => {
                 <input
                   type="text"
                   className="form-control"
-                  placeholder="Nom ou description..."
+                  placeholder={intl.formatMessage({id: "category.searchPlaceholder"})}
                   value={filters.search}
                   onChange={(e) => handleFilterChange("search", e.target.value)}
                 />
@@ -262,7 +263,7 @@ const CategoryScreen = () => {
             </div>
 
             <div className="col-md-3">
-              <label className="form-label">Agence</label>
+              <label className="form-label">{intl.formatMessage({id: "category.agency"})}</label>
               <select
                 className="form-select"
                 value={filters.agency_id}
@@ -270,7 +271,7 @@ const CategoryScreen = () => {
                   handleFilterChange("agency_id", e.target.value)
                 }
               >
-                <option value="">Toutes</option>
+                <option value="">{intl.formatMessage({id: "category.all"})}</option>
                 {agencies.map((agency) => (
                   <option key={agency.id} value={agency.id}>
                     {agency.name}
@@ -280,7 +281,7 @@ const CategoryScreen = () => {
             </div>
 
             <div className="col-md-3">
-              <label className="form-label">Créé par</label>
+              <label className="form-label">{intl.formatMessage({id: "category.createdBy"})}</label>
               <select
                 className="form-select"
                 value={filters.created_by}
@@ -288,7 +289,7 @@ const CategoryScreen = () => {
                   handleFilterChange("created_by", e.target.value)
                 }
               >
-                <option value="">Tous</option>
+                <option value="">{intl.formatMessage({id: "category.all"})}</option>
                 {creators.map((creator) => (
                   <option key={creator.id} value={creator.id}>
                     {creator.name}
@@ -303,14 +304,14 @@ const CategoryScreen = () => {
                 className="btn btn-primary"
                 disabled={loading}
               >
-                <i className="pi pi-search me-1"></i>Rechercher
+                <i className="pi pi-search me-1"></i>{intl.formatMessage({id: "category.searchBtn"})}
               </button>
               <button
                 type="button"
                 className="btn btn-outline-secondary"
                 onClick={handleReset}
               >
-                <i className="pi pi-refresh me-1"></i>Reset
+                <i className="pi pi-refresh me-1"></i>{intl.formatMessage({id: "category.reset"})}
               </button>
             </div>
           </form>
@@ -321,7 +322,7 @@ const CategoryScreen = () => {
       <div className="card shadow-sm border-0">
         <div className="card-header bg-white d-flex justify-content-between align-items-center">
           <h5 className="mb-0">
-            <i className="pi pi-list me-2"></i>Liste des Catégories
+            <i className="pi pi-list me-2"></i>{intl.formatMessage({id: "category.categoriesList"})}
           </h5>
         </div>
         <div className="card-body p-0">
@@ -329,12 +330,12 @@ const CategoryScreen = () => {
             <table className="table table-hover align-middle mb-0">
               <thead className="bg-light">
                 <tr>
-                  <th className="border-0 px-4 py-3">Nom</th>
-                  <th className="border-0 px-4 py-3">Description</th>
-                  <th className="border-0 px-4 py-3">Agence</th>
-                  <th className="border-0 px-4 py-3">Créé par</th>
-                  <th className="border-0 px-4 py-3">Créé le</th>
-                  <th className="border-0 px-4 py-3">Actions</th>
+                  <th className="border-0 px-4 py-3">{intl.formatMessage({id: "category.name"})}</th>
+                  <th className="border-0 px-4 py-3">{intl.formatMessage({id: "category.description"})}</th>
+                  <th className="border-0 px-4 py-3">{intl.formatMessage({id: "category.agency"})}</th>
+                  <th className="border-0 px-4 py-3">{intl.formatMessage({id: "category.createdBy"})}</th>
+                  <th className="border-0 px-4 py-3">{intl.formatMessage({id: "category.createdOn"})}</th>
+                  <th className="border-0 px-4 py-3">{intl.formatMessage({id: "category.actions"})}</th>
                 </tr>
               </thead>
               <tbody>
@@ -345,7 +346,7 @@ const CategoryScreen = () => {
                         className="spinner-border text-primary"
                         role="status"
                       >
-                        <span className="visually-hidden">Chargement...</span>
+                        <span className="visually-hidden">{intl.formatMessage({id: "category.loading"})}</span>
                       </div>
                     </td>
                   </tr>
@@ -354,10 +355,9 @@ const CategoryScreen = () => {
                     <td colSpan="6" className="text-center py-5">
                       <div className="text-muted">
                         <i className="pi pi-inbox display-4 d-block mb-3"></i>
-                        <h5>Aucune catégorie trouvée</h5>
+                        <h5>{intl.formatMessage({id: "category.noCategoriesFound"})}</h5>
                         <p className="mb-0">
-                          Essayez de modifier vos critères de recherche ou créez
-                          une nouvelle catégorie
+                          {intl.formatMessage({id: "category.tryModifyingCriteria"})}
                         </p>
                       </div>
                     </td>
@@ -381,7 +381,7 @@ const CategoryScreen = () => {
                             {truncateText(category.description, 50)}
                           </span>
                         ) : (
-                          <span className="text-muted">Aucune description</span>
+                          <span className="text-muted">{intl.formatMessage({id: "category.noDescription"})}</span>
                         )}
                       </td>
                       <td className="px-4">
@@ -391,7 +391,7 @@ const CategoryScreen = () => {
                             {category.agency.name}
                           </div>
                         ) : (
-                          <span className="text-muted">Non assigné</span>
+                          <span className="text-muted">{intl.formatMessage({id: "category.notAssigned"})}</span>
                         )}
                       </td>
                       <td className="px-4">
@@ -419,24 +419,17 @@ const CategoryScreen = () => {
                       </td>
                       <td className="px-4">
                         <div className="btn-group" role="group">
-                          {/* <a
-                            href={`/categories/${category.id}`}
-                            className="btn btn-sm btn-outline-info"
-                            title="Voir"
-                          >
-                            <i className="pi pi-eye"></i>
-                          </a> */}
                           <a
                             onClick={() => navigate(`/categories/${category.id}/edit`)}
                             className="btn btn-sm btn-outline-warning"
-                            title="Modifier"
+                            title={intl.formatMessage({id: "category.edit"})}
                           >
                             <i className="pi pi-pencil"></i>
                           </a>
                           <button
                             type="button"
                             className="btn btn-sm btn-outline-danger"
-                            title="Supprimer"
+                            title={intl.formatMessage({id: "category.delete"})}
                             onClick={() =>
                               setDeleteModal({
                                 show: true,
@@ -461,8 +454,8 @@ const CategoryScreen = () => {
           <div className="card-footer bg-transparent border-0">
             <div className="d-flex justify-content-between align-items-center">
               <div className="text-muted small">
-                Affichage de {pagination.from} à {pagination.to} sur{" "}
-                {pagination.total} résultats
+                {intl.formatMessage({id: "category.showing"})} {pagination.from} {intl.formatMessage({id: "category.to"})} {pagination.to} {intl.formatMessage({id: "category.on"})}{" "}
+                {pagination.total} {intl.formatMessage({id: "category.results"})}
               </div>
               <Pagination />
             </div>
@@ -478,8 +471,7 @@ const CategoryScreen = () => {
               <div className="modal-content">
                 <div className="modal-header bg-danger text-white">
                   <h5 className="modal-title">
-                    <i className="pi pi-exclamation-triangle me-2"></i>Confirmer
-                    la suppression
+                    <i className="pi pi-exclamation-triangle me-2"></i>{intl.formatMessage({id: "category.confirmDelete"})}
                   </h5>
                   <button
                     type="button"
@@ -491,13 +483,11 @@ const CategoryScreen = () => {
                 </div>
                 <div className="modal-body">
                   <p>
-                    Êtes-vous sûr de vouloir supprimer cette catégorie ? Cette
-                    action est irréversible.
+                    {intl.formatMessage({id: "category.deleteMessage"})}
                   </p>
                   <div className="alert alert-warning mt-3">
                     <i className="pi pi-info-circle me-2"></i>
-                    <strong>Attention :</strong> La suppression de cette
-                    catégorie pourrait affecter les produits associés.
+                    <strong>{intl.formatMessage({id: "category.deleteWarning"})}</strong> {intl.formatMessage({id: "category.deleteWarningMessage"})}
                   </div>
                 </div>
                 <div className="modal-footer">
@@ -508,14 +498,14 @@ const CategoryScreen = () => {
                       setDeleteModal({ show: false, categoryId: null })
                     }
                   >
-                    Annuler
+                    {intl.formatMessage({id: "category.cancel"})}
                   </button>
                   <button
                     type="button"
                     className="btn btn-danger"
                     onClick={() => handleDeleteCategory(deleteModal.categoryId)}
                   >
-                    <i className="pi pi-trash me-1"></i>Supprimer
+                    <i className="pi pi-trash me-1"></i>{intl.formatMessage({id: "category.delete"})}
                   </button>
                 </div>
               </div>

@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { Toast } from "primereact/toast";
 import { useCart } from "../../contexts/cartReducer.jsx";
 import ApiService from "../../services/api.js";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate ,useSearchParams} from "react-router-dom";
 
 const ProformaCreateScreen = () => {
   const {
@@ -56,7 +56,11 @@ const ProformaCreateScreen = () => {
 
   const navigate = useNavigate();
 
+  const [searchParams] = useSearchParams();
+  const stockId = searchParams.get("stock_id");
+
   useEffect(() => {
+    
     loadInitialData();
   }, []);
 
@@ -75,7 +79,11 @@ const ProformaCreateScreen = () => {
       if (response.success) {
         setStocks(response.data.stocks || []);
         if (response.data.stocks?.length > 0) {
-          setSelectedStock(response.data.stocks[0].id);
+          if (stockId) {
+            setSelectedStock(stockId);
+          } else {
+            setSelectedStock(response.data.stocks[0].id);
+          }
         }
       }
     } catch (error) {

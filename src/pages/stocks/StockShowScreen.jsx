@@ -466,7 +466,9 @@ const StockShowScreen = () => {
                 <div className="text-center py-4">
                   <i className="pi pi-file-text text-muted" style={{ fontSize: '2rem' }}></i>
                   <p className="text-muted mt-2 mb-0">Aucune proforma associée</p>
-                  <a href={`/sales/create?stock_id=${stock.id}`} className="btn btn-sm btn-primary mt-2">
+                  <a onClick={() => {
+                    navigate(`/proforma/create?stock_id=${stock.id}`);
+                  }} className="btn btn-sm btn-primary mt-2">
                     <i className="pi pi-plus-circle me-1"></i>Créer une proforma
                   </a>
                 </div>

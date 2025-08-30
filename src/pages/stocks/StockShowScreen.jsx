@@ -426,9 +426,12 @@ const StockShowScreen = () => {
                               </button>
                               <ul className="dropdown-menu">
                                 <li>
-                                  <a className="dropdown-item" href={`/proformas/${proforma.id}`}>
+                                  <button className="dropdown-item"
+                                    onClick={()=>{
+                                      navigate(`/proforma/${proforma.id}`)  
+                                    }}>                                  
                                     <i className="pi pi-eye me-2"></i>Voir détails
-                                  </a>
+                                  </button>
                                 </li>
                                 <li><hr className="dropdown-divider" /></li>
                                 <li>

@@ -84,11 +84,11 @@ function ProformaShowScreen() {
         <Button variant="secondary" onClick={() => navigate('/proforma')} className="me-2">
           Retour
         </Button>
-        <Button variant="warning" onClick={() => {
+        {/* <Button variant="warning" onClick={() => {
           validateProforma(proformaData.id);
         }} className="me-2" disabled={validateLoading}>
           {validateLoading ? 'Validation...' : 'Valider Proforma'}
-        </Button>
+        </Button> */}
         <Button variant="success" onClick={() => generatePdf('proforma')} className="me-2">
           Télécharger PDF
         </Button>

@@ -155,7 +155,7 @@ function ProformaShowScreen() {
                   <td style={tdStyle}>{index + 1}</td>
                   <td style={tdStyle}>
                     <div style={{ fontWeight: 'bold' }}>{item.name}</div>
-                    <div style={{ fontSize: '0.9em', color: '#666' }}>Code: {item.code}</div>
+                    <div style={{ fontSize: '0.9em', color: '#666' }}> {item.product_name}</div>
                   </td>
                   <td style={{ ...tdStyle, textAlign: 'right' }}>
                     {formatNumber(item.sale_price)} FBu

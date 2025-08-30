@@ -6,6 +6,7 @@ import ApiService from '../services/api.js';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchApiData } from '../stores/slicer/apiDataSlicer.js';
+import { useIntl } from 'react-intl';
 
 Chart.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, Filler);
 
@@ -17,6 +18,7 @@ const DashboardScreen = () => {
   const navigate = useNavigate();
 
   const dispatch = useDispatch()
+  const intl = useIntl();
 
   const { data, loading } = useSelector((state) => ({
       data: state.apiData?.data?.DASHBOAR_DATA,
@@ -288,7 +290,7 @@ const DashboardScreen = () => {
     return (
       <div className="container-fluid">
         <div className="alert alert-warning text-center">
-          Aucune donnée disponible pour le dashboard
+          {intl.formatMessage({id: "dashboard.noDataAvailable"})}
         </div>
       </div>
     );
@@ -310,9 +312,9 @@ const DashboardScreen = () => {
                 onChange={(e) => setPeriod(e.target.value)}
                 style={{ width: '180px' }}
               >
-                <option value="7">7 derniers jours</option>
-                <option value="30">30 derniers jours</option>
-                <option value="90">3 derniers mois</option>
+                <option value="7">{intl.formatMessage({id: "dashboard.last7Days"})}</option>
+                <option value="30">{intl.formatMessage({id: "dashboard.last30Days"})}</option>
+                <option value="90">{intl.formatMessage({id: "dashboard.last3Months"})}</option>
               </select>
 
               {/* Filtre agence */}
@@ -323,7 +325,7 @@ const DashboardScreen = () => {
                   onChange={(e) => setAgencyId(e.target.value)}
                   style={{ width: '200px' }}
                 >
-                  <option value="">Toutes les agences</option>
+                  <option value="">{intl.formatMessage({id: "dashboard.allAgencies"})}</option>
                   {dashboardData.agencies.map(agency => (
                     <option key={agency.id} value={agency.id}>
                       {agency.name}
@@ -350,11 +352,11 @@ const DashboardScreen = () => {
                   </div>
                 </div>
                 <div className="flex-grow-1">
-                  <h6 className="text-muted mb-1">Chiffre d'affaires</h6>
+                  <h6 className="text-muted mb-1">{intl.formatMessage({id: "dashboard.revenue"})}</h6>
                   <h3 className="text-success mb-0">{formatCurrency(dashboardData.stats.revenue.amount)}</h3>
                   <small className={dashboardData.stats.revenue.is_positive ? 'text-success' : 'text-danger'}>
                     <i className={`pi pi-arrow-${dashboardData.stats.revenue.is_positive ? 'up' : 'down'}`}></i>
-                    {dashboardData.stats.revenue.is_positive ? '+' : ''}{dashboardData.stats.revenue.growth}% ce mois
+                    {dashboardData.stats.revenue.is_positive ? '+' : ''}{dashboardData.stats.revenue.growth}% {intl.formatMessage({id: "dashboard.salesThisMonth"})}
                   </small>
                 </div>
               </div>
@@ -374,12 +376,12 @@ const DashboardScreen = () => {
                   </div>
                 </div>
                 <div className="flex-grow-1">
-                  <h6 className="text-muted mb-1">Ventes aujourd'hui</h6>
+                  <h6 className="text-muted mb-1">{intl.formatMessage({id: "dashboard.salesToday"})}</h6>
                   <h3 className="mb-0" style={{ color: '#2E7DB8' }}>
                     {formatCurrency(dashboardData.stats.today_sales.amount)}
                   </h3>
                   <small className="text-info">
-                    <i className="pi pi-arrow-up"></i> {dashboardData.stats.today_sales.count} transactions
+                    <i className="pi pi-arrow-up"></i> {dashboardData.stats.today_sales.count} {intl.formatMessage({id: "dashboard.transactions"})}
                   </small>
                 </div>
               </div>
@@ -399,12 +401,12 @@ const DashboardScreen = () => {
                   </div>
                 </div>
                 <div className="flex-grow-1">
-                  <h6 className="text-muted mb-1">Produits en stock</h6>
+                  <h6 className="text-muted mb-1">{intl.formatMessage({id: "dashboard.productsInStock"})}</h6>
                   <h3 className="mb-0" style={{ color: '#6f42c1' }}>
                     {dashboardData.stats.products.total.toLocaleString()}
                   </h3>
                   <small className="text-warning">
-                    <i className="pi pi-exclamation-triangle"></i> {dashboardData.stats.products.low_stock} en rupture
+                    <i className="pi pi-exclamation-triangle"></i> {dashboardData.stats.products.low_stock} {intl.formatMessage({id: "dashboard.outOfStock"})}
                   </small>
                 </div>
               </div>
@@ -424,12 +426,12 @@ const DashboardScreen = () => {
                   </div>
                 </div>
                 <div className="flex-grow-1">
-                  <h6 className="text-muted mb-1">Clients actifs</h6>
+                  <h6 className="text-muted mb-1">{intl.formatMessage({id: "dashboard.activeClients"})}</h6>
                   <h3 className="mb-0" style={{ color: '#fd7e14' }}>
                     {dashboardData.stats.clients.active}
                   </h3>
                   <small className="text-info">
-                    <i className="pi pi-user-plus"></i> +{dashboardData.stats.clients.new} nouveaux
+                    <i className="pi pi-user-plus"></i> +{dashboardData.stats.clients.new} {intl.formatMessage({id: "dashboard.newClients"})}
                   </small>
                 </div>
               </div>
@@ -446,7 +448,7 @@ const DashboardScreen = () => {
             <div className="card-header bg-white border-0">
               <div className="d-flex justify-content-between align-items-center">
                 <h5 className="mb-0" style={{ color: '#2E7DB8' }}>
-                  <i className="pi pi-graph-up me-2"></i>Évolution des ventes
+                  <i className="pi pi-graph-up me-2"></i>{intl.formatMessage({id: "dashboard.salesEvolution"})}
                 </h5>
                 <div className="btn-group btn-group-sm">
                   <button 
@@ -485,33 +487,27 @@ const DashboardScreen = () => {
           <div className="card shadow-sm border-0">
             <div className="card-header bg-white border-0">
               <h5 className="mb-0" style={{ color: '#2E7DB8' }}>
-                <i className="pi pi-lightning me-2"></i>Actions rapides
+                <i className="pi pi-lightning me-2"></i>{intl.formatMessage({id: "dashboard.quickActions"})}
               </h5>
             </div>
             <div className="card-body">
               <div className="row g-3">
                 <div className="col-6">
-                  <a onClick={() => navigate('/sales/create')} className="btn btn-primary w-100 d-flex flex-column align-items-center py-3">
-                    <i className="pi pi-plus-circle fs-2 mb-2"></i>
-                    Nouvelle vente
-                  </a>
-                </div>
-                <div className="col-6">
                   <a onClick={() => navigate('/purchases/create')} className="btn btn-info w-100 d-flex flex-column align-items-center py-3">
                     <i className="pi pi-cart-plus fs-2 mb-2"></i>
-                    Nouvel achat
+                    {intl.formatMessage({id: "dashboard.newPurchase"})}
                   </a>
                 </div>
                 <div className="col-6">
                   <a onClick={() => navigate('/products/create')} className="btn btn-success w-100 d-flex flex-column align-items-center py-3">
                     <i className="pi pi-box-seam fs-2 mb-2"></i>
-                    Nouveau produit
+                    {intl.formatMessage({id: "dashboard.newProduct"})}
                   </a>
                 </div>
                 <div className="col-6">
                   <a onClick={() => navigate('/clients/create')} className="btn btn-warning w-100 d-flex flex-column align-items-center py-3">
                     <i className="pi pi-person-plus fs-2 mb-2"></i>
-                    Nouveau client
+                    {intl.formatMessage({id: "dashboard.newClient"})}
                   </a>
                 </div>
               </div>
@@ -527,7 +523,7 @@ const DashboardScreen = () => {
           <div className="card shadow-sm border-0">
             <div className="card-header bg-white border-0">
               <h5 className="mb-0" style={{ color: '#2E7DB8' }}>
-                <i className="pi pi-star me-2"></i>Meilleurs produits
+                <i className="pi pi-star me-2"></i>{intl.formatMessage({id: "dashboard.bestProducts"})}
               </h5>
             </div>
             <div className="card-body">
@@ -544,7 +540,7 @@ const DashboardScreen = () => {
                       <div className="flex-grow-1">
                         <h6 className="mb-1">{product.name}</h6>
                         <small className="text-muted">
-                          <i className="pi pi-box me-1"></i>{product.total_quantity} vendus
+                          <i className="pi pi-box me-1"></i>{product.total_quantity} {intl.formatMessage({id: "dashboard.sold"})}
                         </small>
                       </div>
                       <span className="badge bg-success">{formatCurrency(product.total_revenue)}</span>
@@ -554,7 +550,7 @@ const DashboardScreen = () => {
               ) : (
                 <div className="text-center text-muted py-4">
                   <i className="pi pi-box-seam fs-1"></i>
-                  <p className="mb-0">Aucun produit vendu</p>
+                  <p className="mb-0">{intl.formatMessage({id: "dashboard.noProductsSold"})}</p>
                 </div>
               )}
             </div>
@@ -566,7 +562,7 @@ const DashboardScreen = () => {
           <div className="card shadow-sm border-0">
             <div className="card-header bg-white border-0">
               <h5 className="mb-0" style={{ color: '#2E7DB8' }}>
-                <i className="pi pi-activity me-2"></i>Activités récentes
+                <i className="pi pi-activity me-2"></i>{intl.formatMessage({id: "dashboard.recentActivities"})}
               </h5>
             </div>
             <div className="card-body">
@@ -595,7 +591,7 @@ const DashboardScreen = () => {
               ) : (
                 <div className="text-center text-muted py-4">
                   <i className="pi pi-activity fs-1"></i>
-                  <p className="mb-0">Aucune activité récente</p>
+                  <p className="mb-0">{intl.formatMessage({id: "dashboard.noRecentActivity"})}</p>
                 </div>
               )}
             </div>
@@ -607,7 +603,7 @@ const DashboardScreen = () => {
           <div className="card shadow-sm border-0">
             <div className="card-header bg-white border-0">
               <h5 className="mb-0" style={{ color: '#2E7DB8' }}>
-                <i className="pi pi-exclamation-triangle me-2"></i>Stock faible
+                <i className="pi pi-exclamation-triangle me-2"></i>{intl.formatMessage({id: "dashboard.lowStock"})}
               </h5>
             </div>
             <div className="card-body">
@@ -626,7 +622,7 @@ const DashboardScreen = () => {
                         <small className="text-muted">{product.stock_name}</small>
                         <br />
                         <small className="text-warning">
-                          Stock: {product.quantity} / Seuil: {product.alert_quantity}
+                          {intl.formatMessage({id: "dashboard.stock"})}: {product.quantity} / {intl.formatMessage({id: "dashboard.threshold"})}: {product.alert_quantity}
                         </small>
                       </div>
                       <span className="badge bg-danger">{product.quantity}</span>
@@ -636,7 +632,7 @@ const DashboardScreen = () => {
               ) : (
                 <div className="text-center text-muted py-4">
                   <i className="pi pi-check-circle fs-1"></i>
-                  <p className="mb-0">Tous les stocks sont OK</p>
+                  <p className="mb-0">{intl.formatMessage({id: "dashboard.allStocksOK"})}</p>
                 </div>
               )}
             </div>
@@ -652,14 +648,14 @@ const DashboardScreen = () => {
             <div className="card shadow-sm border-0">
               <div className="card-header bg-white border-0">
                 <h5 className="mb-0" style={{ color: '#2E7DB8' }}>
-                  <i className="pi pi-cash-stack me-2"></i>Caisse ouverte
+                  <i className="pi pi-cash-stack me-2"></i>{intl.formatMessage({id: "dashboard.openCashRegister"})}
                 </h5>
               </div>
               <div className="card-body">
                 <div className="row g-3">
                   <div className="col-6">
                     <div className="text-center">
-                      <h6 className="text-muted mb-1">Solde d'ouverture</h6>
+                      <h6 className="text-muted mb-1">{intl.formatMessage({id: "dashboard.openingBalance"})}</h6>
                       <h4 className="text-info mb-0">
                         {formatCurrency(dashboardData.cashRegisterStatus.opening_balance)}
                       </h4>
@@ -667,7 +663,7 @@ const DashboardScreen = () => {
                   </div>
                   <div className="col-6">
                     <div className="text-center">
-                      <h6 className="text-muted mb-1">Solde actuel</h6>
+                      <h6 className="text-muted mb-1">{intl.formatMessage({id: "dashboard.currentBalance"})}</h6>
                       <h4 className="text-success mb-0">
                         {formatCurrency(dashboardData.cashRegisterStatus.current_balance)}
                       </h4>
@@ -675,7 +671,7 @@ const DashboardScreen = () => {
                   </div>
                   <div className="col-6">
                     <div className="text-center">
-                      <h6 className="text-muted mb-1">Recettes du jour</h6>
+                      <h6 className="text-muted mb-1">{intl.formatMessage({id: "dashboard.todayRevenue"})}</h6>
                       <h5 className="text-success mb-0">
                         {formatCurrency(dashboardData.cashRegisterStatus.today_revenue)}
                       </h5>
@@ -683,7 +679,7 @@ const DashboardScreen = () => {
                   </div>
                   <div className="col-6">
                     <div className="text-center">
-                      <h6 className="text-muted mb-1">Dépenses du jour</h6>
+                      <h6 className="text-muted mb-1">{intl.formatMessage({id: "dashboard.todayExpenses"})}</h6>
                       <h5 className="text-danger mb-0">
                         {formatCurrency(dashboardData.cashRegisterStatus.today_expenses)}
                       </h5>
@@ -692,7 +688,7 @@ const DashboardScreen = () => {
                   <div className="col-12 mt-3">
                     <div className="text-center">
                       <small className="text-muted">
-                        Ouvert le {formatDate(dashboardData.cashRegisterStatus.opened_at)}
+                        {intl.formatMessage({id: "dashboard.openedOn"})} {formatDate(dashboardData.cashRegisterStatus.opened_at)}
                       </small>
                     </div>
                   </div>
@@ -707,7 +703,7 @@ const DashboardScreen = () => {
           <div className="card shadow-sm border-0">
             <div className="card-header bg-white border-0">
               <h5 className="mb-0" style={{ color: '#2E7DB8' }}>
-                <i className="pi pi-graph-up me-2"></i>Tendance mensuelle
+                <i className="pi pi-graph-up me-2"></i>{intl.formatMessage({id: "dashboard.monthlyTrend"})}
               </h5>
             </div>
             <div className="card-body">
@@ -715,7 +711,7 @@ const DashboardScreen = () => {
                 <div className="row g-3">
                   <div className="col-6">
                     <div className="text-center">
-                      <h6 className="text-muted mb-1">Mois précédent</h6>
+                      <h6 className="text-muted mb-1">{intl.formatMessage({id: "dashboard.previousMonth"})}</h6>
                       <h4 className="text-info mb-0">
                         {formatCurrency(dashboardData.salesTrend.previous)}
                       </h4>
@@ -723,7 +719,7 @@ const DashboardScreen = () => {
                   </div>
                   <div className="col-6">
                     <div className="text-center">
-                      <h6 className="text-muted mb-1">Mois actuel</h6>
+                      <h6 className="text-muted mb-1">{intl.formatMessage({id: "dashboard.currentMonth"})}</h6>
                       <h4 className="text-success mb-0">
                         {formatCurrency(dashboardData.salesTrend.current)}
                       </h4>
@@ -731,7 +727,7 @@ const DashboardScreen = () => {
                   </div>
                   <div className="col-12">
                     <div className="text-center">
-                      <h6 className="text-muted mb-1">Évolution</h6>
+                      <h6 className="text-muted mb-1">{intl.formatMessage({id: "dashboard.evolution"})}</h6>
                       <h3 className={dashboardData.salesTrend.is_positive ? 'text-success' : 'text-danger'}>
                         <i className={`pi pi-arrow-${dashboardData.salesTrend.is_positive ? 'up' : 'down'} me-1`}></i>
                         {dashboardData.salesTrend.is_positive ? '+' : ''}{dashboardData.salesTrend.trend}%
@@ -742,7 +738,7 @@ const DashboardScreen = () => {
               ) : (
                 <div className="text-center text-muted py-4">
                   <i className="pi pi-graph-up fs-1"></i>
-                  <p className="mb-0">Données de tendance indisponibles</p>
+                  <p className="mb-0">{intl.formatMessage({id: "dashboard.trendDataUnavailable"})}</p>
                 </div>
               )}
             </div>
@@ -756,14 +752,14 @@ const DashboardScreen = () => {
           <div className="card shadow-sm border-0">
             <div className="card-header bg-white border-0">
               <h5 className="mb-0" style={{ color: '#2E7DB8' }}>
-                <i className="pi pi-calculator me-2"></i>Résumé financier
+                <i className="pi pi-calculator me-2"></i>{intl.formatMessage({id: "dashboard.financialSummary"})}
               </h5>
             </div>
             <div className="card-body">
               <div className="row g-4">
                 <div className="col-md-3">
                   <div className="text-center p-3 bg-light rounded">
-                    <h6 className="text-muted mb-1">Chiffre d'affaires</h6>
+                    <h6 className="text-muted mb-1">{intl.formatMessage({id: "dashboard.revenue"})}</h6>
                     <h4 className="text-success mb-0">
                       {formatCurrency(dashboardData.stats.revenue.amount)}
                     </h4>
@@ -774,34 +770,34 @@ const DashboardScreen = () => {
                 </div>
                 <div className="col-md-3">
                   <div className="text-center p-3 bg-light rounded">
-                    <h6 className="text-muted mb-1">Ventes aujourd'hui</h6>
+                    <h6 className="text-muted mb-1">{intl.formatMessage({id: "dashboard.salesToday"})}</h6>
                     <h4 className="mb-0" style={{ color: '#2E7DB8' }}>
                       {formatCurrency(dashboardData.stats.today_sales.amount)}
                     </h4>
                     <small className="text-info">
-                      {dashboardData.stats.today_sales.count} transactions
+                      {dashboardData.stats.today_sales.count} {intl.formatMessage({id: "dashboard.transactions"})}
                     </small>
                   </div>
                 </div>
                 <div className="col-md-3">
                   <div className="text-center p-3 bg-light rounded">
-                    <h6 className="text-muted mb-1">Clients actifs</h6>
+                    <h6 className="text-muted mb-1">{intl.formatMessage({id: "dashboard.activeClients"})}</h6>
                     <h4 className="mb-0" style={{ color: '#fd7e14' }}>
                       {dashboardData.stats.clients.active}
                     </h4>
                     <small className="text-info">
-                      +{dashboardData.stats.clients.new} nouveaux
+                      +{dashboardData.stats.clients.new} {intl.formatMessage({id: "dashboard.newClients"})}
                     </small>
                   </div>
                 </div>
                 <div className="col-md-3">
                   <div className="text-center p-3 bg-light rounded">
-                    <h6 className="text-muted mb-1">Produits en stock</h6>
+                    <h6 className="text-muted mb-1">{intl.formatMessage({id: "dashboard.productsInStock"})}</h6>
                     <h4 className="mb-0" style={{ color: '#6f42c1' }}>
                       {dashboardData.stats.products.total.toLocaleString()}
                     </h4>
                     <small className="text-warning">
-                      {dashboardData.stats.products.low_stock} en rupture
+                      {dashboardData.stats.products.low_stock} {intl.formatMessage({id: "dashboard.outOfStock"})}
                     </small>
                   </div>
                 </div>
@@ -820,13 +816,13 @@ const DashboardScreen = () => {
                 <div>
                   <small className="text-muted">
                     <i className="pi pi-calendar me-1"></i>
-                    Période analysée: {period} derniers jours
+                    {intl.formatMessage({id: "dashboard.periodAnalyzed"})}: {period} {intl.formatMessage({id: "dashboard.lastDays"})}
                   </small>
                 </div>
                 <div>
                   <small className="text-muted">
                     <i className="pi pi-clock me-1"></i>
-                    Dernière mise à jour: {new Date().toLocaleString('fr-FR')}
+                    {intl.formatMessage({id: "dashboard.lastUpdate"})}: {new Date().toLocaleString('fr-FR')}
                   </small>
                 </div>
                 <div>
@@ -836,7 +832,7 @@ const DashboardScreen = () => {
                     disabled={loading}
                   >
                     <i className="pi pi-arrow-clockwise me-1"></i>
-                    Actualiser
+                    {intl.formatMessage({id: "dashboard.refresh"})}
                   </button>
                 </div>
               </div>

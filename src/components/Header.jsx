@@ -4,8 +4,14 @@ import { useCart } from '../contexts/cartReducer.jsx';
 import { Badge } from 'primereact/badge';
 import { Button } from 'primereact/button';
 import { Avatar } from 'primereact/avatar';
+
 //imprt useNavigate
 import { useNavigate } from 'react-router-dom';
+import LanguageSelector from './LanguageSelector.jsx';
+
+import { useIntl } from "react-intl"
+
+
 
 const Header = ({ onSidebarToggle, pageTitle = 'Tableau de bord' }) => {
   const { user, logout, isLoading, getUserInfo } = useAuth();
@@ -16,7 +22,9 @@ const Header = ({ onSidebarToggle, pageTitle = 'Tableau de bord' }) => {
   const [isNotificationMenuOpen, setIsNotificationMenuOpen] = React.useState(false);
 
 
-    const navigate = useNavigate();
+  const intl = useIntl()
+
+  const navigate = useNavigate();
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -61,27 +69,32 @@ const Header = ({ onSidebarToggle, pageTitle = 'Tableau de bord' }) => {
     setIsUserMenuOpen(false);
   };
 
+  const closeAllMenus = () => {
+    
+  };
+
   // Obtenir les informations utilisateur avec la fonction du contexte
   const userInfo = getUserInfo ? getUserInfo() : {
-    name: isLoading ? 'Chargement...' : (user?.name || user?.username || user?.firstName || 'Utilisateur'),
-    email: isLoading ? 'Chargement...' : (user?.email || 'Email non disponible')
+    name: isLoading ? intl.formatMessage({id: "header.loading"}) : (user?.name || user?.username || user?.firstName || intl.formatMessage({id: "header.user"})),
+    email: isLoading ? intl.formatMessage({id: "header.loading"}) : (user?.email || intl.formatMessage({id: "header.emailNotAvailable"}))
   };
 
   return (
     <nav className="navbar no-print navbar-expand-lg navbar-light bg-white shadow-sm sticky-top border-bottom">
       <div className="container-fluid px-4">
         {/* Section gauche */}
+        
         <div className="d-flex align-items-center">
           <Button
             icon="pi pi-bars"
             className="p-button-text p-button-rounded me-3"
             onClick={onSidebarToggle}
-            tooltip="Basculer le menu"
+            tooltip={intl.formatMessage({id: "header.toggleMenu"})}
             tooltipOptions={{ position: 'bottom' }}
           />
           <div>
             <h5 className="mb-0 fw-normal text-dark">
-              {pageTitle}
+              {intl.formatMessage({id:"header.dashboard"})}
             </h5>
           </div>
         </div>
@@ -89,13 +102,16 @@ const Header = ({ onSidebarToggle, pageTitle = 'Tableau de bord' }) => {
         {/* Section droite */}
         <div className="d-flex align-items-center">
           {/* Panier */}
+          <div className="mx-4">
+            <LanguageSelector onToggleParent={closeAllMenus} />
+          </div>
           <div 
           onClick={() => navigate('/sales/create')}
           className="position-relative me-3">
             <Button
               icon="pi pi-shopping-cart"
               className="p-button-text p-button-rounded"
-              tooltip="Panier"
+              tooltip={intl.formatMessage({id: "header.cart"})}
               tooltipOptions={{ position: 'bottom' }}
             />
             <Badge
@@ -111,7 +127,7 @@ const Header = ({ onSidebarToggle, pageTitle = 'Tableau de bord' }) => {
             <Button
               icon="pi pi-bell"
               className="p-button-text p-button-rounded"
-              tooltip="Notifications"
+              tooltip={intl.formatMessage({id: "header.notifications"})}
               tooltipOptions={{ position: 'bottom' }}
               onClick={toggleNotificationMenu}
             />
@@ -126,38 +142,46 @@ const Header = ({ onSidebarToggle, pageTitle = 'Tableau de bord' }) => {
             {isNotificationMenuOpen && (
               <div className="dropdown-menu show position-absolute end-0 mt-2 shadow-lg border-0" style={{ width: '350px', zIndex: 1050 }}>
                 <div className="px-3 py-2 border-bottom">
-                  <h6 className="mb-0 fw-bold text-primary">Notifications récentes</h6>
+                  <h6 className="mb-0 fw-bold text-primary">
+                    {intl.formatMessage({id: "header.recentNotifications"})}
+                  </h6>
                 </div>
                 <div className="notification-item px-3 py-2 border-bottom hover-bg-light">
                   <div className="d-flex justify-content-between align-items-start">
                     <div className="d-flex align-items-start">
                       <i className="pi pi-shopping-cart text-success me-2 mt-1"></i>
-                      <span className="small">Nouvelle commande reçue</span>
+                      <span className="small">
+                        {intl.formatMessage({id: "header.newOrderReceived"})}
+                      </span>
                     </div>
-                    <small className="text-muted">5 min</small>
+                    <small className="text-muted">5 {intl.formatMessage({id: "header.timeAgo.minutes"})}</small>
                   </div>
                 </div>
                 <div className="notification-item px-3 py-2 border-bottom hover-bg-light">
                   <div className="d-flex justify-content-between align-items-start">
                     <div className="d-flex align-items-start">
                       <i className="pi pi-exclamation-triangle text-warning me-2 mt-1"></i>
-                      <span className="small">Stock faible pour le produit X</span>
+                      <span className="small">
+                        {intl.formatMessage({id: "header.lowStock"})}
+                      </span>
                     </div>
-                    <small className="text-muted">15 min</small>
+                    <small className="text-muted">15 {intl.formatMessage({id: "header.timeAgo.minutes"})}</small>
                   </div>
                 </div>
                 <div className="notification-item px-3 py-2 border-bottom hover-bg-light">
                   <div className="d-flex justify-content-between align-items-start">
                     <div className="d-flex align-items-start">
                       <i className="pi pi-clock text-info me-2 mt-1"></i>
-                      <span className="small">Paiement en attente</span>
+                      <span className="small">
+                        {intl.formatMessage({id: "header.pendingPayment"})}
+                      </span>
                     </div>
-                    <small className="text-muted">1h</small>
+                    <small className="text-muted">1{intl.formatMessage({id: "header.timeAgo.hour"})}</small>
                   </div>
                 </div>
                 <div className="px-3 py-2 text-center">
                   <a href="/notifications" className="text-primary fw-bold text-decoration-none small">
-                    Voir toutes les notifications
+                    {intl.formatMessage({id: "header.viewAllNotifications"})}
                   </a>
                 </div>
               </div>
@@ -195,12 +219,11 @@ const Header = ({ onSidebarToggle, pageTitle = 'Tableau de bord' }) => {
               <i className={`pi pi-angle-${isUserMenuOpen ? 'up' : 'down'} text-muted`}></i>
             </div>
 
+          
+
             {/* Dropdown Menu Utilisateur */}
             {isUserMenuOpen && (
               <div className="dropdown-menu show position-absolute end-0 mt-2 shadow-lg border-0" style={{ width: '200px', zIndex: 1050 }}>
-                {/* <div className="dropdown-item-text px-3 py-2 border-bottom">
-                  <div className="fw-bold text-primary small">BURUNDI UBWIZA</div>
-                </div> */}
                 <button
                   className="dropdown-item d-flex align-items-center px-3 py-2 hover-bg-light"
                    onClick={() => {
@@ -208,7 +231,7 @@ const Header = ({ onSidebarToggle, pageTitle = 'Tableau de bord' }) => {
                     navigate('/profile')}}
                 >
                   <i className="pi pi-user me-2 text-muted"></i>
-                  <span>Profile</span>
+                  <span>{intl.formatMessage({id: "header.profile"})}</span>
                 </button>
                 <button
                   className="dropdown-item d-flex align-items-center justify-content-between px-3 py-2 hover-bg-light"
@@ -216,7 +239,7 @@ const Header = ({ onSidebarToggle, pageTitle = 'Tableau de bord' }) => {
                 >
                   <div className="d-flex align-items-center">
                     <i className="pi pi-cog me-2 text-muted"></i>
-                    <span>Settings</span>
+                    <span>{intl.formatMessage({id: "header.settings"})}</span>
                   </div>
                   <small className="text-muted">⌘+O</small>
                 </button>
@@ -226,7 +249,7 @@ const Header = ({ onSidebarToggle, pageTitle = 'Tableau de bord' }) => {
                 >
                   <div className="d-flex align-items-center">
                     <i className="pi pi-envelope me-2 text-muted"></i>
-                    <span>Messages</span>
+                    <span>{intl.formatMessage({id: "header.messages"})}</span>
                   </div>
                   <Badge value="2" severity="info" className="ms-2" style={{ fontSize: '0.7rem' }} />
                 </button>
@@ -237,7 +260,7 @@ const Header = ({ onSidebarToggle, pageTitle = 'Tableau de bord' }) => {
                 >
                   <div className="d-flex align-items-center">
                     <i className="pi pi-sign-out me-2"></i>
-                    <span>Logout</span>
+                    <span>{intl.formatMessage({id: "header.logout"})}</span>
                   </div>
                   <small className="text-muted">⌘+Q</small>
                 </button>

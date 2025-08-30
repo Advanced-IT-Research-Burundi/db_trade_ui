@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useIntl } from 'react-intl';
 import { Toast } from 'primereact/toast';
 import ApiService from '../../services/api.js';
 import StatCard from '../../components/Card/StatCard.jsx';
@@ -8,6 +9,7 @@ import { Link } from 'react-router-dom';
 
 
 const ProformaScreen = () => {
+  const intl = useIntl();
   const [proformas, setProformas] = useState([]);
   const [loading] = useState(false);
   const [stats, setStats] = useState({});
@@ -38,6 +40,7 @@ const ProformaScreen = () => {
   useEffect(() => {
     loadProformas();
   }, []);
+  
   useEffect(() => {
     if(data){
       setProformas(data?.proformas?.data || []);
@@ -64,7 +67,6 @@ const ProformaScreen = () => {
       showToast('error', error.message);
     }
   };
-
 
   const handleFilterChange = (name, value) => {
     setFilters(prev => ({ ...prev, [name]: value }));
@@ -101,23 +103,18 @@ const ProformaScreen = () => {
   const handleDeleteProforma = async (proformaId) => {
     try {
       dispatch(fetchApiData({ url: `/api/proformas/${proformaId}`, itemKey: 'proformas', method: 'DELETE' }));
-      if (response.success) {
-        showToast('success', 'Proforma supprimé avec succès');
-        loadProformas(pagination.current_page);
-      } else {
-        showToast('error', response.message || 'Erreur lors de la suppression');
-      }
+      showToast('success', intl.formatMessage({id: "proforma.proformaDeleted"}));
+      loadProformas(pagination.current_page);
     } catch (error) {
-      showToast('error', error.message);
+      showToast('error', error.message || intl.formatMessage({id: "proforma.deleteError"}));
     }
     setDeleteModal({ show: false, proformaId: null });
   };
 
-
   const showToast = (severity, detail) => {
     toast.current?.show({ 
       severity, 
-      summary: severity === 'error' ? 'Erreur' : 'Succès', 
+      summary: severity === 'error' ? intl.formatMessage({id: "proforma.error"}) : intl.formatMessage({id: "proforma.success"}), 
       detail, 
       life: 3000 
     });
@@ -134,12 +131,12 @@ const ProformaScreen = () => {
 
   const getStatusBadge = (proforma) => {
     if (proforma.due_amount == 0) {
-      return <span className="badge bg-success"><i className="pi pi-check-circle me-1"></i>Payé</span>;
+      return <span className="badge bg-success"><i className="pi pi-check-circle me-1"></i>{intl.formatMessage({id: "proforma.paid"})}</span>;
     }
     if (proforma.due_amount < proforma.total_amount) {
-      return <span className="badge bg-warning"><i className="pi pi-clock me-1"></i>Partiel</span>;
+      return <span className="badge bg-warning"><i className="pi pi-clock me-1"></i>{intl.formatMessage({id: "proforma.partial"})}</span>;
     }
-    return <span className="badge bg-danger"><i className="pi pi-times-circle me-1"></i>Impayé</span>;
+    return <span className="badge bg-danger"><i className="pi pi-times-circle me-1"></i>{intl.formatMessage({id: "proforma.unpaid"})}</span>;
   };
 
   const getClientInfo = (clientData) => {
@@ -156,9 +153,9 @@ const ProformaScreen = () => {
     const diffTime = Math.abs(now - new Date(date));
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     
-    if (diffDays === 1) return 'Aujourd\'hui';
-    if (diffDays < 7) return `Il y a ${diffDays} jours`;
-    if (diffDays < 30) return `Il y a ${Math.ceil(diffDays / 7)} semaines`;
+    if (diffDays === 1) return intl.formatMessage({id: "proforma.today"});
+    if (diffDays < 7) return `${intl.formatMessage({id: "proforma.ago"})} ${diffDays} ${intl.formatMessage({id: "proforma.daysAgo"})}`;
+    if (diffDays < 30) return `${intl.formatMessage({id: "proforma.ago"})} ${Math.ceil(diffDays / 7)} ${intl.formatMessage({id: "proforma.weeksAgo"})}`;
     return formatDate(date);
   };
 
@@ -239,11 +236,9 @@ const ProformaScreen = () => {
           <div className="d-flex justify-content-between align-items-center">
             <div>
               <h2 className="text-primary mb-1">
-                <i className="pi pi-file me-2"></i>Gestion des Proformas
-
-               
+                <i className="pi pi-file me-2"></i>{intl.formatMessage({id: "proforma.title"})}
               </h2>
-              <p className="text-muted mb-0">{pagination.total} proforma(s) au total</p>
+              <p className="text-muted mb-0">{pagination.total} {intl.formatMessage({id: "proforma.totalProformas"})}</p>
             </div>
             <div className="d-flex gap-2">
               <button 
@@ -252,10 +247,10 @@ const ProformaScreen = () => {
                 disabled={loading}
               >
                 <i className="pi pi-refresh me-1"></i>
-                {loading ? 'Actualisation...' : 'Actualiser'}
+                {loading ? intl.formatMessage({id: "proforma.refreshing"}) : intl.formatMessage({id: "proforma.refresh"})}
               </button>
               <Link to="/proforma/create" className="btn btn-primary">
-                <i className="pi pi-plus-circle me-1"></i>Nouveau Proforma
+                <i className="pi pi-plus-circle me-1"></i>{intl.formatMessage({id: "proforma.newProforma"})}
               </Link>
             </div>
           </div>
@@ -266,28 +261,28 @@ const ProformaScreen = () => {
       <div className="row mb-4">
         <StatCard 
           icon="dollar" 
-          title="Montant Total" 
+          title={intl.formatMessage({id: "proforma.totalAmount"})} 
           value={formatCurrency(stats.totalRevenue || 0)} 
           color="primary" 
           loading={loading} 
         />
         <StatCard 
           icon="check-circle" 
-          title="Proformas Payés" 
+          title={intl.formatMessage({id: "proforma.paidProformas"})} 
           value={stats.paidProformas || 0} 
           color="success" 
           loading={loading} 
         />
         <StatCard 
           icon="clock" 
-          title="Créances" 
+          title={intl.formatMessage({id: "proforma.receivables"})} 
           value={formatCurrency(stats.totalDue || 0)} 
           color="warning" 
           loading={loading} 
         />
         <StatCard 
           icon="calendar" 
-          title="Aujourd'hui" 
+          title={intl.formatMessage({id: "proforma.today"})} 
           value={stats.todayProformas || 0} 
           color="info" 
           loading={loading} 
@@ -299,7 +294,7 @@ const ProformaScreen = () => {
         <div className="card-body">
           <form onSubmit={handleSearch} className="row g-3">
             <div className="col-md-3">
-              <label className="form-label">Rechercher</label>
+              <label className="form-label">{intl.formatMessage({id: "proforma.search"})}</label>
               <div className="input-group">
                 <span className="input-group-text">
                   <i className="pi pi-search"></i>
@@ -307,7 +302,7 @@ const ProformaScreen = () => {
                 <input 
                   type="text" 
                   className="form-control" 
-                  placeholder="Rechercher un proforma..."
+                  placeholder={intl.formatMessage({id: "proforma.searchPlaceholder"})}
                   value={filters.search} 
                   onChange={(e) => handleFilterChange('search', e.target.value)} 
                 />
@@ -315,7 +310,7 @@ const ProformaScreen = () => {
             </div>
             
             <div className="col-md-2">
-              <label className="form-label">Date début</label>
+              <label className="form-label">{intl.formatMessage({id: "proforma.startDate"})}</label>
               <input 
                 type="date" 
                 className="form-control" 
@@ -325,7 +320,7 @@ const ProformaScreen = () => {
             </div>
             
             <div className="col-md-2">
-              <label className="form-label">Date fin</label>
+              <label className="form-label">{intl.formatMessage({id: "proforma.endDate"})}</label>
               <input 
                 type="date" 
                 className="form-control" 
@@ -335,25 +330,25 @@ const ProformaScreen = () => {
             </div>
             
             <div className="col-md-2">
-              <label className="form-label">Statut</label>
+              <label className="form-label">{intl.formatMessage({id: "proforma.status"})}</label>
               <select 
                 className="form-select" 
                 value={filters.status} 
                 onChange={(e) => handleFilterChange('status', e.target.value)}
               >
-                <option value="">Tous</option>
-                <option value="paid">Payé</option>
-                <option value="partial">Partiel</option>
-                <option value="unpaid">Impayé</option>
+                <option value="">{intl.formatMessage({id: "proforma.all"})}</option>
+                <option value="paid">{intl.formatMessage({id: "proforma.paid"})}</option>
+                <option value="partial">{intl.formatMessage({id: "proforma.partial"})}</option>
+                <option value="unpaid">{intl.formatMessage({id: "proforma.unpaid"})}</option>
               </select>
             </div>
             
             <div className="col-md-3 d-flex align-items-end gap-2">
               <button type="submit" className="btn btn-primary" disabled={loading}>
-                <i className="pi pi-filter me-1"></i>Filtrer
+                <i className="pi pi-filter me-1"></i>{intl.formatMessage({id: "proforma.filter"})}
               </button>
               <button type="button" className="btn btn-outline-secondary" onClick={handleReset}>
-                <i className="pi pi-times-circle me-1"></i>Reset
+                <i className="pi pi-times-circle me-1"></i>{intl.formatMessage({id: "proforma.reset"})}
               </button>
             </div>
           </form>
@@ -367,34 +362,33 @@ const ProformaScreen = () => {
             <table className="table table-hover align-middle mb-0">
               <thead className="bg-light">
                 <tr>
-                 
-                  <th className="border-0 px-2 py-2">Proforma #</th>
-                  <th className="border-0 px-2 py-2">Client</th>
-                  <th className="border-0 px-2 py-2">Date</th>
-                  <th className="border-0 px-2 py-2">Montant Total</th>
-                  <th className="border-0 px-2 py-2">Reste</th>
-                  <th className="border-0 px-2 py-2">Statut</th>
-                  <th className="border-0 px-2 py-2">Stock</th>
-                  <th className="border-0 px-2 py-2">Facture</th>
-                  <th className="border-0 px-2 py-2">Actions</th>
+                  <th className="border-0 px-2 py-2">{intl.formatMessage({id: "proforma.proformaNumber"})}</th>
+                  <th className="border-0 px-2 py-2">{intl.formatMessage({id: "proforma.client"})}</th>
+                  <th className="border-0 px-2 py-2">{intl.formatMessage({id: "proforma.date"})}</th>
+                  <th className="border-0 px-2 py-2">{intl.formatMessage({id: "proforma.totalAmount"})}</th>
+                  <th className="border-0 px-2 py-2">{intl.formatMessage({id: "proforma.remaining"})}</th>
+                  <th className="border-0 px-2 py-2">{intl.formatMessage({id: "proforma.status"})}</th>
+                  <th className="border-0 px-2 py-2">{intl.formatMessage({id: "proforma.stock"})}</th>
+                  <th className="border-0 px-2 py-2">{intl.formatMessage({id: "proforma.invoice"})}</th>
+                  <th className="border-0 px-2 py-2">{intl.formatMessage({id: "proforma.actions"})}</th>
                 </tr>
               </thead>
               <tbody>
                 {loading ? (
                   <tr>
-                    <td colSpan="10" className="text-center py-5">
+                    <td colSpan="9" className="text-center py-5">
                       <div className="spinner-border text-primary" role="status">
-                        <span className="visually-hidden">Chargement...</span>
+                        <span className="visually-hidden">{intl.formatMessage({id: "proforma.loading"})}</span>
                       </div>
                     </td>
                   </tr>
                 ) : proformas.length === 0 ? (
                   <tr>
-                    <td colSpan="10" className="text-center py-5">
+                    <td colSpan="9" className="text-center py-5">
                       <div className="text-muted">
                         <i className="pi pi-inbox display-4 d-block mb-3"></i>
-                        <h5>Aucun proforma trouvé</h5>
-                        <p className="mb-0">Commencez par créer votre premier proforma</p>
+                        <h5>{intl.formatMessage({id: "proforma.noProformasFound"})}</h5>
+                        <p className="mb-0">{intl.formatMessage({id: "proforma.createFirstProforma"})}</p>
                       </div>
                     </td>
                   </tr>
@@ -403,7 +397,6 @@ const ProformaScreen = () => {
                     const client = getClientInfo(proforma.client);
                     return (
                       <tr key={proforma.id}>
-                       
                         <td className="px-4">
                           <div className="d-flex align-items-center">
                             <div className="bg-primary bg-opacity-10 p-2 rounded me-2">
@@ -425,7 +418,7 @@ const ProformaScreen = () => {
                         </td>
                         <td className="px-2">
                           <div>
-                            <strong>{client.name || 'Client non spécifié'}</strong>
+                            <strong>{client.name || intl.formatMessage({id: "proforma.clientNotSpecified"})}</strong>
                             <br />
                             <small className="text-muted">{client.phone || ''}</small>
                           </div>
@@ -449,24 +442,24 @@ const ProformaScreen = () => {
                         </td>
                         <td className="px-2">{getStatusBadge(proforma)}</td>
                         <td className="px-2">
-                          <small className="text-muted">{proforma.stock?.name || 'Non spécifiée'}</small>
+                          <small className="text-muted">{proforma.stock?.name || intl.formatMessage({id: "proforma.notSpecified"})}</small>
                         </td>
                         <td className="px-2">
-                          <strong>{proforma.invoice_type || 'Non Valide'}</strong>
+                          <strong>{proforma.invoice_type || intl.formatMessage({id: "proforma.notValid"})}</strong>
                         </td>
                         <td className="px-2">
                           <div className="btn-group" role="group">
                             <Link 
                               to={`/proforma/${proforma.id}`} 
                               className="btn btn-sm btn-outline-primary" 
-                              title="Voir"
+                              title={intl.formatMessage({id: "proforma.view"})}
                             >
                               <i className="pi pi-eye"></i>
                             </Link>
                             <Link 
                               to={`/proforma/${proforma.id}/edit`} 
                               className="btn btn-sm btn-outline-success" 
-                              title="Modifier"
+                              title={intl.formatMessage({id: "proforma.edit"})}
                             >
                               <i className="pi pi-pencil"></i>
                             </Link>
@@ -474,7 +467,7 @@ const ProformaScreen = () => {
                             <button 
                               type="button" 
                               className="btn btn-sm btn-outline-danger" 
-                              title="Supprimer"
+                              title={intl.formatMessage({id: "proforma.delete"})}
                               onClick={() => setDeleteModal({ show: true, proformaId: proforma.id })}
                             >
                               <i className="pi pi-trash"></i>
@@ -495,7 +488,7 @@ const ProformaScreen = () => {
           <div className="card-footer bg-transparent border-0">
             <div className="d-flex justify-content-between align-items-center">
               <div className="text-muted small">
-                Affichage de {pagination.from} à {pagination.to} sur {pagination.total} résultats
+                {intl.formatMessage({id: "proforma.showing"})} {pagination.from} {intl.formatMessage({id: "proforma.to"})} {pagination.to} {intl.formatMessage({id: "proforma.on"})} {pagination.total} {intl.formatMessage({id: "proforma.results"})}
               </div>
               <Pagination />
             </div>
@@ -511,7 +504,7 @@ const ProformaScreen = () => {
               <div className="modal-content">
                 <div className="modal-header bg-danger text-white">
                   <h5 className="modal-title">
-                    <i className="pi pi-exclamation-triangle me-2"></i>Confirmer la suppression
+                    <i className="pi pi-exclamation-triangle me-2"></i>{intl.formatMessage({id: "proforma.confirmDelete"})}
                   </h5>
                   <button 
                     type="button" 
@@ -520,7 +513,7 @@ const ProformaScreen = () => {
                   ></button>
                 </div>
                 <div className="modal-body">
-                  <p>Êtes-vous sûr de vouloir supprimer ce proforma ? Cette action est irréversible.</p>
+                  <p>{intl.formatMessage({id: "proforma.deleteMessage"})}</p>
                 </div>
                 <div className="modal-footer">
                   <button 
@@ -528,14 +521,14 @@ const ProformaScreen = () => {
                     className="btn btn-secondary"
                     onClick={() => setDeleteModal({ show: false, proformaId: null })}
                   >
-                    Annuler
+                    {intl.formatMessage({id: "proforma.cancel"})}
                   </button>
                   <button 
                     type="button" 
                     className="btn btn-danger"
                     onClick={() => handleDeleteProforma(deleteModal.proformaId)}
                   >
-                    <i className="pi pi-trash me-1"></i>Supprimer
+                    <i className="pi pi-trash me-1"></i>{intl.formatMessage({id: "proforma.delete"})}
                   </button>
                 </div>
               </div>

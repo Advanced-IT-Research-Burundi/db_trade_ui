@@ -432,6 +432,12 @@ const StockShowScreen = () => {
                                     }}>                                  
                                     <i className="pi pi-eye me-2"></i>Voir détails
                                   </button>
+                                  <button className="dropdown-item mt-2"
+                                    onClick={()=>{
+                                      navigate(`/proforma/${proforma.id}/edit`)  
+                                    }}>                                  
+                                    <i className="pi pi-pencil me-2"></i>Modifier
+                                  </button>
                                 </li>
                                 <li><hr className="dropdown-divider" /></li>
                                 <li>
@@ -488,19 +494,30 @@ const StockShowScreen = () => {
             </div>
             <div className="card-body">
               <div className="d-grid gap-2">
-                <a href={`/stocks/${stock.id}/products`} className="btn btn-outline-primary">
+                <button 
+                  onClick={()=>{
+                    navigate(`/add/product/${stock.id}`)
+                  }}
+                  className="btn btn-outline-primary">
                   <i className="pi pi-box me-2"></i>Gérer les produits
-                </a>
+                </button>
                 
-                <a href={`/stocks/${stock.id}/users/manage`} className="btn btn-outline-info">
+                <button
+                onClick={()=>{
+                  navigate('/users')
+                }}className="btn btn-outline-info">
                   <i className="pi pi-users me-2"></i>Gérer les utilisateurs
-                </a>
+                </button>
                 
                 <a href={`/stocks/${stock.id}/edit`} className="btn btn-warning">
                   <i className="pi pi-pencil me-2"></i>Modifier ce stock
                 </a>
                 
-                <a href="/stocks/create" className="btn btn-primary">
+                <a 
+                onClick={()=>{
+                  navigate('/stocks/create')
+                }}
+                className="btn btn-primary">
                   <i className="pi pi-plus-circle me-2"></i>Créer un nouveau stock
                 </a>
                 
@@ -637,9 +654,13 @@ const StockShowScreen = () => {
             <div className="text-center py-4">
               <i className="pi pi-users display-4 text-muted"></i>
               <p className="text-muted mt-2">Aucun utilisateur associé à ce stock</p>
-              <a href={`/stocks/${stock.id}/users/manage`} className="btn btn-primary">
+              <button
+                onClick={()=>{
+                  navigate('/users')
+                }}
+                className="btn btn-primary">
                 <i className="pi pi-user-plus me-2"></i>Assigner des utilisateurs
-              </a>
+              </button>
             </div>
           )}
         </div>
@@ -648,9 +669,11 @@ const StockShowScreen = () => {
       {/* Bouton retour */}
       <div className="row mt-4">
         <div className="col-12">
-          <a href="/stocks" className="btn btn-secondary">
+          <button onClick={()=>{
+            navigate('/stocks')
+          }} className="btn btn-secondary">
             <i className="pi pi-arrow-left me-2"></i>Retour à la liste des stocks
-          </a>
+          </button>
         </div>
       </div>
 

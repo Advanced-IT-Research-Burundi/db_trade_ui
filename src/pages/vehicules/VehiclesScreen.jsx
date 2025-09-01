@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useIntl } from 'react-intl';
 import { Toast } from 'primereact/toast';
 import ApiService from '../../services/api.js';
 import { API_CONFIG } from '../../services/config.js';
@@ -7,6 +8,7 @@ import { fetchApiData } from '../../stores/slicer/apiDataSlicer.js';
 import { useNavigate } from 'react-router-dom';
 
 const VehicleScreen = () => {
+  const intl = useIntl();
   const [vehicles, setVehicles] = useState([]);
   const [filters, setFilters] = useState({
     search: '',
@@ -74,10 +76,10 @@ const VehicleScreen = () => {
     try {
       const response = await ApiService.delete(`/api/vehicules/${vehicleId}`);
       if (response.success) {
-        showToast('success', 'Véhicule supprimé avec succès');
+        showToast('success', intl.formatMessage({id: "vehicle.vehicleDeleted"}));
         loadVehicles(pagination.current_page);
       } else {
-        showToast('error', response.message || 'Erreur lors de la suppression');
+        showToast('error', response.message || intl.formatMessage({id: "vehicle.deleteError"}));
       }
     } catch (error) {
       showToast('error', error.message);
@@ -88,7 +90,7 @@ const VehicleScreen = () => {
   const showToast = (severity, detail) => {
     toast.current?.show({ 
       severity, 
-      summary: severity === 'error' ? 'Erreur' : 'Succès', 
+      summary: severity === 'error' ? intl.formatMessage({id: "vehicle.error"}) : intl.formatMessage({id: "vehicle.success"}), 
       detail, 
       life: 3000 
     });
@@ -98,9 +100,9 @@ const VehicleScreen = () => {
 
   const getStatusBadge = (status) => {
     const statusConfig = {
-      'disponible': { class: 'bg-success', icon: 'check-circle', text: 'Disponible' },
-      'en_location': { class: 'bg-warning text-dark', icon: 'clock', text: 'En location' },
-      'en_reparation': { class: 'bg-danger', icon: 'wrench', text: 'En réparation' }
+      'disponible': { class: 'bg-success', icon: 'check-circle', text: intl.formatMessage({id: "vehicle.available"}) },
+      'en_location': { class: 'bg-warning text-dark', icon: 'clock', text: intl.formatMessage({id: "vehicle.inRental"}) },
+      'en_reparation': { class: 'bg-danger', icon: 'wrench', text: intl.formatMessage({id: "vehicle.inRepair"}) }
     };
     
     const config = statusConfig[status] || statusConfig['disponible'];
@@ -197,9 +199,9 @@ const VehicleScreen = () => {
           <div className="d-flex justify-content-between align-items-center">
             <div>
               <h2 className="text-primary mb-1">
-                <i className="pi pi-car me-2"></i>Gestion des Véhicules
+                <i className="pi pi-car me-2"></i>{intl.formatMessage({id: "vehicle.title"})}
               </h2>
-              <p className="text-muted mb-0">{pagination.total} véhicule(s) au total</p>
+              <p className="text-muted mb-0">{pagination.total} {intl.formatMessage({id: "vehicle.totalVehicles"})}</p>
             </div>
             <div className="d-flex gap-2">
               <button 
@@ -208,10 +210,10 @@ const VehicleScreen = () => {
                 disabled={loading}
               >
                 <i className="pi pi-refresh me-1"></i>
-                {loading ? 'Actualisation...' : 'Actualiser'}
+                {loading ? intl.formatMessage({id: "vehicle.refreshing"}) : intl.formatMessage({id: "vehicle.refresh"})}
               </button>
               <a href="#" onClick={() => navigate('/vehicles/create')} className="btn btn-primary">
-                <i className="pi pi-plus-circle me-1"></i>Nouveau Véhicule
+                <i className="pi pi-plus-circle me-1"></i>{intl.formatMessage({id: "vehicle.newVehicle"})}
               </a>
             </div>
           </div>
@@ -222,13 +224,13 @@ const VehicleScreen = () => {
       <div className="card shadow-sm border-0 mb-4">
         <div className="card-header bg-light">
           <h6 className="mb-0">
-            <i className="pi pi-filter me-2"></i>Filtres de recherche
+            <i className="pi pi-filter me-2"></i>{intl.formatMessage({id: "vehicle.searchFilters"})}
           </h6>
         </div>
         <div className="card-body">
           <form onSubmit={handleSearch} className="row g-3">
             <div className="col-md-3">
-              <label className="form-label">Recherche</label>
+              <label className="form-label">{intl.formatMessage({id: "vehicle.search"})}</label>
               <div className="input-group">
                 <span className="input-group-text">
                   <i className="pi pi-search"></i>
@@ -236,7 +238,7 @@ const VehicleScreen = () => {
                 <input 
                   type="text" 
                   className="form-control" 
-                  placeholder="Marque, modèle, immatriculation..."
+                  placeholder={intl.formatMessage({id: "vehicle.searchPlaceholder"})}
                   value={filters.search} 
                   onChange={(e) => handleFilterChange('search', e.target.value)} 
                 />
@@ -244,36 +246,36 @@ const VehicleScreen = () => {
             </div>
             
             <div className="col-md-2">
-              <label className="form-label">Statut</label>
+              <label className="form-label">{intl.formatMessage({id: "vehicle.status"})}</label>
               <select 
                 className="form-select" 
                 value={filters.status} 
                 onChange={(e) => handleFilterChange('status', e.target.value)}
               >
-                <option value="">Tous</option>
-                <option value="disponible">Disponible</option>
-                <option value="en_location">En location</option>
-                <option value="en_reparation">En réparation</option>
+                <option value="">{intl.formatMessage({id: "vehicle.all"})}</option>
+                <option value="disponible">{intl.formatMessage({id: "vehicle.available"})}</option>
+                <option value="en_location">{intl.formatMessage({id: "vehicle.inRental"})}</option>
+                <option value="en_reparation">{intl.formatMessage({id: "vehicle.inRepair"})}</option>
               </select>
             </div>
             
             <div className="col-md-2">
-              <label className="form-label">Marque</label>
+              <label className="form-label">{intl.formatMessage({id: "vehicle.brand"})}</label>
               <input 
                 type="text" 
                 className="form-control" 
-                placeholder="Peugeot, Renault..."
+                placeholder={intl.formatMessage({id: "vehicle.brandPlaceholder"})}
                 value={filters.brand} 
                 onChange={(e) => handleFilterChange('brand', e.target.value)} 
               />
             </div>
             
             <div className="col-md-2">
-              <label className="form-label">Année</label>
+              <label className="form-label">{intl.formatMessage({id: "vehicle.year"})}</label>
               <input 
                 type="number" 
                 className="form-control" 
-                placeholder="2020"
+                placeholder={intl.formatMessage({id: "vehicle.yearPlaceholder"})}
                 value={filters.year} 
                 onChange={(e) => handleFilterChange('year', e.target.value)} 
               />
@@ -281,10 +283,10 @@ const VehicleScreen = () => {
             
             <div className="col-md-3 d-flex align-items-end gap-2">
               <button type="submit" className="btn btn-primary" disabled={loading}>
-                <i className="pi pi-search me-1"></i>Rechercher
+                <i className="pi pi-search me-1"></i>{intl.formatMessage({id: "vehicle.searchBtn"})}
               </button>
               <button type="button" className="btn btn-outline-secondary" onClick={handleReset}>
-                <i className="pi pi-refresh me-1"></i>Reset
+                <i className="pi pi-refresh me-1"></i>{intl.formatMessage({id: "vehicle.reset"})}
               </button>
             </div>
           </form>
@@ -295,7 +297,7 @@ const VehicleScreen = () => {
       <div className="card shadow-sm border-0">
         <div className="card-header bg-white d-flex justify-content-between align-items-center">
           <h5 className="mb-0">
-            <i className="pi pi-list me-2"></i>Liste des Véhicules
+            <i className="pi pi-list me-2"></i>{intl.formatMessage({id: "vehicle.vehiclesList"})}
           </h5>
         </div>
         <div className="card-body p-0">
@@ -305,40 +307,40 @@ const VehicleScreen = () => {
                 <tr>
                   <th className="border-0 px-4 py-3">#</th>
                   <th className="border-0 px-4 py-3">
-                    <i className="pi pi-car me-1"></i>Véhicule
+                    <i className="pi pi-car me-1"></i>{intl.formatMessage({id: "vehicle.vehicle"})}
                   </th>
                   <th className="border-0 px-4 py-3">
-                    <i className="pi pi-calendar me-1"></i>Année
+                    <i className="pi pi-calendar me-1"></i>{intl.formatMessage({id: "vehicle.year"})}
                   </th>
                   <th className="border-0 px-4 py-3">
-                    <i className="pi pi-id-card me-1"></i>Immatriculation
+                    <i className="pi pi-id-card me-1"></i>{intl.formatMessage({id: "vehicle.registration"})}
                   </th>
                   <th className="border-0 px-4 py-3">
-                    <i className="pi pi-weight me-1"></i>Poids Maximal
+                    <i className="pi pi-weight me-1"></i>{intl.formatMessage({id: "vehicle.maxWeight"})}
                   </th>
                   <th className="border-0 px-4 py-3">
-                    <i className="pi pi-circle-fill me-1"></i>Statut
+                    <i className="pi pi-circle-fill me-1"></i>{intl.formatMessage({id: "vehicle.status"})}
                   </th>
-                  <th className="border-0 px-4 py-3">Créé le</th>
-                  <th className="border-0 px-4 py-3">Actions</th>
+                  <th className="border-0 px-4 py-3">{intl.formatMessage({id: "vehicle.createdOn"})}</th>
+                  <th className="border-0 px-4 py-3">{intl.formatMessage({id: "vehicle.actions"})}</th>
                 </tr>
               </thead>
               <tbody>
                 { vehicles.length === 0 && loading  ? (
                   <tr>
-                    <td colSpan="7" className="text-center py-5">
+                    <td colSpan="8" className="text-center py-5">
                       <div className="spinner-border text-primary" role="status">
-                        <span className="visually-hidden">Chargement...</span>
+                        <span className="visually-hidden">{intl.formatMessage({id: "vehicle.loading"})}</span>
                       </div>
                     </td>
                   </tr>
                 ) : data.vehicles == undefined && vehicles.length === 0 ? (
                   <tr>
-                    <td colSpan="7" className="text-center py-5">
+                    <td colSpan="8" className="text-center py-5">
                       <div className="text-muted">
                         <i className="pi pi-inbox display-4 d-block mb-3"></i>
-                        <h5>Aucun véhicule trouvé</h5>
-                        <p className="mb-0">Essayez de modifier vos critères de recherche ou créez un nouveau véhicule</p>
+                        <h5>{intl.formatMessage({id: "vehicle.noVehiclesFound"})}</h5>
+                        <p className="mb-0">{intl.formatMessage({id: "vehicle.tryModifyingCriteria"})}</p>
                       </div>
                     </td>
                   </tr>
@@ -387,22 +389,22 @@ const VehicleScreen = () => {
                            <a 
                            onClick={()=>{navigate(`/vehicles/${vehicle.id}/expenses`);}}
                             className="btn btn-sm btn-outline-info" 
-                            title="Depenses"
+                            title={intl.formatMessage({id: "vehicle.expenses"})}
                           >
-                          <span className='me-1'>Depenses</span>
+                          <span className='me-1'>{intl.formatMessage({id: "vehicle.expenses"})}</span>
                             <i className="pi pi-chart-line"></i>
                           </a> 
                           <a 
                             onClick={()=>{navigate(`/vehicles/${vehicle.id}/edit`);}}
                             className="btn btn-sm btn-outline-warning" 
-                            title="Modifier"
+                            title={intl.formatMessage({id: "vehicle.edit"})}
                           >
                             <i className="pi pi-pencil"></i>
                           </a>
                           <button 
                             type="button" 
                             className="btn btn-sm btn-outline-danger" 
-                            title="Supprimer"
+                            title={intl.formatMessage({id: "vehicle.delete"})}
                             onClick={() => openDeleteModal(vehicle)}
                           >
                             <i className="pi pi-trash"></i>
@@ -422,7 +424,7 @@ const VehicleScreen = () => {
           <div className="card-footer bg-transparent border-0">
             <div className="d-flex justify-content-between align-items-center">
               <div className="text-muted small">
-                Affichage de {pagination.from} à {pagination.to} sur {pagination.total} résultats
+                {intl.formatMessage({id: "vehicle.showing"})} {pagination.from} {intl.formatMessage({id: "vehicle.to"})} {pagination.to} {intl.formatMessage({id: "vehicle.on"})} {pagination.total} {intl.formatMessage({id: "vehicle.results"})}
               </div>
               <Pagination />
             </div>
@@ -438,7 +440,7 @@ const VehicleScreen = () => {
               <div className="modal-content">
                 <div className="modal-header bg-danger text-white">
                   <h5 className="modal-title">
-                    <i className="pi pi-exclamation-triangle me-2"></i>Confirmer la suppression
+                    <i className="pi pi-exclamation-triangle me-2"></i>{intl.formatMessage({id: "vehicle.confirmDelete"})}
                   </h5>
                   <button 
                     type="button" 
@@ -447,13 +449,13 @@ const VehicleScreen = () => {
                   ></button>
                 </div>
                 <div className="modal-body">
-                  <p>Êtes-vous sûr de vouloir supprimer le véhicule :</p>
+                  <p>{intl.formatMessage({id: "vehicle.deleteMessage"})}</p>
                   <div className="alert alert-light border">
                     <strong>{deleteModal.vehicleInfo}</strong>
                   </div>
                   <div className="alert alert-warning mt-3">
                     <i className="pi pi-info-circle me-2"></i>
-                    <strong>Attention :</strong> Cette action est irréversible et pourrait affecter les locations associées.
+                    <strong>{intl.formatMessage({id: "vehicle.deleteWarning"})}</strong> {intl.formatMessage({id: "vehicle.deleteWarningMessage"})}
                   </div>
                 </div>
                 <div className="modal-footer">
@@ -462,14 +464,14 @@ const VehicleScreen = () => {
                     className="btn btn-secondary"
                     onClick={() => setDeleteModal({ show: false, vehicleId: null, vehicleInfo: null })}
                   >
-                    Annuler
+                    {intl.formatMessage({id: "vehicle.cancel"})}
                   </button>
                   <button 
                     type="button" 
                     className="btn btn-danger"
                     onClick={() => handleDeleteVehicle(deleteModal.vehicleId)}
                   >
-                    <i className="pi pi-trash me-1"></i>Supprimer
+                    <i className="pi pi-trash me-1"></i>{intl.formatMessage({id: "vehicle.delete"})}
                   </button>
                 </div>
               </div>

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useIntl } from 'react-intl';
 import { Toast } from 'primereact/toast';
 import ApiService from '../../services/api.js';
 import { API_CONFIG } from '../../services/config.js';
@@ -7,6 +8,7 @@ import { fetchApiData } from '../../stores/slicer/apiDataSlicer.js';
 import { useNavigate } from 'react-router-dom';
 
 const ExpenseScreen = () => {
+  const intl = useIntl();
   const [expenses, setExpenses] = useState([]);
   const [expenseTypes, setExpenseTypes] = useState([]);
   const [agencies, setAgencies] = useState([]);
@@ -59,9 +61,7 @@ const ExpenseScreen = () => {
       } catch (error) {
         showToast('error', error.message);
       } 
-};
-
-
+  };
 
   const handleFilterChange = (name, value) => {
     setFilters(prev => ({ ...prev, [name]: value }));
@@ -81,10 +81,10 @@ const ExpenseScreen = () => {
     try {
       const response = await ApiService.delete(`/api/expenses/${expenseId}`);
       if (response.success) {
-        showToast('success', 'Dépense supprimée avec succès');
+        showToast('success', intl.formatMessage({id: "expense.expenseDeleted"}));
         loadExpenses(pagination.current_page);
       } else {
-        showToast('error', response.message || 'Erreur lors de la suppression');
+        showToast('error', response.message || intl.formatMessage({id: "expense.deleteError"}));
       }
     } catch (error) {
       showToast('error', error.message);
@@ -95,7 +95,7 @@ const ExpenseScreen = () => {
   const showToast = (severity, detail) => {
     toast.current?.show({ 
       severity, 
-      summary: severity === 'error' ? 'Erreur' : 'Succès', 
+      summary: severity === 'error' ? intl.formatMessage({id: "expense.error"}) : intl.formatMessage({id: "expense.success"}), 
       detail, 
       life: 3000 
     });
@@ -188,9 +188,9 @@ const ExpenseScreen = () => {
           <div className="d-flex justify-content-between align-items-center">
             <div>
               <h2 className="text-primary mb-1">
-                <i className="pi pi-money-bill me-2"></i>Gestion des Dépenses
+                <i className="pi pi-money-bill me-2"></i>{intl.formatMessage({id: "expense.title"})}
               </h2>
-              <p className="text-muted mb-0">{pagination.total} dépense(s) au total</p>
+              <p className="text-muted mb-0">{pagination.total} {intl.formatMessage({id: "expense.totalExpenses"})}</p>
             </div>
             <div className="d-flex gap-2">
               <button 
@@ -199,31 +199,30 @@ const ExpenseScreen = () => {
                 disabled={loading}
               >
                 <i className="pi pi-refresh me-1"></i>
-                {loading ? 'Actualisation...' : 'Actualiser'}
+                {loading ? intl.formatMessage({id: "expense.refreshing"}) : intl.formatMessage({id: "expense.refresh"})}
               </button>
               <a 
               onClick={() => navigate('/expenses/create')}
               className="btn btn-primary"
               >
-                <i className="pi pi-plus-circle me-1"></i>Nouvelle Dépense
+                <i className="pi pi-plus-circle me-1"></i>{intl.formatMessage({id: "expense.newExpense"})}
               </a>
             </div>
           </div>
         </div>
       </div>
 
-
       {/* Filters */}
       <div className="card shadow-sm border-0 mb-4">
         <div className="card-header bg-light">
           <h6 className="mb-0">
-            <i className="pi pi-filter me-2"></i>Filtres de recherche
+            <i className="pi pi-filter me-2"></i>{intl.formatMessage({id: "expense.searchFilters"})}
           </h6>
         </div>
         <div className="card-body">
           <form onSubmit={handleSearch} className="row g-3">
             <div className="col-md-3">
-              <label className="form-label">Recherche</label>
+              <label className="form-label">{intl.formatMessage({id: "expense.search"})}</label>
               <div className="input-group">
                 <span className="input-group-text">
                   <i className="pi pi-search"></i>
@@ -231,21 +230,21 @@ const ExpenseScreen = () => {
                 <input 
                   type="text" 
                   className="form-control" 
-                  placeholder="Description, montant..."
+                  placeholder={intl.formatMessage({id: "expense.searchPlaceholder"})}
                   value={filters.search} 
                   onChange={(e) => handleFilterChange('search', e.target.value)} 
                 />
               </div>
             </div>
             
-            <div className="col-md-3">
-              <label className="form-label">Type de dépense</label>
+            <div className="col-md-2">
+              <label className="form-label">{intl.formatMessage({id: "expense.expenseType"})}</label>
               <select 
                 className="form-select" 
                 value={filters.expense_type_id} 
                 onChange={(e) => handleFilterChange('expense_type_id', e.target.value)}
               >
-                <option value="">Tous</option>
+                <option value="">{intl.formatMessage({id: "expense.all"})}</option>
                 {expenseTypes.map(type => (
                   <option key={type.id} value={type.id}>
                     {type.name}
@@ -254,14 +253,14 @@ const ExpenseScreen = () => {
               </select>
             </div>
             
-            <div className="col-md-3">
-              <label className="form-label">Agence</label>
+            <div className="col-md-2">
+              <label className="form-label">{intl.formatMessage({id: "expense.agency"})}</label>
               <select 
                 className="form-select" 
                 value={filters.agency_id} 
                 onChange={(e) => handleFilterChange('agency_id', e.target.value)}
               >
-                <option value="">Toutes</option>
+                <option value="">{intl.formatMessage({id: "expense.allFeminine"})}</option>
                 {agencies.map(agency => (
                   <option key={agency.id} value={agency.id}>
                     {agency.name}
@@ -270,14 +269,14 @@ const ExpenseScreen = () => {
               </select>
             </div>
             
-            <div className="col-md-3">
-              <label className="form-label">Utilisateur</label>
+            <div className="col-md-2">
+              <label className="form-label">{intl.formatMessage({id: "expense.user"})}</label>
               <select 
                 className="form-select" 
                 value={filters.user_id} 
                 onChange={(e) => handleFilterChange('user_id', e.target.value)}
               >
-                <option value="">Tous</option>
+                <option value="">{intl.formatMessage({id: "expense.all"})}</option>
                 {users.map(user => (
                   <option key={user.id} value={user.id}>
                     {user.name}
@@ -285,15 +284,18 @@ const ExpenseScreen = () => {
                 ))}
               </select>
             </div>
-            
-            <div className="col-12 d-flex align-items-end gap-2">
-              <button type="submit" className="btn btn-primary" disabled={loading}>
-                <i className="pi pi-search me-1"></i>Rechercher
-              </button>
-              <button type="button" className="btn btn-outline-secondary" onClick={handleReset}>
-                <i className="pi pi-refresh me-1"></i>Reset
-              </button>
+            <div className="col-md-2 mt-4">
+                  <label className="form-label "></label>              
+                   <div className="col-12 d-flex align-items-end gap-2">
+                    <button type="submit" className="btn btn-primary" disabled={loading}>
+                      <i className="pi pi-search me-1"></i>{intl.formatMessage({id: "expense.searchBtn"})}
+                    </button>
+                    <button type="button" className="btn btn-outline-secondary" onClick={handleReset}>
+                      <i className="pi pi-refresh me-1"></i>{intl.formatMessage({id: "expense.reset"})}
+                    </button>
+                  </div>
             </div>
+           
           </form>
         </div>
       </div>
@@ -302,7 +304,7 @@ const ExpenseScreen = () => {
       <div className="card shadow-sm border-0">
         <div className="card-header bg-light d-flex justify-content-between align-items-center">
           <h5 className="mb-0">
-            <i className="pi pi-list me-2"></i>Liste des Dépenses
+            <i className="pi pi-list me-2"></i>{intl.formatMessage({id: "expense.expensesList"})}
           </h5>
         </div>
         <div className="card-body p-0">
@@ -310,13 +312,13 @@ const ExpenseScreen = () => {
             <table className="table table-hover align-middle mb-0">
               <thead className="bg-light">
                 <tr>
-                  <th className="border-0 px-4 py-3">Date</th>
-                  <th className="border-0 px-4 py-3">Type</th>
-                  <th className="border-0 px-4 py-3">Montant</th>
-                  <th className="border-0 px-4 py-3">Stock</th>
-                  <th className="border-0 px-4 py-3">Utilisateur</th>
-                  <th className="border-0 px-4 py-3">Agence</th>
-                  <th className="border-0 px-4 py-3">Actions</th>
+                  <th className="border-0 px-4 py-3">{intl.formatMessage({id: "expense.date"})}</th>
+                  <th className="border-0 px-4 py-3">{intl.formatMessage({id: "expense.type"})}</th>
+                  <th className="border-0 px-4 py-3">{intl.formatMessage({id: "expense.amount"})}</th>
+                  <th className="border-0 px-4 py-3">{intl.formatMessage({id: "expense.stock"})}</th>
+                  <th className="border-0 px-4 py-3">{intl.formatMessage({id: "expense.user"})}</th>
+                  <th className="border-0 px-4 py-3">{intl.formatMessage({id: "expense.agency"})}</th>
+                  <th className="border-0 px-4 py-3">{intl.formatMessage({id: "expense.actions"})}</th>
                 </tr>
               </thead>
               <tbody>
@@ -324,7 +326,7 @@ const ExpenseScreen = () => {
                   <tr>
                     <td colSpan="7" className="text-center py-5">
                       <div className="spinner-border text-primary" role="status">
-                        <span className="visually-hidden">Chargement...</span>
+                        <span className="visually-hidden">{intl.formatMessage({id: "expense.loading"})}</span>
                       </div>
                     </td>
                   </tr>
@@ -333,8 +335,8 @@ const ExpenseScreen = () => {
                     <td colSpan="7" className="text-center py-5">
                       <div className="text-muted">
                         <i className="pi pi-inbox display-4 d-block mb-3"></i>
-                        <h5>Aucune dépense trouvée</h5>
-                        <p className="mb-0">Essayez de modifier vos critères de recherche ou créez une nouvelle dépense</p>
+                        <h5>{intl.formatMessage({id: "expense.noExpensesFound"})}</h5>
+                        <p className="mb-0">{intl.formatMessage({id: "expense.tryModifyingCriteria"})}</p>
                       </div>
                     </td>
                   </tr>
@@ -409,21 +411,21 @@ const ExpenseScreen = () => {
                           <a 
                             href={`/expenses/${expense.id}`} 
                             className="btn btn-sm btn-outline-info" 
-                            title="Voir"
+                            title={intl.formatMessage({id: "expense.view"})}
                           >
                             <i className="pi pi-eye"></i>
                           </a>
                           <a 
                             onClick={() => navigate(`/expenses/${expense.id}/edit`)}
                             className="btn btn-sm btn-outline-warning" 
-                            title="Modifier"
+                            title={intl.formatMessage({id: "expense.edit"})}
                           >
                             <i className="pi pi-pencil"></i>
                           </a>
                           <button 
                             type="button" 
                             className="btn btn-sm btn-outline-danger" 
-                            title="Supprimer"
+                            title={intl.formatMessage({id: "expense.delete"})}
                             onClick={() => setDeleteModal({ show: true, expenseId: expense.id })}
                           >
                             <i className="pi pi-trash"></i>
@@ -443,7 +445,7 @@ const ExpenseScreen = () => {
           <div className="card-footer bg-transparent border-0">
             <div className="d-flex justify-content-between align-items-center">
               <div className="text-muted small">
-                Affichage de {pagination.from} à {pagination.to} sur {pagination.total} résultats
+                {intl.formatMessage({id: "expense.showing"})} {pagination.from} {intl.formatMessage({id: "expense.to"})} {pagination.to} {intl.formatMessage({id: "expense.on"})} {pagination.total} {intl.formatMessage({id: "expense.results"})}
               </div>
               <Pagination />
             </div>
@@ -459,7 +461,7 @@ const ExpenseScreen = () => {
               <div className="modal-content">
                 <div className="modal-header bg-danger text-white">
                   <h5 className="modal-title">
-                    <i className="pi pi-exclamation-triangle me-2"></i>Confirmer la suppression
+                    <i className="pi pi-exclamation-triangle me-2"></i>{intl.formatMessage({id: "expense.confirmDelete"})}
                   </h5>
                   <button 
                     type="button" 
@@ -468,10 +470,10 @@ const ExpenseScreen = () => {
                   ></button>
                 </div>
                 <div className="modal-body">
-                  <p>Êtes-vous sûr de vouloir supprimer cette dépense ? Cette action est irréversible.</p>
+                  <p>{intl.formatMessage({id: "expense.deleteMessage"})}</p>
                   <div className="alert alert-warning mt-3">
                     <i className="pi pi-info-circle me-2"></i>
-                    <strong>Attention :</strong> La suppression de cette dépense pourrait affecter les rapports financiers.
+                    <strong>{intl.formatMessage({id: "expense.deleteWarning"})}</strong> {intl.formatMessage({id: "expense.deleteWarningMessage"})}
                   </div>
                 </div>
                 <div className="modal-footer">
@@ -480,14 +482,14 @@ const ExpenseScreen = () => {
                     className="btn btn-secondary"
                     onClick={() => setDeleteModal({ show: false, expenseId: null })}
                   >
-                    Annuler
+                    {intl.formatMessage({id: "expense.cancel"})}
                   </button>
                   <button 
                     type="button" 
                     className="btn btn-danger"
                     onClick={() => handleDeleteExpense(deleteModal.expenseId)}
                   >
-                    <i className="pi pi-trash me-1"></i>Supprimer
+                    <i className="pi pi-trash me-1"></i>{intl.formatMessage({id: "expense.delete"})}
                   </button>
                 </div>
               </div>

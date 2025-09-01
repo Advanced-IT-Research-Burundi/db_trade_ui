@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useIntl } from 'react-intl';
 import { Toast } from 'primereact/toast';
 import ApiService from '../../services/api.js';
 import { API_CONFIG } from '../../services/config.js';
@@ -7,6 +8,7 @@ import { fetchApiData } from '../../stores/slicer/apiDataSlicer.js';
 import { useNavigate } from 'react-router-dom';
 
 const UserScreen = () => {
+  const intl = useIntl();
   const [users, setUsers] = useState([]);
   const [companies, setCompanies] = useState([]);
   const [agencies, setAgencies] = useState([]);
@@ -29,44 +31,41 @@ const UserScreen = () => {
   const [deleteModal, setDeleteModal] = useState({ show: false, userId: null });
   const toast = useRef(null);
 
-
-      const navigate = useNavigate();
-      const dispatch = useDispatch();
-      const { data , loading} = useSelector(state => state.apiData);
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const { data , loading} = useSelector(state => state.apiData);
 
   useEffect(() => {
     loadUsers();
   }, []);
 
   useEffect(() => {
-              if (data.users) {
-                  setUsers(data.users.users?.data || []);
+            if (data.users) {
+                setUsers(data.users.users?.data || []);
 
-                setCompanies(data.users.companies || []);
-                setAgencies(data.users?.agencies || []);
-                setRoles(data.users?.roles || []);
-                setStatuses(data.users?.statuses || []);
-                setPagination({
-                  current_page: data.users.users?.current_page,
-                  last_page: data.users.users?.last_page,
-                  total: data.users.users?.total,
-                  from: data.users.users?.from,
-                  to: data.users.users?.to
-                });
-              }
-            }, [data]);
+              setCompanies(data.users.companies || []);
+              setAgencies(data.users?.agencies || []);
+              setRoles(data.users?.roles || []);
+              setStatuses(data.users?.statuses || []);
+              setPagination({
+                current_page: data.users.users?.current_page,
+                last_page: data.users.users?.last_page,
+                total: data.users.users?.total,
+                from: data.users.users?.from,
+                to: data.users.users?.to
+              });
+            }
+          }, [data]);
 
   async function loadUsers(page = 1) {
-            try {
-              const params = { page, ...filters };
-              dispatch(fetchApiData({ url: API_CONFIG.ENDPOINTS.USERS, itemKey: 'users', params }));
-             
-            } catch (error) {
-              showToast('error', error.message);
-            } 
-          };
-
-
+          try {
+            const params = { page, ...filters };
+            dispatch(fetchApiData({ url: API_CONFIG.ENDPOINTS.USERS, itemKey: 'users', params }));
+           
+          } catch (error) {
+            showToast('error', error.message);
+          } 
+        };
 
   const handleFilterChange = (name, value) => {
     setFilters(prev => ({ ...prev, [name]: value }));
@@ -86,10 +85,10 @@ const UserScreen = () => {
     try {
       const response = await ApiService.delete(`/api/users/${userId}`);
       if (response.success) {
-        showToast('success', 'Utilisateur supprimé avec succès');
+        showToast('success', intl.formatMessage({id: "user.userDeleted"}));
         loadUsers(pagination.current_page);
       } else {
-        showToast('error', response.message || 'Erreur lors de la suppression');
+        showToast('error', response.message || intl.formatMessage({id: "user.deleteError"}));
       }
     } catch (error) {
       showToast('error', error.message);
@@ -100,7 +99,7 @@ const UserScreen = () => {
   const showToast = (severity, detail) => {
     toast.current?.show({ 
       severity, 
-      summary: severity === 'error' ? 'Erreur' : 'Succès', 
+      summary: severity === 'error' ? intl.formatMessage({id: "user.error"}) : intl.formatMessage({id: "user.success"}), 
       detail, 
       life: 3000 
     });
@@ -121,13 +120,13 @@ const UserScreen = () => {
   const getStatusBadge = (status) => {
     switch (status) {
       case 'active':
-        return <span className="badge bg-success">Actif</span>;
+        return <span className="badge bg-success">{intl.formatMessage({id: "user.active"})}</span>;
       case 'inactive':
-        return <span className="badge bg-secondary">Inactif</span>;
+        return <span className="badge bg-secondary">{intl.formatMessage({id: "user.inactive"})}</span>;
       case 'suspended':
-        return <span className="badge bg-danger">Suspendu</span>;
+        return <span className="badge bg-danger">{intl.formatMessage({id: "user.suspended"})}</span>;
       default:
-        return <span className="badge bg-secondary">Inconnu</span>;
+        return <span className="badge bg-secondary">{intl.formatMessage({id: "user.unknown"})}</span>;
     }
   };
 
@@ -139,7 +138,18 @@ const UserScreen = () => {
       'user': 'primary'
     };
     const color = roleColors[role?.toLowerCase()] || 'secondary';
-    return <span className={`badge bg-${color}`}>{role ? role.charAt(0).toUpperCase() + role.slice(1) : 'N/A'}</span>;
+    
+    const getRoleText = (roleType) => {
+      switch(roleType?.toLowerCase()) {
+        case 'admin': return intl.formatMessage({id: "user.admin"});
+        case 'manager': return intl.formatMessage({id: "user.manager"});
+        case 'employee': return intl.formatMessage({id: "user.employee"});
+        case 'user': return intl.formatMessage({id: "user.userRole"});
+        default: return role ? role.charAt(0).toUpperCase() + role.slice(1) : 'N/A';
+      }
+    };
+
+    return <span className={`badge bg-${color}`}>{getRoleText(role)}</span>;
   };
 
   const getLastLoginText = (lastLogin) => {
@@ -149,8 +159,8 @@ const UserScreen = () => {
     const diffTime = Math.abs(now - loginDate);
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     
-    if (diffDays === 1) return 'Hier';
-    if (diffDays < 7) return `Il y a ${diffDays} jours`;
+    if (diffDays === 1) return intl.formatMessage({id: "user.yesterday"});
+    if (diffDays < 7) return `${intl.formatMessage({id: "user.ago"})} ${diffDays} ${intl.formatMessage({id: "user.daysAgo"})}`;
     return formatDate(lastLogin);
   };
 
@@ -231,9 +241,9 @@ const UserScreen = () => {
           <div className="d-flex justify-content-between align-items-center">
             <div>
               <h2 className="text-primary mb-1">
-                <i className="pi pi-users me-2"></i>Gestion des Utilisateurs
+                <i className="pi pi-users me-2"></i>{intl.formatMessage({id: "user.title"})}
               </h2>
-              <p className="text-muted mb-0">{pagination.total} utilisateur(s) au total</p>
+              <p className="text-muted mb-0">{pagination.total} {intl.formatMessage({id: "user.totalUsers"})}</p>
             </div>
             <div className="d-flex gap-2">
               <button 
@@ -242,10 +252,10 @@ const UserScreen = () => {
                 disabled={loading}
               >
                 <i className="pi pi-refresh me-1"></i>
-                {loading ? 'Actualisation...' : 'Actualiser'}
+                {loading ? intl.formatMessage({id: "user.refreshing"}) : intl.formatMessage({id: "user.refresh"})}
               </button>
               <a onClick={()=>navigate('/users/create')} className="btn btn-primary">
-                <i className="pi pi-plus-circle me-1"></i>Nouvel Utilisateur
+                <i className="pi pi-plus-circle me-1"></i>{intl.formatMessage({id: "user.newUser"})}
               </a>
             </div>
           </div>
@@ -256,13 +266,13 @@ const UserScreen = () => {
       <div className="card shadow-sm border-0 mb-4">
         <div className="card-header bg-light">
           <h6 className="mb-0">
-            <i className="pi pi-filter me-2"></i>Filtres de recherche
+            <i className="pi pi-filter me-2"></i>{intl.formatMessage({id: "user.searchFilters"})}
           </h6>
         </div>
         <div className="card-body">
           <form onSubmit={handleSearch} className="row g-3">
             <div className="col-md-3">
-              <label className="form-label">Recherche</label>
+              <label className="form-label">{intl.formatMessage({id: "user.search"})}</label>
               <div className="input-group">
                 <span className="input-group-text">
                   <i className="pi pi-search"></i>
@@ -270,7 +280,7 @@ const UserScreen = () => {
                 <input 
                   type="text" 
                   className="form-control" 
-                  placeholder="Nom, email ou téléphone..."
+                  placeholder={intl.formatMessage({id: "user.searchPlaceholder"})}
                   value={filters.search} 
                   onChange={(e) => handleFilterChange('search', e.target.value)} 
                 />
@@ -278,13 +288,13 @@ const UserScreen = () => {
             </div>
             
             <div className="col-md-2">
-              <label className="form-label">Entreprise</label>
+              <label className="form-label">{intl.formatMessage({id: "user.company"})}</label>
               <select 
                 className="form-select" 
                 value={filters.company_id} 
                 onChange={(e) => handleFilterChange('company_id', e.target.value)}
               >
-                <option value="">Toutes</option>
+                <option value="">{intl.formatMessage({id: "user.all"})}</option>
                 {companies.map(company => (
                   <option key={company.id} value={company.id}>
                     {company.tp_name || company.name}
@@ -294,13 +304,13 @@ const UserScreen = () => {
             </div>
             
             <div className="col-md-2">
-              <label className="form-label">Agence</label>
+              <label className="form-label">{intl.formatMessage({id: "user.agency"})}</label>
               <select 
                 className="form-select" 
                 value={filters.agency_id} 
                 onChange={(e) => handleFilterChange('agency_id', e.target.value)}
               >
-                <option value="">Toutes</option>
+                <option value="">{intl.formatMessage({id: "user.all"})}</option>
                 {agencies.map(agency => (
                   <option key={agency.id} value={agency.id}>
                     {agency.name}
@@ -310,13 +320,13 @@ const UserScreen = () => {
             </div>
             
             <div className="col-md-2">
-              <label className="form-label">Rôle</label>
+              <label className="form-label">{intl.formatMessage({id: "user.role"})}</label>
               <select 
                 className="form-select" 
                 value={filters.role} 
                 onChange={(e) => handleFilterChange('role', e.target.value)}
               >
-                <option value="">Tous</option>
+                <option value="">{intl.formatMessage({id: "user.allMasculine"})}</option>
                 {roles.map(role => (
                   <option key={role} value={role}>
                     {role.charAt(0).toUpperCase() + role.slice(1)}
@@ -326,13 +336,13 @@ const UserScreen = () => {
             </div>
             
             <div className="col-md-2">
-              <label className="form-label">Statut</label>
+              <label className="form-label">{intl.formatMessage({id: "user.status"})}</label>
               <select 
                 className="form-select" 
                 value={filters.status} 
                 onChange={(e) => handleFilterChange('status', e.target.value)}
               >
-                <option value="">Tous</option>
+                <option value="">{intl.formatMessage({id: "user.allMasculine"})}</option>
                 {statuses.map(status => (
                   <option key={status} value={status}>
                     {status.charAt(0).toUpperCase() + status.slice(1)}
@@ -357,7 +367,7 @@ const UserScreen = () => {
       <div className="card shadow-sm border-0">
         <div className="card-header bg-white d-flex justify-content-between align-items-center">
           <h5 className="mb-0">
-            <i className="pi pi-list me-2"></i>Liste des Utilisateurs
+            <i className="pi pi-list me-2"></i>{intl.formatMessage({id: "user.usersList"})}
           </h5>
         </div>
         <div className="card-body p-0">
@@ -365,16 +375,16 @@ const UserScreen = () => {
             <table className="table table-hover align-middle mb-0">
               <thead className="bg-light">
                 <tr>
-                  <th className="border-0 px-4 py-3">Photo</th>
-                  <th className="border-0 px-4 py-3">Nom</th>
-                  <th className="border-0 px-4 py-3">Email</th>
-                  <th className="border-0 px-4 py-3">Téléphone</th>
-                  <th className="border-0 px-4 py-3">Rôle</th>
-                  <th className="border-0 px-4 py-3">Statut</th>
-                  <th className="border-0 px-4 py-3">Entreprise</th>
-                  <th className="border-0 px-4 py-3">Agence</th>
-                  <th className="border-0 px-4 py-3">Créé le</th>
-                  <th className="border-0 px-4 py-3">Actions</th>
+                  <th className="border-0 px-4 py-3">{intl.formatMessage({id: "user.photo"})}</th>
+                  <th className="border-0 px-4 py-3">{intl.formatMessage({id: "user.name"})}</th>
+                  <th className="border-0 px-4 py-3">{intl.formatMessage({id: "user.email"})}</th>
+                  <th className="border-0 px-4 py-3">{intl.formatMessage({id: "user.phone"})}</th>
+                  <th className="border-0 px-4 py-3">{intl.formatMessage({id: "user.role"})}</th>
+                  <th className="border-0 px-4 py-3">{intl.formatMessage({id: "user.status"})}</th>
+                  <th className="border-0 px-4 py-3">{intl.formatMessage({id: "user.company"})}</th>
+                  <th className="border-0 px-4 py-3">{intl.formatMessage({id: "user.agency"})}</th>
+                  <th className="border-0 px-4 py-3">{intl.formatMessage({id: "user.createdOn"})}</th>
+                  <th className="border-0 px-4 py-3">{intl.formatMessage({id: "user.actions"})}</th>
                 </tr>
               </thead>
               <tbody>
@@ -382,7 +392,7 @@ const UserScreen = () => {
                   <tr>
                     <td colSpan="10" className="text-center py-5">
                       <div className="spinner-border text-primary" role="status">
-                        <span className="visually-hidden">Chargement...</span>
+                        <span className="visually-hidden">{intl.formatMessage({id: "user.loading"})}</span>
                       </div>
                     </td>
                   </tr>
@@ -391,8 +401,8 @@ const UserScreen = () => {
                     <td colSpan="10" className="text-center py-5">
                       <div className="text-muted">
                         <i className="pi pi-inbox display-4 d-block mb-3"></i>
-                        <h5>Aucun utilisateur trouvé</h5>
-                        <p className="mb-0">Essayez de modifier vos critères de recherche ou créez un nouvel utilisateur</p>
+                        <h5>{intl.formatMessage({id: "user.noUsersFound"})}</h5>
+                        <p className="mb-0">{intl.formatMessage({id: "user.tryModifyingCriteria"})}</p>
                       </div>
                     </td>
                   </tr>
@@ -403,7 +413,7 @@ const UserScreen = () => {
                         {getProfileImageUrl(user.profile_photo) ? (
                           <img 
                             src={getProfileImageUrl(user.profile_photo)} 
-                            alt="Photo de profil"
+                            alt={intl.formatMessage({id: "user.profilePhoto"})}
                             className="rounded-circle"
                             style={{ width: '40px', height: '40px', objectFit: 'cover' }}
                             onError={(e) => {
@@ -432,7 +442,7 @@ const UserScreen = () => {
                             <>
                               <br />
                               <small className="text-muted">
-                                Dernière connexion: {getLastLoginText(user.last_login_at)}
+                                {intl.formatMessage({id: "user.lastLogin"})}: {getLastLoginText(user.last_login_at)}
                               </small>
                             </>
                           )}
@@ -443,7 +453,7 @@ const UserScreen = () => {
                           <i className="pi pi-envelope text-muted me-2"></i>
                           <span>{user.email}</span>
                           {user.email_verified_at && (
-                            <i className="pi pi-check-circle text-success ms-2" title="Email vérifié"></i>
+                            <i className="pi pi-check-circle text-success ms-2" title={intl.formatMessage({id: "user.emailVerified"})}></i>
                           )}
                         </div>
                       </td>
@@ -454,7 +464,7 @@ const UserScreen = () => {
                             {user.phone}
                           </div>
                         ) : (
-                          <span className="text-muted">Non renseigné</span>
+                          <span className="text-muted">{intl.formatMessage({id: "user.notProvided"})}</span>
                         )}
                       </td>
                       <td className="px-4">{getRoleBadge(user.role)}</td>
@@ -466,7 +476,7 @@ const UserScreen = () => {
                             {user.company.tp_name || user.company.name}
                           </div>
                         ) : (
-                          <span className="text-muted">Non assigné</span>
+                          <span className="text-muted">{intl.formatMessage({id: "user.notAssigned"})}</span>
                         )}
                       </td>
                       <td className="px-4">
@@ -476,7 +486,7 @@ const UserScreen = () => {
                             {user.agency.name}
                           </div>
                         ) : (
-                          <span className="text-muted">Non assigné</span>
+                          <span className="text-muted">{intl.formatMessage({id: "user.notAssigned"})}</span>
                         )}
                       </td>
                       <td className="px-4">
@@ -496,14 +506,14 @@ const UserScreen = () => {
                           <a 
                             onClick={()=>{navigate(`/users/${user.id}`)}}
                             className="btn btn-sm btn-outline-info" 
-                            title="Voir"
+                            title={intl.formatMessage({id: "user.view"})}
                           >
                             <i className="pi pi-eye"></i>
                           </a>
                           <a 
                             onClick={()=>navigate(`/users/${user.id}/edit`)}
                             className="btn btn-sm btn-outline-warning" 
-                            title="Modifier"
+                            title={intl.formatMessage({id: "user.edit"})}
                           >
                             <i className="pi pi-pencil"></i>
                           </a>
@@ -511,7 +521,7 @@ const UserScreen = () => {
                             <button 
                               type="button" 
                               className="btn btn-sm btn-outline-danger" 
-                              title="Supprimer"
+                              title={intl.formatMessage({id: "user.delete"})}
                               onClick={() => setDeleteModal({ show: true, userId: user.id })}
                             >
                               <i className="pi pi-trash"></i>
@@ -532,7 +542,7 @@ const UserScreen = () => {
           <div className="card-footer bg-transparent border-0">
             <div className="d-flex justify-content-between align-items-center">
               <div className="text-muted small">
-                Affichage de {pagination.from} à {pagination.to} sur {pagination.total} résultats
+                {intl.formatMessage({id: "user.showing"})} {pagination.from} {intl.formatMessage({id: "user.to"})} {pagination.to} {intl.formatMessage({id: "user.on"})} {pagination.total} {intl.formatMessage({id: "user.results"})}
               </div>
               <Pagination />
             </div>
@@ -548,7 +558,7 @@ const UserScreen = () => {
               <div className="modal-content">
                 <div className="modal-header bg-danger text-white">
                   <h5 className="modal-title">
-                    <i className="pi pi-exclamation-triangle me-2"></i>Confirmer la suppression
+                    <i className="pi pi-exclamation-triangle me-2"></i>{intl.formatMessage({id: "user.confirmDelete"})}
                   </h5>
                   <button 
                     type="button" 
@@ -557,10 +567,10 @@ const UserScreen = () => {
                   ></button>
                 </div>
                 <div className="modal-body">
-                  <p>Êtes-vous sûr de vouloir supprimer cet utilisateur ? Cette action est irréversible.</p>
+                  <p>{intl.formatMessage({id: "user.deleteMessage"})}</p>
                   <div className="alert alert-warning mt-3">
                     <i className="pi pi-info-circle me-2"></i>
-                    <strong>Attention :</strong> La suppression de cet utilisateur pourrait affecter les données associées dans le système.
+                    <strong>{intl.formatMessage({id: "user.deleteWarning"})}</strong> {intl.formatMessage({id: "user.deleteWarningMessage"})}
                   </div>
                 </div>
                 <div className="modal-footer">
@@ -569,14 +579,14 @@ const UserScreen = () => {
                     className="btn btn-secondary"
                     onClick={() => setDeleteModal({ show: false, userId: null })}
                   >
-                    Annuler
+                    {intl.formatMessage({id: "user.cancel"})}
                   </button>
                   <button 
                     type="button" 
                     className="btn btn-danger"
                     onClick={() => handleDeleteUser(deleteModal.userId)}
                   >
-                    <i className="pi pi-trash me-1"></i>Supprimer
+                    <i className="pi pi-trash me-1"></i>{intl.formatMessage({id: "user.delete"})}
                   </button>
                 </div>
               </div>

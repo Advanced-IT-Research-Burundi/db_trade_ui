@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useIntl } from 'react-intl';
 import { Toast } from 'primereact/toast';
 import ApiService from '../../services/api.js';
 
@@ -8,6 +9,7 @@ import { fetchApiData } from '../../stores/slicer/apiDataSlicer.js';
 import { useNavigate } from 'react-router-dom';
 
 const ClientScreen = () => {
+  const intl = useIntl();
   const [clients, setClients] = useState([]);
   const [agencies, setAgencies] = useState([]);
   const [creators, setCreators] = useState([]);
@@ -60,9 +62,6 @@ const ClientScreen = () => {
         } 
       };
 
-  
- 
-
   const handleFilterChange = (name, value) => {
     setFilters(prev => ({ ...prev, [name]: value }));
   };
@@ -81,10 +80,10 @@ const ClientScreen = () => {
     try {
       const response = await ApiService.delete(`/api/clients/${clientId}`);
       if (response.success) {
-        showToast('success', 'Client supprimé avec succès');
+        showToast('success', intl.formatMessage({id: "client.clientDeleted"}));
         loadClients(pagination.current_page);
       } else {
-        showToast('error', response.message || 'Erreur lors de la suppression');
+        showToast('error', response.message || intl.formatMessage({id: "client.deleteError"}));
       }
     } catch (error) {
       showToast('error', error.message);
@@ -95,7 +94,7 @@ const ClientScreen = () => {
   const showToast = (severity, detail) => {
     toast.current?.show({ 
       severity, 
-      summary: severity === 'error' ? 'Erreur' : 'Succès', 
+      summary: severity === 'error' ? intl.formatMessage({id: "client.error"}) : intl.formatMessage({id: "client.success"}), 
       detail, 
       life: 3000 
     });
@@ -103,24 +102,17 @@ const ClientScreen = () => {
 
   const formatDate = (date) => new Date(date).toLocaleDateString('fr-FR');
 
-  // const formatCurrency = (amount) => {
-  //   return new Intl.NumberFormat('fr-FR', {
-  //     minimumFractionDigits: 0,
-  //     maximumFractionDigits: 0
-  //   }).format(amount) + ' F';
-  // };
-
   const getClientTypeBadge = (type) => {
     if (type === 'physique') {
       return (
         <span className="badge bg-success">
-          <i className="pi pi-user me-1"></i>Physique
+          <i className="pi pi-user me-1"></i>{intl.formatMessage({id: "client.individual"})}
         </span>
       );
     }
     return (
       <span className="badge bg-info">
-        <i className="pi pi-building me-1"></i>Morale
+        <i className="pi pi-building me-1"></i>{intl.formatMessage({id: "client.legal"})}
       </span>
     );
   };
@@ -207,9 +199,9 @@ const ClientScreen = () => {
           <div className="d-flex justify-content-between align-items-center">
             <div>
               <h2 className="text-primary mb-1">
-                <i className="pi pi-users me-2"></i>Gestion des Clients
+                <i className="pi pi-users me-2"></i>{intl.formatMessage({id: "client.title"})}
               </h2>
-              <p className="text-muted mb-0">{pagination.total} client(s) au total</p>
+              <p className="text-muted mb-0">{pagination.total} {intl.formatMessage({id: "client.totalClients"})}</p>
             </div>
             <div className="d-flex gap-2">
               <button 
@@ -218,10 +210,10 @@ const ClientScreen = () => {
                 disabled={loading}
               >
                 <i className="pi pi-refresh me-1"></i>
-                {loading ? 'Actualisation...' : 'Actualiser'}
+                {loading ? intl.formatMessage({id: "client.refreshing"}) : intl.formatMessage({id: "client.refresh"})}
               </button>
               <a onClick={()=>navigate('/clients/create')} className="btn btn-primary">
-                <i className="pi pi-plus-circle me-1"></i>Nouveau Client
+                <i className="pi pi-plus-circle me-1"></i>{intl.formatMessage({id: "client.newClient"})}
               </a>
             </div>
           </div>
@@ -232,13 +224,13 @@ const ClientScreen = () => {
       <div className="card shadow-sm border-0 mb-4">
         <div className="card-header bg-light">
           <h6 className="mb-0">
-            <i className="pi pi-filter me-2"></i>Filtres de recherche
+            <i className="pi pi-filter me-2"></i>{intl.formatMessage({id: "client.searchFilters"})}
           </h6>
         </div>
         <div className="card-body">
           <form onSubmit={handleSearch} className="row g-3">
             <div className="col-md-3">
-              <label className="form-label">Recherche</label>
+              <label className="form-label">{intl.formatMessage({id: "client.search"})}</label>
               <div className="input-group">
                 <span className="input-group-text">
                   <i className="pi pi-search"></i>
@@ -246,7 +238,7 @@ const ClientScreen = () => {
                 <input 
                   type="text" 
                   className="form-control" 
-                  placeholder="Nom, email, téléphone, société..."
+                  placeholder={intl.formatMessage({id: "client.searchPlaceholder"})}
                   value={filters.search} 
                   onChange={(e) => handleFilterChange('search', e.target.value)} 
                 />
@@ -254,26 +246,26 @@ const ClientScreen = () => {
             </div>
             
             <div className="col-md-2">
-              <label className="form-label">Type</label>
+              <label className="form-label">{intl.formatMessage({id: "client.type"})}</label>
               <select 
                 className="form-select" 
                 value={filters.patient_type} 
                 onChange={(e) => handleFilterChange('patient_type', e.target.value)}
               >
-                <option value="">Tous</option>
-                <option value="physique">Personne physique</option>
-                <option value="morale">Personne morale</option>
+                <option value="">{intl.formatMessage({id: "client.all"})}</option>
+                <option value="physique">{intl.formatMessage({id: "client.individualPerson"})}</option>
+                <option value="morale">{intl.formatMessage({id: "client.legalEntity"})}</option>
               </select>
             </div>
             
             <div className="col-md-2">
-              <label className="form-label">Agence</label>
+              <label className="form-label">{intl.formatMessage({id: "client.agency"})}</label>
               <select 
                 className="form-select" 
                 value={filters.agency_id} 
                 onChange={(e) => handleFilterChange('agency_id', e.target.value)}
               >
-                <option value="">Toutes</option>
+                <option value="">{intl.formatMessage({id: "client.all"})}</option>
                 {agencies.map(agency => (
                   <option key={agency.id} value={agency.id}>
                     {agency.name}
@@ -283,13 +275,13 @@ const ClientScreen = () => {
             </div>
             
             <div className="col-md-2">
-              <label className="form-label">Créé par</label>
+              <label className="form-label">{intl.formatMessage({id: "client.createdBy"})}</label>
               <select 
                 className="form-select" 
                 value={filters.created_by} 
                 onChange={(e) => handleFilterChange('created_by', e.target.value)}
               >
-                <option value="">Tous</option>
+                <option value="">{intl.formatMessage({id: "client.all"})}</option>
                 {creators.map(creator => (
                   <option key={creator.id} value={creator.id}>
                     {creator.name}
@@ -300,10 +292,10 @@ const ClientScreen = () => {
             
             <div className="col-md-3 d-flex align-items-end gap-2">
               <button type="submit" className="btn btn-primary" disabled={loading}>
-                <i className="pi pi-search me-1"></i>Rechercher
+                <i className="pi pi-search me-1"></i>{intl.formatMessage({id: "client.searchBtn"})}
               </button>
               <button type="button" className="btn btn-outline-secondary" onClick={handleReset}>
-                <i className="pi pi-refresh me-1"></i>Reset
+                <i className="pi pi-refresh me-1"></i>{intl.formatMessage({id: "client.reset"})}
               </button>
             </div>
           </form>
@@ -314,7 +306,7 @@ const ClientScreen = () => {
       <div className="card shadow-sm border-0">
         <div className="card-header bg-white d-flex justify-content-between align-items-center">
           <h5 className="mb-0">
-            <i className="pi pi-list me-2"></i>Liste des Clients
+            <i className="pi pi-list me-2"></i>{intl.formatMessage({id: "client.clientsList"})}
           </h5>
         </div>
         <div className="card-body p-0">
@@ -322,14 +314,14 @@ const ClientScreen = () => {
             <table className="table table-hover align-middle mb-0">
               <thead className="bg-light">
                 <tr>
-                  <th className="border-0 px-4 py-3">Client</th>
-                  <th className="border-0 px-4 py-3">Type</th>
-                  <th className="border-0 px-4 py-3">Contact</th>
-                  <th className="border-0 px-4 py-3">Société/NIF</th>
-                  <th className="border-0 px-4 py-3">Agence</th>
-                  <th className="border-0 px-4 py-3">Créé par</th>
-                  <th className="border-0 px-4 py-3">Créé le</th>
-                  <th className="border-0 px-4 py-3">Actions</th>
+                  <th className="border-0 px-4 py-3">{intl.formatMessage({id: "client.client"})}</th>
+                  <th className="border-0 px-4 py-3">{intl.formatMessage({id: "client.type"})}</th>
+                  <th className="border-0 px-4 py-3">{intl.formatMessage({id: "client.contact"})}</th>
+                  <th className="border-0 px-4 py-3">{intl.formatMessage({id: "client.companyNIF"})}</th>
+                  <th className="border-0 px-4 py-3">{intl.formatMessage({id: "client.agency"})}</th>
+                  <th className="border-0 px-4 py-3">{intl.formatMessage({id: "client.createdBy"})}</th>
+                  <th className="border-0 px-4 py-3">{intl.formatMessage({id: "client.createdOn"})}</th>
+                  <th className="border-0 px-4 py-3">{intl.formatMessage({id: "client.actions"})}</th>
                 </tr>
               </thead>
               <tbody>
@@ -337,7 +329,7 @@ const ClientScreen = () => {
                   <tr>
                     <td colSpan="8" className="text-center py-5">
                       <div className="spinner-border text-primary" role="status">
-                        <span className="visually-hidden">Chargement...</span>
+                        <span className="visually-hidden">{intl.formatMessage({id: "client.loading"})}</span>
                       </div>
                     </td>
                   </tr>
@@ -346,8 +338,8 @@ const ClientScreen = () => {
                     <td colSpan="8" className="text-center py-5">
                       <div className="text-muted">
                         <i className="pi pi-inbox display-4 d-block mb-3"></i>
-                        <h5>Aucun client trouvé</h5>
-                        <p className="mb-0">Essayez de modifier vos critères de recherche ou créez un nouveau client</p>
+                        <h5>{intl.formatMessage({id: "client.noClientsFound"})}</h5>
+                        <p className="mb-0">{intl.formatMessage({id: "client.tryModifyingCriteria"})}</p>
                       </div>
                     </td>
                   </tr>
@@ -388,7 +380,7 @@ const ClientScreen = () => {
                             </div>
                           )}
                           {!client.email && !client.phone && (
-                            <span className="text-muted">Non renseigné</span>
+                            <span className="text-muted">{intl.formatMessage({id: "client.notProvided"})}</span>
                           )}
                         </div>
                       </td>
@@ -418,7 +410,7 @@ const ClientScreen = () => {
                             {client.agency.name}
                           </div>
                         ) : (
-                          <span className="text-muted">Non assigné</span>
+                          <span className="text-muted">{intl.formatMessage({id: "client.notAssigned"})}</span>
                         )}
                       </td>
                       <td className="px-4">
@@ -441,24 +433,17 @@ const ClientScreen = () => {
                       </td>
                       <td className="px-4">
                         <div className="btn-group" role="group">
-                          {/* <a 
-                            href={`/clients/${client.id}`} 
-                            className="btn btn-sm btn-outline-info" 
-                            title="Voir"
-                          >
-                            <i className="pi pi-eye"></i>
-                          </a> */}
                           <a
                             onClick={() => navigate(`/clients/${client.id}/edit`)}
                             className="btn btn-sm btn-outline-warning"
-                            title="Modifier"
+                            title={intl.formatMessage({id: "client.edit"})}
                           >
                             <i className="pi pi-pencil"></i>
                           </a>
                           <button 
                             type="button" 
                             className="btn btn-sm btn-outline-danger" 
-                            title="Supprimer"
+                            title={intl.formatMessage({id: "client.delete"})}
                             onClick={() => setDeleteModal({ show: true, clientId: client.id })}
                           >
                             <i className="pi pi-trash"></i>
@@ -478,7 +463,7 @@ const ClientScreen = () => {
           <div className="card-footer bg-transparent border-0">
             <div className="d-flex justify-content-between align-items-center">
               <div className="text-muted small">
-                Affichage de {pagination.from} à {pagination.to} sur {pagination.total} résultats
+                {intl.formatMessage({id: "client.showing"})} {pagination.from} {intl.formatMessage({id: "client.to"})} {pagination.to} {intl.formatMessage({id: "client.on"})} {pagination.total} {intl.formatMessage({id: "client.results"})}
               </div>
               <Pagination />
             </div>
@@ -494,7 +479,7 @@ const ClientScreen = () => {
               <div className="modal-content">
                 <div className="modal-header bg-danger text-white">
                   <h5 className="modal-title">
-                    <i className="pi pi-exclamation-triangle me-2"></i>Confirmer la suppression
+                    <i className="pi pi-exclamation-triangle me-2"></i>{intl.formatMessage({id: "client.confirmDelete"})}
                   </h5>
                   <button 
                     type="button" 
@@ -503,10 +488,10 @@ const ClientScreen = () => {
                   ></button>
                 </div>
                 <div className="modal-body">
-                  <p>Êtes-vous sûr de vouloir supprimer ce client ? Cette action est irréversible.</p>
+                  <p>{intl.formatMessage({id: "client.deleteMessage"})}</p>
                   <div className="alert alert-warning mt-3">
                     <i className="pi pi-info-circle me-2"></i>
-                    <strong>Attention :</strong> La suppression de ce client pourrait affecter les ventes et factures associées.
+                    <strong>{intl.formatMessage({id: "client.deleteWarning"})}</strong> {intl.formatMessage({id: "client.deleteWarningMessage"})}
                   </div>
                 </div>
                 <div className="modal-footer">
@@ -515,14 +500,14 @@ const ClientScreen = () => {
                     className="btn btn-secondary"
                     onClick={() => setDeleteModal({ show: false, clientId: null })}
                   >
-                    Annuler
+                    {intl.formatMessage({id: "client.cancel"})}
                   </button>
                   <button 
                     type="button" 
                     className="btn btn-danger"
                     onClick={() => handleDeleteClient(deleteModal.clientId)}
                   >
-                    <i className="pi pi-trash me-1"></i>Supprimer
+                    <i className="pi pi-trash me-1"></i>{intl.formatMessage({id: "client.delete"})}
                   </button>
                 </div>
               </div>

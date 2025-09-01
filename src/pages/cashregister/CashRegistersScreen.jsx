@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useIntl } from 'react-intl';
 import { Toast } from 'primereact/toast';
 import ApiService from '../../services/api.js';
 import { API_CONFIG } from '../../services/config.js';
@@ -7,6 +8,7 @@ import { fetchApiData } from '../../stores/slicer/apiDataSlicer.js';
 import { useNavigate } from 'react-router-dom';
 
 const CashRegisterScreen = () => {
+  const intl = useIntl();
   const [cashRegisters, setCashRegisters] = useState([]);
   const [agencies, setAgencies] = useState([]);
   const [filters, setFilters] = useState({
@@ -78,10 +80,10 @@ const CashRegisterScreen = () => {
     try {
       const response = await ApiService.delete(`/api/cash-registers/${cashRegisterId}`);
       if (response.success) {
-        showToast('success', 'Caisse supprimée avec succès');
+        showToast('success', intl.formatMessage({id: "cashRegister.cashRegisterDeleted"}));
         loadCashRegisters(pagination.current_page);
       } else {
-        showToast('error', response.message || 'Erreur lors de la suppression');
+        showToast('error', response.message || intl.formatMessage({id: "cashRegister.deleteError"}));
       }
     } catch (error) {
       showToast('error', error.message);
@@ -93,10 +95,10 @@ const CashRegisterScreen = () => {
     try {
       const response = await ApiService.post(`/api/cash-register/${cashRegisterId}/close`);
       if (response.success) {
-        showToast('success', 'Caisse fermée avec succès');
+        showToast('success', intl.formatMessage({id: "cashRegister.cashRegisterClosed"}));
         loadCashRegisters(pagination.current_page);
       } else {
-        showToast('error', response.message || 'Erreur lors de la fermeture');
+        showToast('error', response.message || intl.formatMessage({id: "cashRegister.closeError"}));
       }
     } catch (error) {
       showToast('error', error.message);
@@ -108,10 +110,10 @@ const CashRegisterScreen = () => {
     try {
       const response = await ApiService.post(`/api/cash-register/${cashRegisterId}/open`);
       if (response.success) {
-        showToast('success', 'Caisse ouverte avec succès');
+        showToast('success', intl.formatMessage({id: "cashRegister.cashRegisterOpened"}));
         loadCashRegisters(pagination.current_page);
       } else {
-        showToast('error', response.message || 'Erreur lors de l\'ouverture');
+        showToast('error', response.message || intl.formatMessage({id: "cashRegister.openError"}));
       }
     } catch (error) {
       showToast('error', error.message);
@@ -122,7 +124,7 @@ const CashRegisterScreen = () => {
   const showToast = (severity, detail) => {
     toast.current?.show({ 
       severity, 
-      summary: severity === 'error' ? 'Erreur' : 'Succès', 
+      summary: severity === 'error' ? intl.formatMessage({id: "cashRegister.error"}) : intl.formatMessage({id: "cashRegister.success"}), 
       detail, 
       life: 3000 
     });
@@ -143,23 +145,26 @@ const CashRegisterScreen = () => {
       case 'open':
         return (
           <span className="badge bg-success">
-            <i className="pi pi-unlock me-1"></i>Ouverte
+            <i className="pi pi-unlock me-1"></i>
+            {intl.formatMessage({id: "cashRegister.open"})}
           </span>
         );
       case 'closed':
         return (
-          <span className="badge bg-danger">
-            <i className="pi pi-lock me-1"></i>Fermée
+          <span className="badge bg-secondary">
+            <i className="pi pi-lock me-1"></i>
+            {intl.formatMessage({id: "cashRegister.closed"})}
           </span>
         );
       case 'suspended':
         return (
           <span className="badge bg-warning">
-            <i className="pi pi-pause me-1"></i>Suspendue
+            <i className="pi pi-pause me-1"></i>
+            {intl.formatMessage({id: "cashRegister.suspended"})}
           </span>
         );
       default:
-        return <span className="badge bg-secondary">Inconnu</span>;
+        return <span className="badge bg-secondary">{intl.formatMessage({id: "cashRegister.unknown"})}</span>;
     }
   };
 
@@ -240,9 +245,10 @@ const CashRegisterScreen = () => {
           <div className="d-flex justify-content-between align-items-center">
             <div>
               <h2 className="text-primary mb-1">
-                <i className="pi pi-wallet me-2"></i>Gestion des Caisses
+                <i className="pi pi-wallet me-2"></i>
+                {intl.formatMessage({id: "cashRegister.title"})}
               </h2>
-              <p className="text-muted mb-0">{pagination.total} caisse(s) au total</p>
+              <p className="text-muted mb-0">{pagination.total} {intl.formatMessage({id: "cashRegister.totalCashRegisters"})}</p>
             </div>
             <div className="d-flex gap-2">
               <button 
@@ -251,12 +257,11 @@ const CashRegisterScreen = () => {
                 disabled={loading}
               >
                 <i className="pi pi-refresh me-1"></i>
-                {loading ? 'Actualisation...' : 'Actualiser'}
+                {loading ? intl.formatMessage({id: "cashRegister.refreshing"}) : intl.formatMessage({id: "cashRegister.refresh"})}
               </button>
-              <a 
-               onClick={() => navigate('/cash-registers/create')}
+              <a onClick={() => navigate('/cash-registers/create')}
                className="btn btn-primary">
-                <i className="pi pi-plus-circle me-1"></i>Nouvelle Caisse
+                <i className="pi pi-plus-circle me-1"></i>{intl.formatMessage({id: "cashRegister.newCashRegister"})}
               </a>
             </div>
           </div>
@@ -267,13 +272,13 @@ const CashRegisterScreen = () => {
       <div className="card shadow-sm border-0 mb-4">
         <div className="card-header bg-light">
           <h6 className="mb-0">
-            <i className="pi pi-filter me-2"></i>Filtres de recherche
+            <i className="pi pi-filter me-2"></i>{intl.formatMessage({id: "cashRegister.searchFilters"})}
           </h6>
         </div>
         <div className="card-body">
           <form onSubmit={handleSearch} className="row g-3">
             <div className="col-md-3">
-              <label className="form-label">Recherche</label>
+              <label className="form-label">{intl.formatMessage({id: "cashRegister.search"})}</label>
               <div className="input-group">
                 <span className="input-group-text">
                   <i className="pi pi-search"></i>
@@ -281,7 +286,7 @@ const CashRegisterScreen = () => {
                 <input 
                   type="text" 
                   className="form-control" 
-                  placeholder="Utilisateur, stock, statut..."
+                  placeholder={intl.formatMessage({id: "cashRegister.searchPlaceholder"})}
                   value={filters.search} 
                   onChange={(e) => handleFilterChange('search', e.target.value)} 
                 />
@@ -289,13 +294,13 @@ const CashRegisterScreen = () => {
             </div>
             
             <div className="col-md-2">
-              <label className="form-label">Agence</label>
+              <label className="form-label">{intl.formatMessage({id: "cashRegister.agency"})}</label>
               <select 
                 className="form-select" 
                 value={filters.agency_id} 
                 onChange={(e) => handleFilterChange('agency_id', e.target.value)}
               >
-                <option value="">Toutes</option>
+                <option value="">{intl.formatMessage({id: "cashRegister.all"})}</option>
                 {agencies.map(agency => (
                   <option key={agency.id} value={agency.id}>
                     {agency.name}
@@ -305,21 +310,21 @@ const CashRegisterScreen = () => {
             </div>
             
             <div className="col-md-2">
-              <label className="form-label">Statut</label>
+              <label className="form-label">{intl.formatMessage({id: "cashRegister.status"})}</label>
               <select 
                 className="form-select" 
                 value={filters.status} 
                 onChange={(e) => handleFilterChange('status', e.target.value)}
               >
-                <option value="">Tous</option>
-                <option value="open">Ouverte</option>
-                <option value="closed">Fermée</option>
-                <option value="suspended">Suspendue</option>
+                <option value="">{intl.formatMessage({id: "cashRegister.allStatuses"})}</option>
+                <option value="open">{intl.formatMessage({id: "cashRegister.open"})}</option>
+                <option value="closed">{intl.formatMessage({id: "cashRegister.closed"})}</option>
+                <option value="suspended">{intl.formatMessage({id: "cashRegister.suspended"})}</option>
               </select>
             </div>
             
             <div className="col-md-2">
-              <label className="form-label">Date début</label>
+              <label className="form-label">{intl.formatMessage({id: "cashRegister.startDate"})}</label>
               <input 
                 type="date" 
                 className="form-control" 
@@ -329,7 +334,7 @@ const CashRegisterScreen = () => {
             </div>
             
             <div className="col-md-2">
-              <label className="form-label">Date fin</label>
+              <label className="form-label">{intl.formatMessage({id: "cashRegister.endDate"})}</label>
               <input 
                 type="date" 
                 className="form-control" 
@@ -354,7 +359,7 @@ const CashRegisterScreen = () => {
       <div className="card shadow-sm border-0">
         <div className="card-header bg-white d-flex justify-content-between align-items-center">
           <h5 className="mb-0">
-            <i className="pi pi-list me-2"></i>Liste des Caisses
+            <i className="pi pi-list me-2"></i>{intl.formatMessage({id: "cashRegister.cashRegistersList"})}
           </h5>
         </div>
         <div className="card-body p-0">
@@ -362,13 +367,13 @@ const CashRegisterScreen = () => {
             <table className="table table-hover align-middle mb-0">
               <thead className="bg-light">
                 <tr>
-                  <th className="border-0 px-4 py-3">Utilisateur</th>
-                  <th className="border-0 px-4 py-3">Solde Actuel</th>
-                  <th className="border-0 px-4 py-3">Statut</th>
-                  <th className="border-0 px-4 py-3">Dates</th>
-                  <th className="border-0 px-4 py-3">Agence</th>
-                  <th className="border-0 px-4 py-3">Créé par</th>
-                  <th className="border-0 px-4 py-3">Actions</th>
+                  <th className="border-0 px-4 py-3">{intl.formatMessage({id: "cashRegister.user"})}</th>
+                  <th className="border-0 px-4 py-3">{intl.formatMessage({id: "cashRegister.currentBalance"})}</th>
+                  <th className="border-0 px-4 py-3">{intl.formatMessage({id: "cashRegister.status"})}</th>
+                  <th className="border-0 px-4 py-3">{intl.formatMessage({id: "cashRegister.dates"})}</th>
+                  <th className="border-0 px-4 py-3">{intl.formatMessage({id: "cashRegister.agency"})}</th>
+                  <th className="border-0 px-4 py-3">{intl.formatMessage({id: "cashRegister.createdBy"})}</th>
+                  <th className="border-0 px-4 py-3">{intl.formatMessage({id: "cashRegister.actions"})}</th>
                 </tr>
               </thead>
               <tbody>
@@ -376,7 +381,7 @@ const CashRegisterScreen = () => {
                   <tr>
                     <td colSpan="7" className="text-center py-5">
                       <div className="spinner-border text-primary" role="status">
-                        <span className="visually-hidden">Chargement...</span>
+                        <span className="visually-hidden">{intl.formatMessage({id: "cashRegister.loading"})}</span>
                       </div>
                     </td>
                   </tr>
@@ -385,8 +390,8 @@ const CashRegisterScreen = () => {
                     <td colSpan="7" className="text-center py-5">
                       <div className="text-muted">
                         <i className="pi pi-inbox display-4 d-block mb-3"></i>
-                        <h5>Aucune caisse trouvée</h5>
-                        <p className="mb-0">Essayez de modifier vos critères de recherche ou créez une nouvelle caisse</p>
+                        <h5>{intl.formatMessage({id: "cashRegister.noCashRegistersFound"})}</h5>
+                        <p className="mb-0">{intl.formatMessage({id: "cashRegister.tryModifyingCriteria"})}</p>
                       </div>
                     </td>
                   </tr>
@@ -399,29 +404,32 @@ const CashRegisterScreen = () => {
                             <i className="pi pi-user text-primary"></i>
                           </div>
                           <div>
-                            <strong className="text-primary">{cashRegister.user?.name || 'N/A'}</strong>
+                            <strong className="text-primary">
+                              {cashRegister.user?.name || 'N/A'}
+                            </strong>
                             <br />
-                            <small className="text-muted">{cashRegister.user?.email || ''}</small>
+                            <small className="text-muted">
+                              {cashRegister.user?.email || ''}
+                            </small>
                           </div>
                         </div>
                       </td>
                       <td className="px-4">
-                        <span className="badge bg-info">
-                          <i className="pi pi-money-bill me-1"></i>
+                        <strong className="text-success">
                           {formatCurrency(cashRegister.balance)}
-                        </span>
+                        </strong>
                       </td>
                       <td className="px-4">{getStatusBadge(cashRegister.status)}</td>
                       <td className="px-4">
-                        <div className="text-muted small">
-                          <div className="mb-1">
-                            <i className="pi pi-calendar-check text-success me-1"></i>
-                            <strong>Ouvert:</strong> {formatDateTime(cashRegister.opened_at)}
+                        <div>
+                          <div>
+                            <i className="pi pi-unlock text-success me-1"></i>
+                            <strong>{intl.formatMessage({id: "cashRegister.opened"})}: {formatDateTime(cashRegister.opened_at)}</strong>
                           </div>
                           {cashRegister.closed_at && (
-                            <div>
-                              <i className="pi pi-calendar-times text-danger me-1"></i>
-                              <strong>Fermé:</strong> {formatDateTime(cashRegister.closed_at)}
+                            <div className="mt-1">
+                              <i className="pi pi-lock text-secondary me-1"></i>
+                              <small>{intl.formatMessage({id: "cashRegister.closedAt"})}: {formatDateTime(cashRegister.closed_at)}</small>
                             </div>
                           )}
                         </div>
@@ -433,7 +441,7 @@ const CashRegisterScreen = () => {
                             {cashRegister.agency.name}
                           </div>
                         ) : (
-                          <span className="text-muted">Non assigné</span>
+                          <span className="text-muted">{intl.formatMessage({id: "cashRegister.notAssigned"})}</span>
                         )}
                       </td>
                       <td className="px-4">
@@ -444,10 +452,10 @@ const CashRegisterScreen = () => {
                       </td>
                       <td className="px-4">
                         <div className="btn-group" role="group">
-                          <a                           
+                          <a 
                             onClick={() => navigate(`/cash-registers/${cashRegister.id}`)}
                             className="btn btn-sm btn-outline-info" 
-                            title="Voir"
+                            title={intl.formatMessage({id: "cashRegister.view"})}
                           >
                             <i className="pi pi-eye"></i>
                           </a>
@@ -456,7 +464,7 @@ const CashRegisterScreen = () => {
                             <button 
                               type="button" 
                               className="btn btn-sm btn-outline-success" 
-                              title="Ouvrir la caisse"
+                              title={intl.formatMessage({id: "cashRegister.openAction"})}
                               onClick={() => setOpenModal({ show: true, cashRegisterId: cashRegister.id })}
                             >
                               <i className="pi pi-unlock"></i>
@@ -467,7 +475,7 @@ const CashRegisterScreen = () => {
                             <button 
                               type="button" 
                               className="btn btn-sm btn-outline-secondary" 
-                              title="Fermer la caisse"
+                              title={intl.formatMessage({id: "cashRegister.closeAction"})}
                               onClick={() => setCloseModal({ show: true, cashRegisterId: cashRegister.id })}
                             >
                               <i className="pi pi-lock"></i>
@@ -476,7 +484,7 @@ const CashRegisterScreen = () => {
                           <button 
                             type="button" 
                             className="btn btn-sm btn-outline-danger" 
-                            title="Supprimer"
+                            title={intl.formatMessage({id: "cashRegister.delete"})}
                             onClick={() => setDeleteModal({ show: true, cashRegisterId: cashRegister.id })}
                           >
                             <i className="pi pi-trash"></i>
@@ -496,7 +504,7 @@ const CashRegisterScreen = () => {
           <div className="card-footer bg-transparent border-0">
             <div className="d-flex justify-content-between align-items-center">
               <div className="text-muted small">
-                Affichage de {pagination.from} à {pagination.to} sur {pagination.total} résultats
+                {intl.formatMessage({id: "cashRegister.showing"})} {pagination.from} {intl.formatMessage({id: "cashRegister.to"})} {pagination.to} {intl.formatMessage({id: "cashRegister.on"})} {pagination.total} {intl.formatMessage({id: "cashRegister.results"})}
               </div>
               <Pagination />
             </div>
@@ -512,7 +520,7 @@ const CashRegisterScreen = () => {
               <div className="modal-content">
                 <div className="modal-header bg-success text-white">
                   <h5 className="modal-title">
-                    <i className="pi pi-unlock me-2"></i>Ouvrir la caisse
+                    <i className="pi pi-unlock me-2"></i>{intl.formatMessage({id: "cashRegister.openCashRegister"})}
                   </h5>
                   <button 
                     type="button" 
@@ -521,10 +529,10 @@ const CashRegisterScreen = () => {
                   ></button>
                 </div>
                 <div className="modal-body">
-                  <p>Êtes-vous sûr de vouloir ouvrir cette caisse ?</p>
+                  <p>{intl.formatMessage({id: "cashRegister.openMessage"})}</p>
                   <div className="alert alert-info">
                     <i className="pi pi-info-circle me-2"></i>
-                    <strong>Information :</strong> Une fois ouverte, la caisse pourra être utilisée pour les transactions.
+                    <strong>{intl.formatMessage({id: "cashRegister.openInfo"})}</strong> {intl.formatMessage({id: "cashRegister.openInfoMessage"})}
                   </div>
                 </div>
                 <div className="modal-footer">
@@ -533,14 +541,14 @@ const CashRegisterScreen = () => {
                     className="btn btn-secondary"
                     onClick={() => setOpenModal({ show: false, cashRegisterId: null })}
                   >
-                    Annuler
+                    {intl.formatMessage({id: "cashRegister.cancel"})}
                   </button>
                   <button 
                     type="button" 
                     className="btn btn-success"
                     onClick={() => handleOpenCashRegister(openModal.cashRegisterId)}
                   >
-                    <i className="pi pi-unlock me-1"></i>Ouvrir
+                    <i className="pi pi-unlock me-1"></i>{intl.formatMessage({id: "cashRegister.openAction"})}
                   </button>
                 </div>
               </div>
@@ -561,7 +569,7 @@ const CashRegisterScreen = () => {
               <div className="modal-content">
                 <div className="modal-header bg-warning text-dark">
                   <h5 className="modal-title">
-                    <i className="pi pi-lock me-2"></i>Fermer la caisse
+                    <i className="pi pi-lock me-2"></i>{intl.formatMessage({id: "cashRegister.closeCashRegister"})}
                   </h5>
                   <button 
                     type="button" 
@@ -570,10 +578,10 @@ const CashRegisterScreen = () => {
                   ></button>
                 </div>
                 <div className="modal-body">
-                  <p>Êtes-vous sûr de vouloir fermer cette caisse ?</p>
+                  <p>{intl.formatMessage({id: "cashRegister.closeMessage"})}</p>
                   <div className="alert alert-info">
                     <i className="pi pi-info-circle me-2"></i>
-                    <strong>Attention :</strong> Une fois fermée, la caisse ne pourra plus être utilisée pour les transactions.
+                    <strong>{intl.formatMessage({id: "cashRegister.closeWarning"})}</strong> {intl.formatMessage({id: "cashRegister.closeWarningMessage"})}
                   </div>
                 </div>
                 <div className="modal-footer">
@@ -582,14 +590,14 @@ const CashRegisterScreen = () => {
                     className="btn btn-secondary"
                     onClick={() => setCloseModal({ show: false, cashRegisterId: null })}
                   >
-                    Annuler
+                    {intl.formatMessage({id: "cashRegister.cancel"})}
                   </button>
                   <button 
                     type="button" 
                     className="btn btn-warning"
                     onClick={() => handleCloseCashRegister(closeModal.cashRegisterId)}
                   >
-                    <i className="pi pi-lock me-1"></i>Fermer
+                    <i className="pi pi-lock me-1"></i>{intl.formatMessage({id: "cashRegister.closeAction"})}
                   </button>
                 </div>
               </div>
@@ -610,7 +618,7 @@ const CashRegisterScreen = () => {
               <div className="modal-content">
                 <div className="modal-header bg-danger text-white">
                   <h5 className="modal-title">
-                    <i className="pi pi-exclamation-triangle me-2"></i>Confirmer la suppression
+                    <i className="pi pi-exclamation-triangle me-2"></i>{intl.formatMessage({id: "cashRegister.confirmDelete"})}
                   </h5>
                   <button 
                     type="button" 
@@ -619,10 +627,10 @@ const CashRegisterScreen = () => {
                   ></button>
                 </div>
                 <div className="modal-body">
-                  <p>Êtes-vous sûr de vouloir supprimer cette caisse ? Cette action est irréversible.</p>
+                  <p>{intl.formatMessage({id: "cashRegister.deleteMessage"})}</p>
                   <div className="alert alert-warning mt-3">
                     <i className="pi pi-info-circle me-2"></i>
-                    <strong>Attention :</strong> La suppression de cette caisse pourrait affecter les transactions associées.
+                    <strong>{intl.formatMessage({id: "cashRegister.deleteWarning"})}</strong> {intl.formatMessage({id: "cashRegister.deleteWarningMessage"})}
                   </div>
                 </div>
                 <div className="modal-footer">
@@ -631,14 +639,14 @@ const CashRegisterScreen = () => {
                     className="btn btn-secondary"
                     onClick={() => setDeleteModal({ show: false, cashRegisterId: null })}
                   >
-                    Annuler
+                    {intl.formatMessage({id: "cashRegister.cancel"})}
                   </button>
                   <button 
                     type="button" 
                     className="btn btn-danger"
                     onClick={() => handleDeleteCashRegister(deleteModal.cashRegisterId)}
                   >
-                    <i className="pi pi-trash me-1"></i>Supprimer
+                    <i className="pi pi-trash me-1"></i>{intl.formatMessage({id: "cashRegister.delete"})}
                   </button>
                 </div>
               </div>

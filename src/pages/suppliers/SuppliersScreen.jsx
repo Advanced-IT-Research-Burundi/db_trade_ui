@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useIntl } from 'react-intl';
 import { Toast } from 'primereact/toast';
 import ApiService from '../../services/api.js';
 import { API_CONFIG } from '../../services/config.js';
@@ -7,6 +8,7 @@ import { fetchApiData } from '../../stores/slicer/apiDataSlicer.js';
 import { useNavigate } from 'react-router-dom';
 
 const SupplierScreen = () => {
+  const intl = useIntl();
   const [suppliers, setSuppliers] = useState([]);
   const [agencies, setAgencies] = useState([]);
   const [filters, setFilters] = useState({
@@ -23,41 +25,38 @@ const SupplierScreen = () => {
   const [deleteModal, setDeleteModal] = useState({ show: false, supplierId: null });
   const toast = useRef(null);
 
-
-    const navigate = useNavigate();
-    const dispatch = useDispatch();
-    const { data , loading} = useSelector(state => state.apiData);
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const { data , loading} = useSelector(state => state.apiData);
 
   useEffect(() => {
     loadSuppliers();
   }, []);
 
   useEffect(() => {
-          if (data.suppliers) {
-               setSuppliers(data.suppliers.suppliers.data || []);
+        if (data.suppliers) {
+             setSuppliers(data.suppliers.suppliers.data || []);
 
-              setAgencies(data.suppliers.agencies || []);
-              setPagination({
-                current_page: data.suppliers.suppliers.current_page,
-                last_page: data.suppliers.suppliers.last_page,
-                total: data.suppliers.suppliers.total,
-                from: data.suppliers.suppliers.from,
-                to: data.suppliers.suppliers.to
-              });
-          }
-        }, [data]);
+            setAgencies(data.suppliers.agencies || []);
+            setPagination({
+              current_page: data.suppliers.suppliers.current_page,
+              last_page: data.suppliers.suppliers.last_page,
+              total: data.suppliers.suppliers.total,
+              from: data.suppliers.suppliers.from,
+              to: data.suppliers.suppliers.to
+            });
+        }
+      }, [data]);
 
-    async function loadSuppliers(page = 1) {
-          try {
-            const params = { page, ...filters };
-            dispatch(fetchApiData({ url: API_CONFIG.ENDPOINTS.SUPPLIERS, itemKey: 'suppliers', params }));
-           
-          } catch (error) {
-            showToast('error', error.message);
-          } 
-        };
-
-
+  async function loadSuppliers(page = 1) {
+        try {
+          const params = { page, ...filters };
+          dispatch(fetchApiData({ url: API_CONFIG.ENDPOINTS.SUPPLIERS, itemKey: 'suppliers', params }));
+         
+        } catch (error) {
+          showToast('error', error.message);
+        } 
+      };
 
   const handleFilterChange = (name, value) => {
     setFilters(prev => ({ ...prev, [name]: value }));
@@ -77,10 +76,10 @@ const SupplierScreen = () => {
     try {
       const response = await ApiService.delete(`/api/suppliers/${supplierId}`);
       if (response.success) {
-        showToast('success', 'Fournisseur supprimé avec succès');
+        showToast('success', intl.formatMessage({id: "supplier.supplierDeleted"}));
         loadSuppliers(pagination.current_page);
       } else {
-        showToast('error', response.message || 'Erreur lors de la suppression');
+        showToast('error', response.message || intl.formatMessage({id: "supplier.deleteError"}));
       }
     } catch (error) {
       showToast('error', error.message);
@@ -91,7 +90,7 @@ const SupplierScreen = () => {
   const showToast = (severity, detail) => {
     toast.current?.show({ 
       severity, 
-      summary: severity === 'error' ? 'Erreur' : 'Succès', 
+      summary: severity === 'error' ? intl.formatMessage({id: "supplier.error"}) : intl.formatMessage({id: "supplier.success"}), 
       detail, 
       life: 3000 
     });
@@ -176,9 +175,9 @@ const SupplierScreen = () => {
           <div className="d-flex justify-content-between align-items-center">
             <div>
               <h2 className="text-primary mb-1">
-                <i className="pi pi-truck me-2"></i>Gestion des Fournisseurs
+                <i className="pi pi-truck me-2"></i>{intl.formatMessage({id: "supplier.title"})}
               </h2>
-              <p className="text-muted mb-0">{pagination.total} fournisseur(s) au total</p>
+              <p className="text-muted mb-0">{pagination.total} {intl.formatMessage({id: "supplier.totalSuppliers"})}</p>
             </div>
             <div className="d-flex gap-2">
               <button 
@@ -187,10 +186,10 @@ const SupplierScreen = () => {
                 disabled={loading}
               >
                 <i className="pi pi-refresh me-1"></i>
-                {loading ? 'Actualisation...' : 'Actualiser'}
+                {loading ? intl.formatMessage({id: "supplier.refreshing"}) : intl.formatMessage({id: "supplier.refresh"})}
               </button>
               <a onClick={()=>navigate('/suppliers/create')}  className="btn btn-primary">
-                <i className="pi pi-plus-circle me-1"></i>Nouveau Fournisseur
+                <i className="pi pi-plus-circle me-1"></i>{intl.formatMessage({id: "supplier.newSupplier"})}
               </a>
             </div>
           </div>
@@ -201,13 +200,13 @@ const SupplierScreen = () => {
       <div className="card shadow-sm border-0 mb-4">
         <div className="card-header bg-light">
           <h6 className="mb-0">
-            <i className="pi pi-filter me-2"></i>Filtres de recherche
+            <i className="pi pi-filter me-2"></i>{intl.formatMessage({id: "supplier.searchFilters"})}
           </h6>
         </div>
         <div className="card-body">
           <form onSubmit={handleSearch} className="row g-3">
             <div className="col-md-6">
-              <label className="form-label">Recherche</label>
+              <label className="form-label">{intl.formatMessage({id: "supplier.search"})}</label>
               <div className="input-group">
                 <span className="input-group-text">
                   <i className="pi pi-search"></i>
@@ -215,7 +214,7 @@ const SupplierScreen = () => {
                 <input 
                   type="text" 
                   className="form-control" 
-                  placeholder="Nom, email ou téléphone..."
+                  placeholder={intl.formatMessage({id: "supplier.searchPlaceholder"})}
                   value={filters.search} 
                   onChange={(e) => handleFilterChange('search', e.target.value)} 
                 />
@@ -223,13 +222,13 @@ const SupplierScreen = () => {
             </div>
             
             <div className="col-md-4">
-              <label className="form-label">Agence</label>
+              <label className="form-label">{intl.formatMessage({id: "supplier.agency"})}</label>
               <select 
                 className="form-select" 
                 value={filters.agency_id} 
                 onChange={(e) => handleFilterChange('agency_id', e.target.value)}
               >
-                <option value="">Toutes</option>
+                <option value="">{intl.formatMessage({id: "supplier.all"})}</option>
                 {agencies.map(agency => (
                   <option key={agency.id} value={agency.id}>
                     {agency.name}
@@ -240,10 +239,10 @@ const SupplierScreen = () => {
             
             <div className="col-md-2 d-flex align-items-end gap-2">
               <button type="submit" className="btn btn-primary" disabled={loading}>
-                <i className="pi pi-search me-1"></i>Rechercher
+                <i className="pi pi-search me-1"></i>{intl.formatMessage({id: "supplier.searchBtn"})}
               </button>
               <button type="button" className="btn btn-outline-secondary" onClick={handleReset}>
-                <i className="pi pi-refresh me-1"></i>Reset
+                <i className="pi pi-refresh me-1"></i>{intl.formatMessage({id: "supplier.reset"})}
               </button>
             </div>
           </form>
@@ -254,7 +253,7 @@ const SupplierScreen = () => {
       <div className="card shadow-sm border-0">
         <div className="card-header bg-white d-flex justify-content-between align-items-center">
           <h5 className="mb-0">
-            <i className="pi pi-list me-2"></i>Liste des Fournisseurs
+            <i className="pi pi-list me-2"></i>{intl.formatMessage({id: "supplier.suppliersList"})}
           </h5>
         </div>
         <div className="card-body p-0">
@@ -262,13 +261,13 @@ const SupplierScreen = () => {
             <table className="table table-hover align-middle mb-0">
               <thead className="bg-light">
                 <tr>
-                  <th className="border-0 px-4 py-3">Nom</th>
-                  <th className="border-0 px-4 py-3">Téléphone</th>
-                  <th className="border-0 px-4 py-3">Email</th>
-                  <th className="border-0 px-4 py-3">Adresse</th>
-                  <th className="border-0 px-4 py-3">Agence</th>
-                  <th className="border-0 px-4 py-3">Créé le</th>
-                  <th className="border-0 px-4 py-3">Actions</th>
+                  <th className="border-0 px-4 py-3">{intl.formatMessage({id: "supplier.name"})}</th>
+                  <th className="border-0 px-4 py-3">{intl.formatMessage({id: "supplier.phone"})}</th>
+                  <th className="border-0 px-4 py-3">{intl.formatMessage({id: "supplier.email"})}</th>
+                  <th className="border-0 px-4 py-3">{intl.formatMessage({id: "supplier.address"})}</th>
+                  <th className="border-0 px-4 py-3">{intl.formatMessage({id: "supplier.agency"})}</th>
+                  <th className="border-0 px-4 py-3">{intl.formatMessage({id: "supplier.createdOn"})}</th>
+                  <th className="border-0 px-4 py-3">{intl.formatMessage({id: "supplier.actions"})}</th>
                 </tr>
               </thead>
               <tbody>
@@ -276,7 +275,7 @@ const SupplierScreen = () => {
                   <tr>
                     <td colSpan="7" className="text-center py-5">
                       <div className="spinner-border text-primary" role="status">
-                        <span className="visually-hidden">Chargement...</span>
+                        <span className="visually-hidden">{intl.formatMessage({id: "supplier.loading"})}</span>
                       </div>
                     </td>
                   </tr>
@@ -285,8 +284,8 @@ const SupplierScreen = () => {
                     <td colSpan="7" className="text-center py-5">
                       <div className="text-muted">
                         <i className="pi pi-inbox display-4 d-block mb-3"></i>
-                        <h5>Aucun fournisseur trouvé</h5>
-                        <p className="mb-0">Essayez de modifier vos critères de recherche ou créez un nouveau fournisseur</p>
+                        <h5>{intl.formatMessage({id: "supplier.noSuppliersFound"})}</h5>
+                        <p className="mb-0">{intl.formatMessage({id: "supplier.tryModifyingCriteria"})}</p>
                       </div>
                     </td>
                   </tr>
@@ -308,7 +307,7 @@ const SupplierScreen = () => {
                             {supplier.phone}
                           </div>
                         ) : (
-                          <span className="text-muted">Non renseigné</span>
+                          <span className="text-muted">{intl.formatMessage({id: "supplier.notProvided"})}</span>
                         )}
                       </td>
                       <td className="px-4">
@@ -322,7 +321,7 @@ const SupplierScreen = () => {
                             </span>
                           </div>
                         ) : (
-                          <span className="text-muted">Non renseigné</span>
+                          <span className="text-muted">{intl.formatMessage({id: "supplier.notProvided"})}</span>
                         )}
                       </td>
                       <td className="px-4">
@@ -336,7 +335,7 @@ const SupplierScreen = () => {
                             </span>
                           </div>
                         ) : (
-                          <span className="text-muted">Non renseignée</span>
+                          <span className="text-muted">{intl.formatMessage({id: "supplier.notProvidedFeminine"})}</span>
                         )}
                       </td>
                       <td className="px-4">
@@ -346,7 +345,7 @@ const SupplierScreen = () => {
                             {supplier.agency.name}
                           </div>
                         ) : (
-                          <span className="text-muted">Non assignée</span>
+                          <span className="text-muted">{intl.formatMessage({id: "supplier.notAssigned"})}</span>
                         )}
                       </td>
                       <td className="px-4">
@@ -363,24 +362,17 @@ const SupplierScreen = () => {
                       </td>
                       <td className="px-4">
                         <div className="btn-group" role="group">
-                          {/* <a 
-                            href={`/suppliers/${supplier.id}`} 
-                            className="btn btn-sm btn-outline-info" 
-                            title="Voir"
-                          >
-                            <i className="pi pi-eye"></i>
-                          </a> */}
                           <a 
                             onClick={() => navigate(`/suppliers/${supplier.id}/edit`)}
                             className="btn btn-sm btn-outline-warning" 
-                            title="Modifier"
+                            title={intl.formatMessage({id: "supplier.edit"})}
                           >
                             <i className="pi pi-pencil"></i>
                           </a>
                           <button 
                             type="button" 
                             className="btn btn-sm btn-outline-danger" 
-                            title="Supprimer"
+                            title={intl.formatMessage({id: "supplier.delete"})}
                             onClick={() => setDeleteModal({ show: true, supplierId: supplier.id })}
                           >
                             <i className="pi pi-trash"></i>
@@ -400,7 +392,7 @@ const SupplierScreen = () => {
           <div className="card-footer bg-transparent border-0">
             <div className="d-flex justify-content-between align-items-center">
               <div className="text-muted small">
-                Affichage de {pagination.from} à {pagination.to} sur {pagination.total} résultats
+                {intl.formatMessage({id: "supplier.showing"})} {pagination.from} {intl.formatMessage({id: "supplier.to"})} {pagination.to} {intl.formatMessage({id: "supplier.on"})} {pagination.total} {intl.formatMessage({id: "supplier.results"})}
               </div>
               <Pagination />
             </div>
@@ -416,7 +408,7 @@ const SupplierScreen = () => {
               <div className="modal-content">
                 <div className="modal-header bg-danger text-white">
                   <h5 className="modal-title">
-                    <i className="pi pi-exclamation-triangle me-2"></i>Confirmer la suppression
+                    <i className="pi pi-exclamation-triangle me-2"></i>{intl.formatMessage({id: "supplier.confirmDelete"})}
                   </h5>
                   <button 
                     type="button" 
@@ -425,10 +417,10 @@ const SupplierScreen = () => {
                   ></button>
                 </div>
                 <div className="modal-body">
-                  <p>Êtes-vous sûr de vouloir supprimer ce fournisseur ? Cette action est irréversible.</p>
+                  <p>{intl.formatMessage({id: "supplier.deleteMessage"})}</p>
                   <div className="alert alert-warning mt-3">
                     <i className="pi pi-info-circle me-2"></i>
-                    <strong>Attention :</strong> La suppression de ce fournisseur pourrait affecter les achats et commandes associés.
+                    <strong>{intl.formatMessage({id: "supplier.deleteWarning"})}</strong> {intl.formatMessage({id: "supplier.deleteWarningMessage"})}
                   </div>
                 </div>
                 <div className="modal-footer">
@@ -437,14 +429,14 @@ const SupplierScreen = () => {
                     className="btn btn-secondary"
                     onClick={() => setDeleteModal({ show: false, supplierId: null })}
                   >
-                    Annuler
+                    {intl.formatMessage({id: "supplier.cancel"})}
                   </button>
                   <button 
                     type="button" 
                     className="btn btn-danger"
                     onClick={() => handleDeleteSupplier(deleteModal.supplierId)}
                   >
-                    <i className="pi pi-trash me-1"></i>Supprimer
+                    <i className="pi pi-trash me-1"></i>{intl.formatMessage({id: "supplier.delete"})}
                   </button>
                 </div>
               </div>

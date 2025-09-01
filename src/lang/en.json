@@ -853,6 +853,29 @@
   "stockCreate.createError": "Error while creating stock",
   "stockCreate.stockNameRequired": "Stock name is required",
   "stockCreate.error": "Error",
-  "stockCreate.success": "Success"
+  "stockCreate.success": "Success",
+
+  "stockEdit.title": "Edit stock",
+  "stockEdit.backToList": "Back to list",
+  "stockEdit.stockName": "Stock name",
+  "stockEdit.stockNamePlaceholder": "Enter the stock name",
+  "stockEdit.stockNameRequired": "Stock name is required",
+  "stockEdit.stockNameHelper": "Name must be between 3 and 255 characters",
+  "stockEdit.location": "Location",
+  "stockEdit.locationPlaceholder": "Enter stock location (optional)",
+  "stockEdit.locationHelper": "Geographic location or address of the stock (optional)",
+  "stockEdit.description": "Description",
+  "stockEdit.descriptionPlaceholder": "Enter a description (optional)",
+  "stockEdit.descriptionHelper": "Detailed stock description (maximum 1000 characters)",
+  "stockEdit.reset": "Reset",
+  "stockEdit.cancel": "Cancel",
+  "stockEdit.updating": "Updating...",
+  "stockEdit.update": "Update",
+  "stockEdit.stockUpdated": "Stock updated successfully",
+  "stockEdit.loadError": "Error loading data",
+  "stockEdit.updateError": "Error updating stock",
+  "stockEdit.error": "Error",
+  "stockEdit.success": "Success"
+
 
 }

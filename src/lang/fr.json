@@ -852,6 +852,30 @@
   "stockCreate.createError": "Erreur lors de la création du stock",
   "stockCreate.stockNameRequired": "Le nom du stock est requis",
   "stockCreate.error": "Erreur",
-  "stockCreate.success": "Succès"
+  "stockCreate.success": "Succès",
+
+
+  "stockEdit.title": "Modifier le stock",
+  "stockEdit.backToList": "Retour à la liste",
+  "stockEdit.stockName": "Nom du stock",
+  "stockEdit.stockNamePlaceholder": "Saisissez le nom du stock",
+  "stockEdit.stockNameRequired": "Le nom du stock est requis",
+  "stockEdit.stockNameHelper": "Le nom doit contenir entre 3 et 255 caractères",
+  "stockEdit.location": "Localisation",
+  "stockEdit.locationPlaceholder": "Saisissez la localisation du stock (optionnel)",
+  "stockEdit.locationHelper": "Localisation géographique ou adresse du stock (optionnel)",
+  "stockEdit.description": "Description",
+  "stockEdit.descriptionPlaceholder": "Saisissez une description (optionnel)",
+  "stockEdit.descriptionHelper": "Description détaillée du stock (maximum 1000 caractères)",
+  "stockEdit.reset": "Réinitialiser",
+  "stockEdit.cancel": "Annuler",
+  "stockEdit.updating": "Modification...",
+  "stockEdit.update": "Modifier",
+  "stockEdit.stockUpdated": "Stock modifié avec succès",
+  "stockEdit.loadError": "Erreur lors du chargement",
+  "stockEdit.updateError": "Erreur lors de la modification du stock",
+  "stockEdit.error": "Erreur",
+  "stockEdit.success": "Succès",
+
 
 }

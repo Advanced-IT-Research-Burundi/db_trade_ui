@@ -1,4 +1,5 @@
 import React from 'react';
+import { useIntl } from 'react-intl';
 import { Toast } from 'primereact/toast';
 import { useNavigate, useParams } from 'react-router-dom';
 
@@ -7,6 +8,7 @@ import FormField from '../../components/input/FormField';
 import ApiService from '../../services/api.js';
 
 const StockEditScreen = () => {
+  const intl = useIntl();
   const navigate = useNavigate();
   const { id } = useParams();
   const toast = React.useRef(null);
@@ -19,7 +21,7 @@ const StockEditScreen = () => {
 
   const validationRules = {
     name: {
-      required: 'Le nom du stock est requis',
+      required: intl.formatMessage({id: "stockEdit.stockNameRequired"}),
       minLength: 3,
       maxLength: 255
     },
@@ -39,11 +41,11 @@ const StockEditScreen = () => {
     } else {
       toast.current.show({
         severity: 'error',
-        summary: 'Erreur',
-        detail: response.error || 'Erreur lors du chargement',
+        summary: intl.formatMessage({id: "stockEdit.error"}),
+        detail: response.error || intl.formatMessage({id: "stockEdit.loadError"}),
         life: 3000
       });
-      throw new Error(response.message || 'Erreur lors du chargement');
+      throw new Error(response.message || intl.formatMessage({id: "stockEdit.loadError"}));
     }
   };
 
@@ -53,8 +55,8 @@ const StockEditScreen = () => {
     if (response.success) {
       toast.current.show({
         severity: 'success',
-        summary: 'Succès',
-        detail: 'Stock modifié avec succès',
+        summary: intl.formatMessage({id: "stockEdit.success"}),
+        detail: intl.formatMessage({id: "stockEdit.stockUpdated"}),
         life: 3000
       });
       
@@ -62,12 +64,12 @@ const StockEditScreen = () => {
         navigate('/stocks');
       }, 1000);
       
-      return { success: true, message: 'Stock modifié avec succès' };
+      return { success: true, message: intl.formatMessage({id: "stockEdit.stockUpdated"}) };
     } else {
       toast.current.show({
         severity: 'error',
-        summary: 'Erreur',
-        detail: response.error || 'Erreur lors de la modification du stock',
+        summary: intl.formatMessage({id: "stockEdit.error"}),
+        detail: response.error || intl.formatMessage({id: "stockEdit.updateError"}),
         life: 3000
       });
       
@@ -96,7 +98,7 @@ const StockEditScreen = () => {
               <div className="d-flex justify-content-between align-items-center">
                 <h4 className="m-0">
                   <i className="pi pi-pencil me-2"></i>
-                  Modifier le stock
+                  {intl.formatMessage({id: "stockEdit.title"})}
                   {form.values.name && (
                     <span className="text-muted ms-2">- {form.values.name}</span>
                   )}
@@ -104,7 +106,7 @@ const StockEditScreen = () => {
                 <button
                   type="button"
                   className="btn btn-outline-secondary"
-                  title="Retour à la liste"
+                  title={intl.formatMessage({id: "stockEdit.backToList"})}
                   onClick={() => navigate('/stocks')}
                 >
                   <i className="pi pi-arrow-left"></i>
@@ -119,11 +121,11 @@ const StockEditScreen = () => {
                       name="name"
                       form={form}
                       type="text"
-                      label="Nom du stock"
-                      placeholder="Saisissez le nom du stock"
+                      label={intl.formatMessage({id: "stockEdit.stockName"})}
+                      placeholder={intl.formatMessage({id: "stockEdit.stockNamePlaceholder"})}
                       icon="pi pi-box"
                       required
-                      helperText="Le nom doit contenir entre 3 et 255 caractères"
+                      helperText={intl.formatMessage({id: "stockEdit.stockNameHelper"})}
                       disabled={form.loading}
                     />
                   </div>
@@ -133,10 +135,10 @@ const StockEditScreen = () => {
                       name="location"
                       form={form}
                       type="text"
-                      label="Localisation"
-                      placeholder="Saisissez la localisation du stock (optionnel)"
+                      label={intl.formatMessage({id: "stockEdit.location"})}
+                      placeholder={intl.formatMessage({id: "stockEdit.locationPlaceholder"})}
                       icon="pi pi-map-marker"
-                      helperText="Localisation géographique ou adresse du stock (optionnel)"
+                      helperText={intl.formatMessage({id: "stockEdit.locationHelper"})}
                       disabled={form.loading}
                     />
                   </div>
@@ -146,10 +148,10 @@ const StockEditScreen = () => {
                       name="description"
                       form={form}
                       type="textarea"
-                      label="Description"
-                      placeholder="Saisissez une description (optionnel)"
+                      label={intl.formatMessage({id: "stockEdit.description"})}
+                      placeholder={intl.formatMessage({id: "stockEdit.descriptionPlaceholder"})}
                       icon="pi pi-align-left"
-                      helperText="Description détaillée du stock (maximum 1000 caractères)"
+                      helperText={intl.formatMessage({id: "stockEdit.descriptionHelper"})}
                       rows={4}
                       disabled={form.loading}
                     />
@@ -165,7 +167,7 @@ const StockEditScreen = () => {
                       disabled={form.submitting || form.loading}
                     >
                       <i className="pi pi-refresh me-2"></i>
-                      Réinitialiser
+                      {intl.formatMessage({id: "stockEdit.reset"})}
                     </button>
                   </div>
                   
@@ -177,7 +179,7 @@ const StockEditScreen = () => {
                       disabled={form.submitting || form.loading}
                     >
                       <i className="pi pi-times me-2"></i>
-                      Annuler
+                      {intl.formatMessage({id: "stockEdit.cancel"})}
                     </button>
                     <button
                       type="submit"
@@ -185,7 +187,7 @@ const StockEditScreen = () => {
                       disabled={!form.canSubmit || form.loading}
                     >
                       <i className={`${form.submitting ? 'pi pi-spin pi-spinner' : 'pi pi-check'} me-2`}></i>
-                      {form.submitting ? 'Modification...' : 'Modifier'}
+                      {form.submitting ? intl.formatMessage({id: "stockEdit.updating"}) : intl.formatMessage({id: "stockEdit.update"})}
                     </button>
                   </div>
                 </div>

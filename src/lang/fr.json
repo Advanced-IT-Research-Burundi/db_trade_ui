@@ -832,6 +832,26 @@
   "reports.expensesOutflow": "Dépenses",
   
   "reports.reportInDevelopment": "Rapport en développement",
-  "reports.reportAvailableSoon": "Ce type de rapport sera bientôt disponible."
+  "reports.reportAvailableSoon": "Ce type de rapport sera bientôt disponible.",
+
+  "stockCreate.title": "Nouveau stock",
+  "stockCreate.backToList": "Retour à la liste",
+  "stockCreate.stockName": "Nom du stock",
+  "stockCreate.stockNamePlaceholder": "Saisissez le nom du stock",
+  "stockCreate.stockNameHelper": "Le nom doit contenir entre 3 et 255 caractères",
+  "stockCreate.location": "Localisation",
+  "stockCreate.locationPlaceholder": "Saisissez la localisation du stock (optionnel)",
+  "stockCreate.locationHelper": "Localisation géographique ou adresse du stock (optionnel)",
+  "stockCreate.description": "Description",
+  "stockCreate.descriptionPlaceholder": "Saisissez une description (optionnel)",
+  "stockCreate.descriptionHelper": "Description détaillée du stock (maximum 1000 caractères)",
+  "stockCreate.cancel": "Annuler",
+  "stockCreate.create": "Créer",
+  "stockCreate.creating": "Création...",
+  "stockCreate.stockCreated": "Stock créé avec succès",
+  "stockCreate.createError": "Erreur lors de la création du stock",
+  "stockCreate.stockNameRequired": "Le nom du stock est requis",
+  "stockCreate.error": "Erreur",
+  "stockCreate.success": "Succès"
 
 }

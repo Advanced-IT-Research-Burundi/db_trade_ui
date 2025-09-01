@@ -833,6 +833,26 @@
   "reports.expensesOutflow": "Expenses",
   
   "reports.reportInDevelopment": "Report in development",
-  "reports.reportAvailableSoon": "This type of report will be available soon."
+  "reports.reportAvailableSoon": "This type of report will be available soon.",
+
+  "stockCreate.title": "New stock",
+  "stockCreate.backToList": "Back to list",
+  "stockCreate.stockName": "Stock name",
+  "stockCreate.stockNamePlaceholder": "Enter stock name",
+  "stockCreate.stockNameHelper": "Name must contain between 3 and 255 characters",
+  "stockCreate.location": "Location",
+  "stockCreate.locationPlaceholder": "Enter stock location (optional)",
+  "stockCreate.locationHelper": "Geographic location or stock address (optional)",
+  "stockCreate.description": "Description",
+  "stockCreate.descriptionPlaceholder": "Enter a description (optional)",
+  "stockCreate.descriptionHelper": "Detailed stock description (maximum 1000 characters)",
+  "stockCreate.cancel": "Cancel",
+  "stockCreate.create": "Create",
+  "stockCreate.creating": "Creating...",
+  "stockCreate.stockCreated": "Stock created successfully",
+  "stockCreate.createError": "Error while creating stock",
+  "stockCreate.stockNameRequired": "Stock name is required",
+  "stockCreate.error": "Error",
+  "stockCreate.success": "Success"
 
 }

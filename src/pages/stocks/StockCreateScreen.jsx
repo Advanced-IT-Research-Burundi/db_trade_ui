@@ -1,4 +1,5 @@
 import React from 'react';
+import { useIntl } from 'react-intl';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from '../../hooks/useForm';
 import FormField from '../../components/input/FormField';
@@ -6,6 +7,7 @@ import ApiService from '../../services/api.js';
 import { Toast } from 'primereact/toast';
 
 const StockCreateScreen = () => {
+  const intl = useIntl();
   const navigate = useNavigate();
   const toast = React.useRef(null);
 
@@ -17,7 +19,7 @@ const StockCreateScreen = () => {
 
   const validationRules = {
     name: {
-      required: 'Le nom du stock est requis',
+      required: intl.formatMessage({id: "stockCreate.stockNameRequired"}),
       minLength: 3,
       maxLength: 255
     },
@@ -36,8 +38,8 @@ const StockCreateScreen = () => {
       // Afficher un toast de succès
       toast.current.show({
         severity: 'success',
-        summary: 'Succès',
-        detail: 'Stock créé avec succès',
+        summary: intl.formatMessage({id: "stockCreate.success"}),
+        detail: intl.formatMessage({id: "stockCreate.stockCreated"}),
         life: 3000
       });
       
@@ -46,12 +48,12 @@ const StockCreateScreen = () => {
         navigate('/stocks');
       }, 1000);
       
-      return { success: true, message: 'Stock créé avec succès' };
+      return { success: true, message: intl.formatMessage({id: "stockCreate.stockCreated"}) };
     } else {
       toast.current.show({
         severity: 'error',
-        summary: 'Erreur',
-        detail: response.message || 'Erreur lors de la création du stock',
+        summary: intl.formatMessage({id: "stockCreate.error"}),
+        detail: response.message || intl.formatMessage({id: "stockCreate.createError"}),
         life: 3000
       });
       
@@ -80,12 +82,12 @@ const StockCreateScreen = () => {
               <div className="d-flex justify-content-between align-items-center">
                 <h4 className="m-0 text-primary">
                   <i className="pi pi-plus me-2"></i>
-                  Nouveau stock
+                  {intl.formatMessage({id: "stockCreate.title"})}
                 </h4>
                 <button
                   type="button"
                   className="btn btn-outline-secondary btn-sm"
-                  title="Retour à la liste"
+                  title={intl.formatMessage({id: "stockCreate.backToList"})}
                   onClick={() => navigate('/stocks')}
                 >
                   <i className="pi pi-arrow-left"></i>
@@ -102,11 +104,11 @@ const StockCreateScreen = () => {
                       name="name"
                       form={form}
                       type="text"
-                      label="Nom du stock"
-                      placeholder="Saisissez le nom du stock"
+                      label={intl.formatMessage({id: "stockCreate.stockName"})}
+                      placeholder={intl.formatMessage({id: "stockCreate.stockNamePlaceholder"})}
                       icon="pi pi-box"
                       required
-                      helperText="Le nom doit contenir entre 3 et 255 caractères"
+                      helperText={intl.formatMessage({id: "stockCreate.stockNameHelper"})}
                     />
                   </div>
 
@@ -115,10 +117,10 @@ const StockCreateScreen = () => {
                       name="location"
                       form={form}
                       type="text"
-                      label="Localisation"
-                      placeholder="Saisissez la localisation du stock (optionnel)"
+                      label={intl.formatMessage({id: "stockCreate.location"})}
+                      placeholder={intl.formatMessage({id: "stockCreate.locationPlaceholder"})}
                       icon="pi pi-map-marker"
-                      helperText="Localisation géographique ou adresse du stock (optionnel)"
+                      helperText={intl.formatMessage({id: "stockCreate.locationHelper"})}
                     />
                   </div>
 
@@ -127,10 +129,10 @@ const StockCreateScreen = () => {
                       name="description"
                       form={form}
                       type="textarea"
-                      label="Description"
-                      placeholder="Saisissez une description (optionnel)"
+                      label={intl.formatMessage({id: "stockCreate.description"})}
+                      placeholder={intl.formatMessage({id: "stockCreate.descriptionPlaceholder"})}
                       icon="pi pi-align-left"
-                      helperText="Description détaillée du stock (maximum 1000 caractères)"
+                      helperText={intl.formatMessage({id: "stockCreate.descriptionHelper"})}
                       rows={4}
                     />
                   </div>
@@ -145,7 +147,7 @@ const StockCreateScreen = () => {
                     disabled={form.submitting}
                   >
                     <i className="pi pi-times me-2"></i>
-                    Annuler
+                    {intl.formatMessage({id: "stockCreate.cancel"})}
                   </button>
                   <button
                     type="submit"
@@ -153,7 +155,7 @@ const StockCreateScreen = () => {
                     disabled={!form.canSubmit}
                   >
                     <i className={`${form.submitting ? 'pi pi-spin pi-spinner' : 'pi pi-check'} me-2`}></i>
-                    {form.submitting ? 'Création...' : 'Créer'}
+                    {form.submitting ? intl.formatMessage({id: "stockCreate.creating"}) : intl.formatMessage({id: "stockCreate.create"})}
                   </button>
                 </div>
               </form>

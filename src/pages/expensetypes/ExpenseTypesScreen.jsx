@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useIntl } from 'react-intl';
 import { Toast } from 'primereact/toast';
 import ApiService from '../../services/api.js';
 import { API_CONFIG } from '../../services/config.js';
@@ -7,6 +8,7 @@ import { fetchApiData } from '../../stores/slicer/apiDataSlicer.js';
 import { useNavigate } from 'react-router-dom';
 
 const ExpenseTypeScreen = () => {
+  const intl = useIntl();
   const [expenseTypes, setExpenseTypes] = useState([]);
   const [agencies, setAgencies] = useState([]);
   const [filters, setFilters] = useState({
@@ -57,7 +59,6 @@ const ExpenseTypeScreen = () => {
         } 
   };
 
-
   const handleFilterChange = (name, value) => {
     setFilters(prev => ({ ...prev, [name]: value }));
   };
@@ -76,10 +77,10 @@ const ExpenseTypeScreen = () => {
     try {
       const response = await ApiService.delete(`/api/expense-types/${expenseTypeId}`);
       if (response.success) {
-        showToast('success', 'Type de dépense supprimé avec succès');
+        showToast('success', intl.formatMessage({id: "expenseType.typeDeleted"}));
         loadExpenseTypes(pagination.current_page);
       } else {
-        showToast('error', response.message || 'Erreur lors de la suppression');
+        showToast('error', response.message || intl.formatMessage({id: "expenseType.deleteError"}));
       }
     } catch (error) {
       showToast('error', error.message);
@@ -90,7 +91,7 @@ const ExpenseTypeScreen = () => {
   const showToast = (severity, detail) => {
     toast.current?.show({ 
       severity, 
-      summary: severity === 'error' ? 'Erreur' : 'Succès', 
+      summary: severity === 'error' ? intl.formatMessage({id: "expenseType.error"}) : intl.formatMessage({id: "expenseType.success"}), 
       detail, 
       life: 3000 
     });
@@ -180,9 +181,9 @@ const ExpenseTypeScreen = () => {
           <div className="d-flex justify-content-between align-items-center">
             <div>
               <h2 className="text-primary mb-1">
-                <i className="pi pi-tags me-2"></i>Types de Dépense
+                <i className="pi pi-tags me-2"></i>{intl.formatMessage({id: "expenseType.title"})}
               </h2>
-              <p className="text-muted mb-0">{pagination.total} type(s) au total</p>
+              <p className="text-muted mb-0">{pagination.total} {intl.formatMessage({id: "expenseType.totalTypes"})}</p>
             </div>
             <div className="d-flex gap-2">
               <button 
@@ -191,12 +192,12 @@ const ExpenseTypeScreen = () => {
                 disabled={loading}
               >
                 <i className="pi pi-refresh me-1"></i>
-                {loading ? 'Actualisation...' : 'Actualiser'}
+                {loading ? intl.formatMessage({id: "expenseType.refreshing"}) : intl.formatMessage({id: "expenseType.refresh"})}
               </button>
               <a
                onClick={() => navigate('/expense-types/create')}
                className="btn btn-primary">
-                <i className="pi pi-plus-circle me-1"></i>Nouveau Type
+                <i className="pi pi-plus-circle me-1"></i>{intl.formatMessage({id: "expenseType.newType"})}
               </a>
             </div>
           </div>
@@ -207,13 +208,13 @@ const ExpenseTypeScreen = () => {
       <div className="card shadow-sm border-0 mb-4">
         <div className="card-header bg-light">
           <h6 className="mb-0">
-            <i className="pi pi-filter me-2"></i>Filtres de recherche
+            <i className="pi pi-filter me-2"></i>{intl.formatMessage({id: "expenseType.searchFilters"})}
           </h6>
         </div>
         <div className="card-body">
           <form onSubmit={handleSearch} className="row g-3">
             <div className="col-md-5">
-              <label className="form-label">Recherche</label>
+              <label className="form-label">{intl.formatMessage({id: "expenseType.search"})}</label>
               <div className="input-group">
                 <span className="input-group-text">
                   <i className="pi pi-search"></i>
@@ -221,7 +222,7 @@ const ExpenseTypeScreen = () => {
                 <input 
                   type="text" 
                   className="form-control" 
-                  placeholder="Nom..."
+                  placeholder={intl.formatMessage({id: "expenseType.searchPlaceholder"})}
                   value={filters.search} 
                   onChange={(e) => handleFilterChange('search', e.target.value)} 
                 />
@@ -229,13 +230,13 @@ const ExpenseTypeScreen = () => {
             </div>
             
             <div className="col-md-5">
-              <label className="form-label">Agence</label>
+              <label className="form-label">{intl.formatMessage({id: "expenseType.agency"})}</label>
               <select 
                 className="form-select" 
                 value={filters.agency_id} 
                 onChange={(e) => handleFilterChange('agency_id', e.target.value)}
               >
-                <option value="">Toutes</option>
+                <option value="">{intl.formatMessage({id: "expenseType.all"})}</option>
                 {agencies.map(agency => (
                   <option key={agency.id} value={agency.id}>
                     {agency.label || agency.name}
@@ -246,10 +247,10 @@ const ExpenseTypeScreen = () => {
             
             <div className="col-md-2 d-flex align-items-end gap-2">
               <button type="submit" className="btn btn-primary" disabled={loading}>
-                <i className="pi pi-search me-1"></i>Rechercher
+                <i className="pi pi-search me-1"></i>{intl.formatMessage({id: "expenseType.searchBtn"})}
               </button>
               <button type="button" className="btn btn-outline-secondary" onClick={handleReset}>
-                <i className="pi pi-refresh me-1"></i>Reset
+                <i className="pi pi-refresh me-1"></i>{intl.formatMessage({id: "expenseType.reset"})}
               </button>
             </div>
           </form>
@@ -260,7 +261,7 @@ const ExpenseTypeScreen = () => {
       <div className="card shadow-sm border-0">
         <div className="card-header bg-white d-flex justify-content-between align-items-center">
           <h5 className="mb-0">
-            <i className="pi pi-list me-2"></i>Liste des Types de Dépense
+            <i className="pi pi-list me-2"></i>{intl.formatMessage({id: "expenseType.typesList"})}
           </h5>
         </div>
         <div className="card-body p-0">
@@ -268,11 +269,11 @@ const ExpenseTypeScreen = () => {
             <table className="table table-hover align-middle mb-0">
               <thead className="bg-light">
                 <tr>
-                  <th className="border-0 px-4 py-3">Nom</th>
-                  <th className="border-0 px-4 py-3">Description</th>
-                  <th className="border-0 px-4 py-3">Agence</th>
-                  <th className="border-0 px-4 py-3">Créé le</th>
-                  <th className="border-0 px-4 py-3">Actions</th>
+                  <th className="border-0 px-4 py-3">{intl.formatMessage({id: "expenseType.name"})}</th>
+                  <th className="border-0 px-4 py-3">{intl.formatMessage({id: "expenseType.description"})}</th>
+                  <th className="border-0 px-4 py-3">{intl.formatMessage({id: "expenseType.agency"})}</th>
+                  <th className="border-0 px-4 py-3">{intl.formatMessage({id: "expenseType.createdOn"})}</th>
+                  <th className="border-0 px-4 py-3">{intl.formatMessage({id: "expenseType.actions"})}</th>
                 </tr>
               </thead>
               <tbody>
@@ -280,7 +281,7 @@ const ExpenseTypeScreen = () => {
                   <tr>
                     <td colSpan="5" className="text-center py-5">
                       <div className="spinner-border text-primary" role="status">
-                        <span className="visually-hidden">Chargement...</span>
+                        <span className="visually-hidden">{intl.formatMessage({id: "expenseType.loading"})}</span>
                       </div>
                     </td>
                   </tr>
@@ -289,8 +290,8 @@ const ExpenseTypeScreen = () => {
                     <td colSpan="5" className="text-center py-5">
                       <div className="text-muted">
                         <i className="pi pi-inbox display-4 d-block mb-3"></i>
-                        <h5>Aucun type de dépense trouvé</h5>
-                        <p className="mb-0">Essayez de modifier vos critères de recherche ou créez un nouveau type de dépense</p>
+                        <h5>{intl.formatMessage({id: "expenseType.noTypesFound"})}</h5>
+                        <p className="mb-0">{intl.formatMessage({id: "expenseType.tryModifyingCriteria"})}</p>
                       </div>
                     </td>
                   </tr>
@@ -311,7 +312,7 @@ const ExpenseTypeScreen = () => {
                             {truncateText(expenseType.description, 100)}
                           </span>
                         ) : (
-                          <span className="text-muted">Aucune description</span>
+                          <span className="text-muted">{intl.formatMessage({id: "expenseType.noDescription"})}</span>
                         )}
                       </td>
                       <td className="px-4">
@@ -321,7 +322,7 @@ const ExpenseTypeScreen = () => {
                             {expenseType.agency.name}
                           </div>
                         ) : (
-                          <span className="text-muted">Non assigné</span>
+                          <span className="text-muted">{intl.formatMessage({id: "expenseType.notAssigned"})}</span>
                         )}
                       </td>
                       <td className="px-4">
@@ -338,24 +339,17 @@ const ExpenseTypeScreen = () => {
                       </td>
                       <td className="px-4">
                         <div className="btn-group" role="group">
-                          {/* <a 
-                            href={`/expense-types/${expenseType.id}`} 
-                            className="btn btn-sm btn-outline-info" 
-                            title="Voir"
-                          >
-                            <i className="pi pi-eye"></i>
-                          </a> */}
                           <a 
                             onClick={() => navigate(`/expense-types/${expenseType.id}/edit`)}
                             className="btn btn-sm btn-outline-warning" 
-                            title="Modifier"
+                            title={intl.formatMessage({id: "expenseType.edit"})}
                           >
                             <i className="pi pi-pencil"></i>
                           </a>
                           <button 
                             type="button" 
                             className="btn btn-sm btn-outline-danger" 
-                            title="Supprimer"
+                            title={intl.formatMessage({id: "expenseType.delete"})}
                             onClick={() => setDeleteModal({ show: true, expenseTypeId: expenseType.id })}
                           >
                             <i className="pi pi-trash"></i>
@@ -375,7 +369,7 @@ const ExpenseTypeScreen = () => {
           <div className="card-footer bg-transparent border-0">
             <div className="d-flex justify-content-between align-items-center">
               <div className="text-muted small">
-                Affichage de {pagination.from} à {pagination.to} sur {pagination.total} résultats
+                {intl.formatMessage({id: "expenseType.showing"})} {pagination.from} {intl.formatMessage({id: "expenseType.to"})} {pagination.to} {intl.formatMessage({id: "expenseType.on"})} {pagination.total} {intl.formatMessage({id: "expenseType.results"})}
               </div>
               <Pagination />
             </div>
@@ -391,7 +385,7 @@ const ExpenseTypeScreen = () => {
               <div className="modal-content">
                 <div className="modal-header bg-danger text-white">
                   <h5 className="modal-title">
-                    <i className="pi pi-exclamation-triangle me-2"></i>Confirmer la suppression
+                    <i className="pi pi-exclamation-triangle me-2"></i>{intl.formatMessage({id: "expenseType.confirmDelete"})}
                   </h5>
                   <button 
                     type="button" 
@@ -400,10 +394,10 @@ const ExpenseTypeScreen = () => {
                   ></button>
                 </div>
                 <div className="modal-body">
-                  <p>Êtes-vous sûr de vouloir supprimer ce type de dépense ? Cette action est irréversible.</p>
+                  <p>{intl.formatMessage({id: "expenseType.deleteMessage"})}</p>
                   <div className="alert alert-warning mt-3">
                     <i className="pi pi-info-circle me-2"></i>
-                    <strong>Attention :</strong> La suppression de ce type pourrait affecter les dépenses associées.
+                    <strong>{intl.formatMessage({id: "expenseType.deleteWarning"})}</strong> {intl.formatMessage({id: "expenseType.deleteWarningMessage"})}
                   </div>
                 </div>
                 <div className="modal-footer">
@@ -412,14 +406,14 @@ const ExpenseTypeScreen = () => {
                     className="btn btn-secondary"
                     onClick={() => setDeleteModal({ show: false, expenseTypeId: null })}
                   >
-                    Annuler
+                    {intl.formatMessage({id: "expenseType.cancel"})}
                   </button>
                   <button 
                     type="button" 
                     className="btn btn-danger"
                     onClick={() => handleDeleteExpenseType(deleteModal.expenseTypeId)}
                   >
-                    <i className="pi pi-trash me-1"></i>Supprimer
+                    <i className="pi pi-trash me-1"></i>{intl.formatMessage({id: "expenseType.delete"})}
                   </button>
                 </div>
               </div>

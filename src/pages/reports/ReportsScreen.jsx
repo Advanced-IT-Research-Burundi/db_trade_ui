@@ -1,34 +1,39 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useIntl } from 'react-intl';
 import { Toast } from 'primereact/toast';
 import ApiService from '../../services/api.js';
 import RapportHeader from './RapportHeader.jsx';
 
-const StatCard = ({ icon, title, value, color, loading, subtitle }) => (
-  <div className="col-lg-3 col-md-6 mb-4">
-    <div className={`card bg-${color} text-white shadow-sm h-100`}>
-      <div className="card-body">
-        <div className="d-flex justify-content-between align-items-center">
-          <div>
-            <h6 className="card-title mb-1">{title}</h6>
-            <h4 className="mb-0">{loading ? '...' : value}</h4>
-            {subtitle && <small className="opacity-75">{subtitle}</small>}
-          </div>
-          <div className="align-self-center">
-            {loading ? (
-              <div className="spinner-border spinner-border-sm text-white" role="status">
-                <span className="visually-hidden">Chargement...</span>
-              </div>
-            ) : (
-              <i className={`pi pi-${icon} display-6`}></i>
-            )}
+const StatCard = ({ icon, title, value, color, loading, subtitle }) => {
+  const intl = useIntl();
+  return (
+    <div className="col-lg-3 col-md-6 mb-4">
+      <div className={`card bg-${color} text-white shadow-sm h-100`}>
+        <div className="card-body">
+          <div className="d-flex justify-content-between align-items-center">
+            <div>
+              <h6 className="card-title mb-1">{title}</h6>
+              <h4 className="mb-0">{loading ? '...' : value}</h4>
+              {subtitle && <small className="opacity-75">{subtitle}</small>}
+            </div>
+            <div className="align-self-center">
+              {loading ? (
+                <div className="spinner-border spinner-border-sm text-white" role="status">
+                  <span className="visually-hidden">{intl.formatMessage({id: "reports.loading"})}</span>
+                </div>
+              ) : (
+                <i className={`pi pi-${icon} display-6`}></i>
+              )}
+            </div>
           </div>
         </div>
       </div>
     </div>
-  </div>
-);
+  );
+};
 
 const ReportsScreen = () => {
+  const intl = useIntl();
   const [loading, setLoading] = useState(false);
   const [reportData, setReportData] = useState({});
   const [selectedReport, setSelectedReport] = useState('overview');
@@ -70,7 +75,7 @@ const ReportsScreen = () => {
       if (response.success) {
         setReportData(response.data);
       } else {
-        showToast('error', response.message || 'Erreur lors du chargement des données');
+        showToast('error', response.message || intl.formatMessage({id: "reports.loadingError"}));
       }
     } catch (error) {
       showToast('error', error.message);
@@ -102,9 +107,9 @@ const ReportsScreen = () => {
       link.remove();
       window.URL.revokeObjectURL(url);
       
-      showToast('success', 'Rapport exporté avec succès');
+      showToast('success', intl.formatMessage({id: "reports.exportedSuccessfully"}));
     } catch (error) {
-      showToast('error', 'Erreur lors de l\'export du rapport: '+error.message);
+      showToast('error', intl.formatMessage({id: "reports.exportError"}) + ': ' + error.message);
     } finally {
       setExportLoading(false);
     }
@@ -113,7 +118,7 @@ const ReportsScreen = () => {
   const showToast = (severity, detail) => {
     toast.current?.show({ 
       severity, 
-      summary: severity === 'error' ? 'Erreur' : 'Succès', 
+      summary: severity === 'error' ? intl.formatMessage({id: "reports.error"}) : intl.formatMessage({id: "reports.success"}), 
       detail, 
       life: 3000 
     });
@@ -127,63 +132,30 @@ const ReportsScreen = () => {
   };
 
   const reportTypes = [
-    { key: 'overview', label: 'Vue d\'ensemble', icon: 'chart-line' },
-    { key: 'sales', label: 'Rapport des ventes', icon: 'shopping-cart' },
-    { key: 'purchases', label: 'Rapport des achats', icon: 'shopping-bag' },
-    { key: 'inventory', label: 'Rapport d\'inventaire', icon: 'warehouse' },
-    { key: 'financial', label: 'Rapport financier', icon: 'money-bill' },
-    { key: 'customers', label: 'Rapport clients', icon: 'users' },
-    { key: 'suppliers', label: 'Rapport fournisseurs', icon: 'truck' }
+    { key: 'overview', label: intl.formatMessage({id: "reports.overview"}), icon: 'chart-line' },
+    { key: 'sales', label: intl.formatMessage({id: "reports.salesReport"}), icon: 'shopping-cart' },
+    { key: 'purchases', label: intl.formatMessage({id: "reports.purchasesReport"}), icon: 'shopping-bag' },
+    { key: 'inventory', label: intl.formatMessage({id: "reports.inventoryReport"}), icon: 'warehouse' },
+    { key: 'financial', label: intl.formatMessage({id: "reports.financialReport"}), icon: 'money-bill' },
+    { key: 'customers', label: intl.formatMessage({id: "reports.customersReport"}), icon: 'users' },
+    { key: 'suppliers', label: intl.formatMessage({id: "reports.suppliersReport"}), icon: 'truck' }
   ];
 
   const renderOverviewReport = () => (
     <div className="row">
       <div className="col-12 mb-4">
         <h5 className="text-primary">
-          <i className="pi pi-chart-line me-2"></i>Vue d'ensemble
+          <i className="pi pi-chart-line me-2"></i>{intl.formatMessage({id: "reports.overview"})}
         </h5>
       </div>
       
-      {/* <StatCard 
-        icon="shopping-cart" 
-        title="Chiffre d'affaires" 
-        value={formatCurrency(reportData.total_sales)} 
-        color="success" 
-        loading={loading}
-        subtitle={`${reportData.sales_count || 0} ventes`}
-      />
-      <StatCard 
-        icon="shopping-bag" 
-        title="Total achats" 
-        value={formatCurrency(reportData.total_purchases)} 
-        color="info" 
-        loading={loading}
-        subtitle={`${reportData.purchases_count || 0} achats`}
-      />
-      <StatCard 
-        icon="money-bill" 
-        title="Bénéfices" 
-        value={formatCurrency(reportData.profit)} 
-        color="warning" 
-        loading={loading}
-        subtitle="Estimation"
-      />
-      <StatCard 
-        icon="users" 
-        title="Clients actifs" 
-        value={reportData.active_customers || 0} 
-        color="primary" 
-        loading={loading}
-        subtitle="Ce mois"
-      /> */}
-
       <div className="col-12 mt-4">
         <div className="row">
           <div className="col-md-6">
             <div className="card shadow-sm">
               <div className="card-header bg-light">
                 <h6 className="mb-0">
-                  <i className="pi pi-chart-bar me-2"></i>Top 5 Produits
+                  <i className="pi pi-chart-bar me-2"></i>{intl.formatMessage({id: "reports.top5Products"})}
                 </h6>
               </div>
               <div className="card-body">
@@ -198,7 +170,7 @@ const ReportsScreen = () => {
                         <div>
                           <strong>{product.name}</strong>
                           <br />
-                          <small className="text-muted">{product.quantity} vendus</small>
+                          <small className="text-muted">{product.quantity} {intl.formatMessage({id: "reports.sold"})}</small>
                         </div>
                         <span className="badge bg-primary">{formatCurrency(product.total_sales)}</span>
                       </div>
@@ -213,7 +185,7 @@ const ReportsScreen = () => {
             <div className="card shadow-sm">
               <div className="card-header bg-light">
                 <h6 className="mb-0">
-                  <i className="pi pi-exclamation-triangle me-2"></i>Alertes Stock
+                  <i className="pi pi-exclamation-triangle me-2"></i>{intl.formatMessage({id: "reports.stockAlerts"})}
                 </h6>
               </div>
               <div className="card-body">
@@ -249,34 +221,34 @@ const ReportsScreen = () => {
     <div className="row">
       <div className="col-12 mb-4">
         <h5 className="text-primary">
-          <i className="pi pi-shopping-cart me-2"></i>Rapport des ventes
+          <i className="pi pi-shopping-cart me-2"></i>{intl.formatMessage({id: "reports.salesReport"})}
         </h5>
       </div>
       
       <StatCard 
         icon="shopping-cart" 
-        title="Total ventes" 
+        title={intl.formatMessage({id: "reports.totalSales"})} 
         value={formatCurrency(reportData.total_amount)} 
         color="success" 
         loading={loading}
       />
       <StatCard 
         icon="file-text" 
-        title="Nombre ventes" 
+        title={intl.formatMessage({id: "reports.salesCount"})} 
         value={reportData.total_count || 0} 
         color="info" 
         loading={loading}
       />
       <StatCard 
         icon="money-bill" 
-        title="Montant moyen" 
+        title={intl.formatMessage({id: "reports.averageAmount"})} 
         value={formatCurrency(reportData.average_amount)} 
         color="warning" 
         loading={loading}
       />
       <StatCard 
         icon="check-circle" 
-        title="Ventes payées" 
+        title={intl.formatMessage({id: "reports.paidSales"})} 
         value={reportData.paid_sales || 0} 
         color="primary" 
         loading={loading}
@@ -286,7 +258,7 @@ const ReportsScreen = () => {
         <div className="card shadow-sm">
           <div className="card-header bg-light">
             <h6 className="mb-0">
-              <i className="pi pi-chart-line me-2"></i>Détails des ventes
+              <i className="pi pi-chart-line me-2"></i>{intl.formatMessage({id: "reports.salesDetails"})}
             </h6>
           </div>
           <div className="card-body">
@@ -299,10 +271,10 @@ const ReportsScreen = () => {
                 <table className="table table-sm">
                   <thead>
                     <tr>
-                      <th>Date</th>
-                      <th>Client</th>
-                      <th>Montant</th>
-                      <th>Statut</th>
+                      <th>{intl.formatMessage({id: "reports.date"})}</th>
+                      <th>{intl.formatMessage({id: "reports.client"})}</th>
+                      <th>{intl.formatMessage({id: "reports.amount"})}</th>
+                      <th>{intl.formatMessage({id: "reports.status"})}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -313,7 +285,7 @@ const ReportsScreen = () => {
                         <td>{formatCurrency(sale.total_amount)}</td>
                         <td>
                           <span className={`badge ${sale.paid ? 'bg-success' : 'bg-warning'}`}>
-                            {sale.paid ? 'Payé' : 'En attente'}
+                            {sale.paid ? intl.formatMessage({id: "reports.paid"}) : intl.formatMessage({id: "reports.pending"})}
                           </span>
                         </td>
                       </tr>
@@ -332,34 +304,34 @@ const ReportsScreen = () => {
     <div className="row">
       <div className="col-12 mb-4">
         <h5 className="text-primary">
-          <i className="pi pi-money-bill me-2"></i>Rapport financier
+          <i className="pi pi-money-bill me-2"></i>{intl.formatMessage({id: "reports.financialReport"})}
         </h5>
       </div>
       
       <StatCard 
         icon="arrow-up" 
-        title="Revenus" 
+        title={intl.formatMessage({id: "reports.revenue"})} 
         value={formatCurrency(reportData.total_revenue)} 
         color="success" 
         loading={loading}
       />
       <StatCard 
         icon="arrow-down" 
-        title="Dépenses" 
+        title={intl.formatMessage({id: "reports.expenses"})} 
         value={formatCurrency(reportData.total_expenses)} 
         color="danger" 
         loading={loading}
       />
       <StatCard 
         icon="chart-line" 
-        title="Bénéfice net" 
+        title={intl.formatMessage({id: "reports.netProfit"})} 
         value={formatCurrency(reportData.net_profit)} 
         color="info" 
         loading={loading}
       />
       <StatCard 
         icon="percentage" 
-        title="Marge bénéficiaire" 
+        title={intl.formatMessage({id: "reports.profitMargin"})} 
         value={`${reportData.profit_margin || 0}%`} 
         color="warning" 
         loading={loading}
@@ -369,7 +341,7 @@ const ReportsScreen = () => {
         <div className="card shadow-sm">
           <div className="card-header bg-light">
             <h6 className="mb-0">
-              <i className="pi pi-wallet me-2"></i>Flux de trésorerie
+              <i className="pi pi-wallet me-2"></i>{intl.formatMessage({id: "reports.cashFlow"})}
             </h6>
           </div>
           <div className="card-body">
@@ -380,17 +352,17 @@ const ReportsScreen = () => {
             ) : (
               <div className="row">
                 <div className="col-md-6">
-                  <h6 className="text-success">Entrées</h6>
+                  <h6 className="text-success">{intl.formatMessage({id: "reports.inflows"})}</h6>
                   <ul className="list-unstyled">
-                    <li>Ventes: {formatCurrency(reportData.cash_flow?.sales || 0)}</li>
-                    <li>Autres revenus: {formatCurrency(reportData.cash_flow?.other_income || 0)}</li>
+                    <li>{intl.formatMessage({id: "reports.salesInflow"})}: {formatCurrency(reportData.cash_flow?.sales || 0)}</li>
+                    <li>{intl.formatMessage({id: "reports.otherIncome"})}: {formatCurrency(reportData.cash_flow?.other_income || 0)}</li>
                   </ul>
                 </div>
                 <div className="col-md-6">
-                  <h6 className="text-danger">Sorties</h6>
+                  <h6 className="text-danger">{intl.formatMessage({id: "reports.outflows"})}</h6>
                   <ul className="list-unstyled">
-                    <li>Achats: {formatCurrency(reportData.cash_flow?.purchases || 0)}</li>
-                    <li>Dépenses: {formatCurrency(reportData.cash_flow?.expenses || 0)}</li>
+                    <li>{intl.formatMessage({id: "reports.purchasesOutflow"})}: {formatCurrency(reportData.cash_flow?.purchases || 0)}</li>
+                    <li>{intl.formatMessage({id: "reports.expensesOutflow"})}: {formatCurrency(reportData.cash_flow?.expenses || 0)}</li>
                   </ul>
                 </div>
               </div>
@@ -413,8 +385,8 @@ const ReportsScreen = () => {
         return (
           <div className="text-center py-5">
             <i className="pi pi-file-text display-4 text-muted mb-3"></i>
-            <h5>Rapport en développement</h5>
-            <p className="text-muted">Ce type de rapport sera bientôt disponible.</p>
+            <h5>{intl.formatMessage({id: "reports.reportInDevelopment"})}</h5>
+            <p className="text-muted">{intl.formatMessage({id: "reports.reportAvailableSoon"})}</p>
           </div>
         );
     }
@@ -427,15 +399,14 @@ const ReportsScreen = () => {
       {/* Header */}
       <div className="row mb-4">
         <div className="col-12">
-        <RapportHeader />
+          <RapportHeader />
           <div className="d-flex justify-content-between align-items-center">
-          
             <div>
               <h2 className="text-primary mb-1">
-                <i className="pi pi-chart-bar me-2"></i>Rapports et Analyses
+                <i className="pi pi-chart-bar me-2"></i>{intl.formatMessage({id: "reports.title"})}
               </h2>
               <p className="text-muted mb-0">
-                Période: {new Date(dateRange.start_date).toLocaleDateString('fr-FR')} - {new Date(dateRange.end_date).toLocaleDateString('fr-FR')}
+                {intl.formatMessage({id: "reports.period"})}: {new Date(dateRange.start_date).toLocaleDateString('fr-FR')} - {new Date(dateRange.end_date).toLocaleDateString('fr-FR')}
               </p>
             </div>
             <div className="d-flex gap-2">
@@ -445,7 +416,7 @@ const ReportsScreen = () => {
                 disabled={loading}
               >
                 <i className="pi pi-refresh me-1"></i>
-                {loading ? 'Actualisation...' : 'Actualiser'}
+                {loading ? intl.formatMessage({id: "reports.refreshing"}) : intl.formatMessage({id: "reports.refresh"})}
               </button>
               <button 
                 className="btn btn-success" 
@@ -453,7 +424,7 @@ const ReportsScreen = () => {
                 disabled={exportLoading}
               >
                 <i className="pi pi-file-pdf me-1"></i>
-                {exportLoading ? 'Export...' : 'Export PDF'}
+                {exportLoading ? intl.formatMessage({id: "reports.exporting"}) : intl.formatMessage({id: "reports.exportPDF"})}
               </button>
             </div>
           </div>
@@ -464,13 +435,13 @@ const ReportsScreen = () => {
       <div className="card shadow-sm border-0 mb-4">
         <div className="card-header bg-light">
           <h6 className="mb-0">
-            <i className="pi pi-filter me-2"></i>Filtres et paramètres
+            <i className="pi pi-filter me-2"></i>{intl.formatMessage({id: "reports.filtersAndSettings"})}
           </h6>
         </div>
         <div className="card-body">
           <div className="row g-3">
             <div className="col-md-3">
-              <label className="form-label">Type de rapport</label>
+              <label className="form-label">{intl.formatMessage({id: "reports.reportType"})}</label>
               <select 
                 className="form-select" 
                 value={selectedReport} 
@@ -485,7 +456,7 @@ const ReportsScreen = () => {
             </div>
             
             <div className="col-md-2">
-              <label className="form-label">Date début</label>
+              <label className="form-label">{intl.formatMessage({id: "reports.startDate"})}</label>
               <input 
                 type="date" 
                 className="form-control" 
@@ -495,7 +466,7 @@ const ReportsScreen = () => {
             </div>
             
             <div className="col-md-2">
-              <label className="form-label">Date fin</label>
+              <label className="form-label">{intl.formatMessage({id: "reports.endDate"})}</label>
               <input 
                 type="date" 
                 className="form-control" 
@@ -505,13 +476,13 @@ const ReportsScreen = () => {
             </div>
             
             <div className="col-md-3">
-              <label className="form-label">Agence</label>
+              <label className="form-label">{intl.formatMessage({id: "reports.agency"})}</label>
               <select 
                 className="form-select" 
                 value={selectedAgency} 
                 onChange={(e) => setSelectedAgency(e.target.value)}
               >
-                <option value="">Toutes les agences</option>
+                <option value="">{intl.formatMessage({id: "reports.allAgencies"})}</option>
                 {agencies.map(agency => (
                   <option key={agency.id} value={agency.id}>
                     {agency.name}
@@ -526,7 +497,7 @@ const ReportsScreen = () => {
                 onClick={loadReportData}
                 disabled={loading}
               >
-                <i className="pi pi-search me-1"></i>Générer
+                <i className="pi pi-search me-1"></i>{intl.formatMessage({id: "reports.generate"})}
               </button>
             </div>
           </div>

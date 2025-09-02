@@ -875,7 +875,7 @@
   "stockEdit.loadError": "Erreur lors du chargement",
   "stockEdit.updateError": "Erreur lors de la modification du stock",
   "stockEdit.error": "Erreur",
-  "stockEdit.success": "Succès",
+  "stockEdit.success": "Succès"
 
 
 }

@@ -11,6 +11,7 @@ const ProductCreateScreen = () => {
   
   // États pour les options des selects
   const [categoryOptions, setCategoryOptions] = useState([]);
+  const [unitOptions, setUnitOptions] = useState([]);
   const [loadingOptions, setLoadingOptions] = useState(true);
 
   const initialValues = {
@@ -85,11 +86,20 @@ const ProductCreateScreen = () => {
         if (categoriesResponse.success) {
           const categoriesFormatted = categoriesResponse.data.categories.data.map(category => ({
             value: category.id,
-            label: category.name
+            label: category.name 
           }));
           setCategoryOptions(categoriesFormatted);
         }
+        const unitsResponse = await ApiService.get('/api/units');
         
+        if (unitsResponse.success) {
+          const unitsFormatted = unitsResponse.data.data.map(unit => ({
+            value: unit.id,
+            label: unit.name + ' ( ' + unit.abbreviation + ' )'
+          }));
+          setUnitOptions(unitsFormatted);
+        }
+
       } catch (error) {
         toast.current.show({
           severity: 'error',
@@ -131,8 +141,6 @@ const ProductCreateScreen = () => {
       }
     });
 
-    console.log('Form values:', finalValues);
-    console.log('FormData contents:');
     for (let [key, value] of formData.entries()) {
       console.log(key, value);
     }
@@ -286,12 +294,13 @@ const ProductCreateScreen = () => {
                       <FormField
                         name="unit"
                         form={form}
-                        type="text"
+                        type="select"
                         label="Unité"
-                        placeholder="Ex: pièce, kg, litre"
+                        placeholder="Sélectionnez une unité"
                         icon="pi pi-calculator"
                         required
                         helperText="Unité de mesure du produit"
+                        options={unitOptions}
                       />
                     </div>
 

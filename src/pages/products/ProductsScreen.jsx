@@ -398,7 +398,7 @@ const ProductScreen = () => {
                         </span>
                       </td>
                       <td className="px-4">
-                        <span className="badge bg-info text-white">{product.unit}</span>
+                        <span className="badge bg-info text-white">{ product?.unit?.name ? (product?.unit?.name + ' ( ' + product?.unit?.abbreviation + ' )' ) : product?.unit_name }</span>
                       </td>
                       <td className="px-4">
                         <span className="badge bg-warning text-dark">{product.alert_quantity}</span>

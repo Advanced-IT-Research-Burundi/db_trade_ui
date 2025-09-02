@@ -1,22 +1,16 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useIntl } from "react-intl";
 import { Toast } from "primereact/toast";
-import ApiService from "../../services/api.js";
+import ApiService from "../../../services/api.js";
 import { useNavigate } from "react-router-dom";
-import { API_CONFIG } from "../../services/config.js";
+import { API_CONFIG } from "../../../services/config.js";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchApiData } from "../../stores/slicer/apiDataSlicer.js";
+import { fetchApiData } from "../../../stores/slicer/apiDataSlicer.js";
 
-const CategoryScreen = () => {
+const UnitScreen = () => {
   const intl = useIntl();
-  const [categories, setCategories] = useState([]);
-  const [agencies, setAgencies] = useState([]);
-  const [creators, setCreators] = useState([]);
-  const [filters, setFilters] = useState({
-    search: "",
-    agency_id: "",
-    created_by: "",
-  });
+  const [units, setUnits] = useState([]);
+  const [filters, setFilters] = useState({ search: "" });
   const [pagination, setPagination] = useState({
     current_page: 1,
     last_page: 1,
@@ -26,43 +20,38 @@ const CategoryScreen = () => {
   });
   const [deleteModal, setDeleteModal] = useState({
     show: false,
-    categoryId: null,
+    unitId: null,
   });
   const toast = useRef(null);
-
   const navigate = useNavigate();
-
   const dispatch = useDispatch();
   const { data, loading } = useSelector((state) => state.apiData);
 
   useEffect(() => {
-    loadCategories();
+    loadUnits();
   }, []);
 
   useEffect(() => {
-    if (data.categories) {
-      setCategories(data.categories.categories.data || []);
-
-      setAgencies(data.categories.agencies || []);
-      setCreators(data.categories.creators || []);
-
+    
+    if (data?.units) {
+      setUnits(data.units.data || []);
       setPagination({
-        current_page: data.categories.categories.current_page,
-        last_page: data.categories.categories.last_page,
-        total: data.categories.categories.total,
-        from: data.categories.categories.from,
-        to: data.categories.categories.to,
+        current_page: data.units.current_page,
+        last_page: data.units.last_page,
+        total: data.units.total,
+        from: data.units.from,
+        to: data.units.to,
       });
     }
   }, [data]);
 
-  async function loadCategories(page = 1) {
+  async function loadUnits(page = 1) {
     try {
       const params = { page, ...filters };
       dispatch(
         fetchApiData({
-          url: API_CONFIG.ENDPOINTS.CATEGORIES,
-          itemKey: "categories",
+          url: API_CONFIG.ENDPOINTS.UNITS,
+          itemKey: "units",
           params,
         })
       );
@@ -77,33 +66,33 @@ const CategoryScreen = () => {
 
   const handleSearch = (e) => {
     e.preventDefault();
-    loadCategories(1);
+    loadUnits(1);
   };
 
   const handleReset = () => {
-    setFilters({ search: "", agency_id: "", created_by: "" });
-    setTimeout(() => loadCategories(1), 0);
+    setFilters({ search: "" });
+    setTimeout(() => loadUnits(1), 0);
   };
 
-  const handleDeleteCategory = async (categoryId) => {
+  const handleDeleteUnit = async (unitId) => {
     try {
-      const response = await ApiService.delete(`/api/categories/${categoryId}`);
+      const response = await ApiService.delete(`/api/units/${unitId}`);
       if (response.success) {
-        showToast("success", intl.formatMessage({id: "category.categoryDeleted"}));
-        loadCategories(pagination.current_page);
+        showToast("success", "Unité supprimée avec succès");
+        loadUnits(pagination.current_page);
       } else {
-        showToast("error", response.error || intl.formatMessage({id: "category.deleteError"}));
+        showToast("error", response.error || "Erreur lors de la suppression");
       }
     } catch (error) {
       showToast("error", error.message);
     }
-    setDeleteModal({ show: false, categoryId: null });
+    setDeleteModal({ show: false, unitId: null });
   };
 
   const showToast = (severity, detail) => {
     toast.current?.show({
       severity,
-      summary: severity === "error" ? intl.formatMessage({id: "category.error"}) : intl.formatMessage({id: "category.success"}),
+      summary: severity === "error" ? "Erreur" : "Succès",
       detail,
       life: 3000,
     });
@@ -156,7 +145,7 @@ const CategoryScreen = () => {
           >
             <button
               className="page-link"
-              onClick={() => loadCategories(pagination.current_page - 1)}
+              onClick={() => loadUnits(pagination.current_page - 1)}
               disabled={pagination.current_page === 1}
             >
               <i className="pi pi-chevron-left"></i>
@@ -175,7 +164,7 @@ const CategoryScreen = () => {
               ) : (
                 <button
                   className="page-link"
-                  onClick={() => loadCategories(page)}
+                  onClick={() => loadUnits(page)}
                 >
                   {page}
                 </button>
@@ -190,7 +179,7 @@ const CategoryScreen = () => {
           >
             <button
               className="page-link"
-              onClick={() => loadCategories(pagination.current_page + 1)}
+              onClick={() => loadUnits(pagination.current_page + 1)}
               disabled={pagination.current_page === pagination.last_page}
             >
               <i className="pi pi-chevron-right"></i>
@@ -211,27 +200,27 @@ const CategoryScreen = () => {
           <div className="d-flex justify-content-between align-items-center">
             <div>
               <h2 className="text-primary mb-1">
-                <i className="pi pi-tags me-2"></i>{intl.formatMessage({id: "category.title"})}
+                <i className="pi pi-calculator me-2"></i>Unités de mesure
               </h2>
               <p className="text-muted mb-0">
-                {pagination.total} {intl.formatMessage({id: "category.totalCategories"})}
+                {pagination.total} unité(s) au total
               </p>
             </div>
             <div className="d-flex gap-2">
               <button
                 className="btn btn-outline-primary"
-                onClick={() => loadCategories(pagination.current_page)}
+                onClick={() => loadUnits(pagination.current_page)}
                 disabled={loading}
               >
                 <i className="pi pi-refresh me-1"></i>
-                {loading ? intl.formatMessage({id: "category.refreshing"}) : intl.formatMessage({id: "category.refresh"})}
+                {loading ? "Actualisation..." : "Actualiser"}
               </button>
-              <a
-                onClick={() => navigate("/categories/create")}
+              <button
+                onClick={() => navigate("/products/units/create")}
                 className="btn btn-primary"
               >
-                <i className="pi pi-plus-circle me-1"></i>{intl.formatMessage({id: "category.newCategory"})}
-              </a>
+                <i className="pi pi-plus-circle me-1"></i>Nouvelle unité
+              </button>
             </div>
           </div>
         </div>
@@ -241,13 +230,13 @@ const CategoryScreen = () => {
       <div className="card shadow-sm border-0 mb-4">
         <div className="card-header bg-light">
           <h6 className="mb-0">
-            <i className="pi pi-filter me-2"></i>{intl.formatMessage({id: "category.searchFilters"})}
+            <i className="pi pi-filter me-2"></i>Filtres de recherche
           </h6>
         </div>
         <div className="card-body">
           <form onSubmit={handleSearch} className="row g-3">
-            <div className="col-md-4">
-              <label className="form-label">{intl.formatMessage({id: "category.search"})}</label>
+            <div className="col-md-6">
+              <label className="form-label">Recherche</label>
               <div className="input-group">
                 <span className="input-group-text">
                   <i className="pi pi-search"></i>
@@ -255,74 +244,38 @@ const CategoryScreen = () => {
                 <input
                   type="text"
                   className="form-control"
-                  placeholder={intl.formatMessage({id: "category.searchPlaceholder"})}
+                  placeholder="Rechercher par nom, abréviation ou description..."
                   value={filters.search}
                   onChange={(e) => handleFilterChange("search", e.target.value)}
                 />
               </div>
             </div>
 
-            <div className="col-md-3">
-              <label className="form-label">{intl.formatMessage({id: "category.agency"})}</label>
-              <select
-                className="form-select"
-                value={filters.agency_id}
-                onChange={(e) =>
-                  handleFilterChange("agency_id", e.target.value)
-                }
-              >
-                <option value="">{intl.formatMessage({id: "category.all"})}</option>
-                {agencies.map((agency) => (
-                  <option key={agency.id} value={agency.id}>
-                    {agency.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="col-md-3">
-              <label className="form-label">{intl.formatMessage({id: "category.createdBy"})}</label>
-              <select
-                className="form-select"
-                value={filters.created_by}
-                onChange={(e) =>
-                  handleFilterChange("created_by", e.target.value)
-                }
-              >
-                <option value="">{intl.formatMessage({id: "category.all"})}</option>
-                {creators.map((creator) => (
-                  <option key={creator.id} value={creator.id}>
-                    {creator.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="col-md-2 d-flex align-items-end gap-2">
+            <div className="col-md-6 d-flex align-items-end gap-2">
               <button
                 type="submit"
                 className="btn btn-primary"
                 disabled={loading}
               >
-                <i className="pi pi-search me-1"></i>{intl.formatMessage({id: "category.searchBtn"})}
+                <i className="pi pi-search me-1"></i>Rechercher
               </button>
               <button
                 type="button"
                 className="btn btn-outline-secondary"
                 onClick={handleReset}
               >
-                <i className="pi pi-refresh me-1"></i>{intl.formatMessage({id: "category.reset"})}
+                <i className="pi pi-refresh me-1"></i>Réinitialiser
               </button>
             </div>
           </form>
         </div>
       </div>
 
-      {/* Categories Table */}
+      {/* Units Table */}
       <div className="card shadow-sm border-0">
         <div className="card-header bg-white d-flex justify-content-between align-items-center">
           <h5 className="mb-0">
-            <i className="pi pi-list me-2"></i>{intl.formatMessage({id: "category.categoriesList"})}
+            <i className="pi pi-list me-2"></i>Liste des unités
           </h5>
         </div>
         <div className="card-body p-0">
@@ -330,84 +283,74 @@ const CategoryScreen = () => {
             <table className="table table-hover align-middle mb-0">
               <thead className="bg-light">
                 <tr>
-                  <th className="border-0 px-4 py-3">{intl.formatMessage({id: "category.name"})}</th>
-                  <th className="border-0 px-4 py-3">{intl.formatMessage({id: "category.description"})}</th>
-                  <th className="border-0 px-4 py-3">{intl.formatMessage({id: "category.agency"})}</th>
-                  <th className="border-0 px-4 py-3">{intl.formatMessage({id: "category.createdBy"})}</th>
-                  <th className="border-0 px-4 py-3">{intl.formatMessage({id: "category.createdOn"})}</th>
-                  <th className="border-0 px-4 py-3">{intl.formatMessage({id: "category.actions"})}</th>
+                  <th className="border-0 px-4 py-3">Nom</th>
+                  <th className="border-0 px-4 py-3">Abréviation</th>
+                  <th className="border-0 px-4 py-3">Description</th>
+                  <th className="border-0 px-4 py-3">Date de création</th>
+                  <th className="border-0 px-4 py-3">Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {categories.length === 0 && loading   ? (
+                {data?.units === 0 && loading ? (
                   <tr>
-                    <td colSpan="6" className="text-center py-5">
+                    <td colSpan="5" className="text-center py-5">
                       <div
                         className="spinner-border text-primary"
                         role="status"
                       >
-                        <span className="visually-hidden">{intl.formatMessage({id: "category.loading"})}</span>
+                        <span className="visually-hidden">Chargement...</span>
                       </div>
                     </td>
                   </tr>
-                ) :  data.products == undefined && categories.length === 0 ? (
+                ) : units.length === 0 ? (
                   <tr>
-                    <td colSpan="6" className="text-center py-5">
+                    <td colSpan="5" className="text-center py-5">
                       <div className="text-muted">
                         <i className="pi pi-inbox display-4 d-block mb-3"></i>
-                        <h5>{intl.formatMessage({id: "category.noCategoriesFound"})}</h5>
+                        <h5>Aucune unité trouvée</h5>
                         <p className="mb-0">
-                          {intl.formatMessage({id: "category.tryModifyingCriteria"})}
+                          Essayez de modifier vos critères de recherche
                         </p>
                       </div>
                     </td>
                   </tr>
                 ) : (
-                  categories.map((category) => (
-                    <tr key={category.id}>
+                  units.map((unit) => (
+                    <tr key={unit.id}>
                       <td className="px-4">
                         <div className="d-flex align-items-center">
                           <div className="bg-primary bg-opacity-10 p-2 rounded me-3">
-                            <i className="pi pi-tag text-primary"></i>
+                            <i className="pi pi-calculator text-primary"></i>
                           </div>
                           <strong className="text-primary">
-                            {category.name}
+                            {unit.name}
                           </strong>
                         </div>
                       </td>
                       <td className="px-4">
-                        {category.description ? (
-                          <span title={category.description}>
-                            {truncateText(category.description, 50)}
+                        {unit.abbreviation ? (
+                          <span className="badge bg-secondary">
+                            {unit.abbreviation}
                           </span>
                         ) : (
-                          <span className="text-muted">{intl.formatMessage({id: "category.noDescription"})}</span>
+                          <span className="text-muted">-</span>
                         )}
                       </td>
                       <td className="px-4">
-                        {category.agency ? (
-                          <div className="d-flex align-items-center">
-                            <i className="pi pi-building text-info me-2"></i>
-                            {category.agency.name}
-                          </div>
+                        {unit.description ? (
+                          <span title={unit.description}>
+                            {truncateText(unit.description, 50)}
+                          </span>
                         ) : (
-                          <span className="text-muted">{intl.formatMessage({id: "category.notAssigned"})}</span>
+                          <span className="text-muted">Aucune description</span>
                         )}
-                      </td>
-                      <td className="px-4">
-                        <div className="d-flex align-items-center">
-                          <i className="pi pi-user-check text-success me-2"></i>
-                          {category.created_by?.full_name ||
-                            category.created_by?.name ||
-                            "N/A"}
-                        </div>
                       </td>
                       <td className="px-4">
                         <div>
-                          <strong>{formatDate(category.created_at)}</strong>
+                          <strong>{formatDate(unit.created_at)}</strong>
                           <br />
                           <small className="text-muted">
-                            {new Date(category.created_at).toLocaleTimeString(
+                            {new Date(unit.created_at).toLocaleTimeString(
                               "fr-FR",
                               {
                                 hour: "2-digit",
@@ -419,21 +362,21 @@ const CategoryScreen = () => {
                       </td>
                       <td className="px-4">
                         <div className="btn-group" role="group">
-                          <a
-                            onClick={() => navigate(`/categories/${category.id}/edit`)}
+                          <button
+                            onClick={() => navigate(`/products/units/${unit.id}/edit`)}
                             className="btn btn-sm btn-outline-warning"
-                            title={intl.formatMessage({id: "category.edit"})}
+                            title="Modifier"
                           >
                             <i className="pi pi-pencil"></i>
-                          </a>
+                          </button>
                           <button
                             type="button"
                             className="btn btn-sm btn-outline-danger"
-                            title={intl.formatMessage({id: "category.delete"})}
+                            title="Supprimer"
                             onClick={() =>
                               setDeleteModal({
                                 show: true,
-                                categoryId: category.id,
+                                unitId: unit.id,
                               })
                             }
                           >
@@ -454,8 +397,8 @@ const CategoryScreen = () => {
           <div className="card-footer bg-transparent border-0">
             <div className="d-flex justify-content-between align-items-center">
               <div className="text-muted small">
-                {intl.formatMessage({id: "category.showing"})} {pagination.from} {intl.formatMessage({id: "category.to"})} {pagination.to} {intl.formatMessage({id: "category.on"})}{" "}
-                {pagination.total} {intl.formatMessage({id: "category.results"})}
+                Affichage de {pagination.from} à {pagination.to} sur{" "}
+                {pagination.total} résultats
               </div>
               <Pagination />
             </div>
@@ -471,23 +414,23 @@ const CategoryScreen = () => {
               <div className="modal-content">
                 <div className="modal-header bg-danger text-white">
                   <h5 className="modal-title">
-                    <i className="pi pi-exclamation-triangle me-2"></i>{intl.formatMessage({id: "category.confirmDelete"})}
+                    <i className="pi pi-exclamation-triangle me-2"></i>Confirmer la suppression
                   </h5>
                   <button
                     type="button"
                     className="btn-close btn-close-white"
                     onClick={() =>
-                      setDeleteModal({ show: false, categoryId: null })
+                      setDeleteModal({ show: false, unitId: null })
                     }
                   ></button>
                 </div>
                 <div className="modal-body">
                   <p>
-                    {intl.formatMessage({id: "category.deleteMessage"})}
+                    Êtes-vous sûr de vouloir supprimer cette unité ? Cette action est irréversible.
                   </p>
                   <div className="alert alert-warning mt-3">
                     <i className="pi pi-info-circle me-2"></i>
-                    <strong>{intl.formatMessage({id: "category.deleteWarning"})}</strong> {intl.formatMessage({id: "category.deleteWarningMessage"})}
+                    <strong>Attention :</strong> Cette action ne peut pas être annulée.
                   </div>
                 </div>
                 <div className="modal-footer">
@@ -495,17 +438,17 @@ const CategoryScreen = () => {
                     type="button"
                     className="btn btn-secondary"
                     onClick={() =>
-                      setDeleteModal({ show: false, categoryId: null })
+                      setDeleteModal({ show: false, unitId: null })
                     }
                   >
-                    {intl.formatMessage({id: "category.cancel"})}
+                    Annuler
                   </button>
                   <button
                     type="button"
                     className="btn btn-danger"
-                    onClick={() => handleDeleteCategory(deleteModal.categoryId)}
+                    onClick={() => handleDeleteUnit(deleteModal.unitId)}
                   >
-                    <i className="pi pi-trash me-1"></i>{intl.formatMessage({id: "category.delete"})}
+                    <i className="pi pi-trash me-1"></i>Supprimer
                   </button>
                 </div>
               </div>
@@ -513,7 +456,7 @@ const CategoryScreen = () => {
           </div>
           <div
             className="modal-backdrop show"
-            onClick={() => setDeleteModal({ show: false, categoryId: null })}
+            onClick={() => setDeleteModal({ show: false, unitId: null })}
           ></div>
         </>
       )}
@@ -521,4 +464,4 @@ const CategoryScreen = () => {
   );
 };
 
-export default CategoryScreen;
+export default UnitScreen;

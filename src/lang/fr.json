@@ -330,6 +330,7 @@
   "product.deleteError": "Erreur lors de la suppression",
   "product.error": "Erreur",
   "product.success": "Succès",
+  "product.unit.management": "Gestion des unités",
 
   "category.title": "Gestion des Catégories",
   "category.totalCategories": "catégorie(s) au total",

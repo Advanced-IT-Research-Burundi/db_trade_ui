@@ -331,6 +331,7 @@
   "product.deleteError": "Error while deleting",
   "product.error": "Error",
   "product.success": "Success",
+  "product.unit.management": "Unit Management",
 
   "category.title": "Category Management",
   "category.totalCategories": "total category(ies)",

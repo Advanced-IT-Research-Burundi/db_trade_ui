@@ -37,6 +37,7 @@ export const API_CONFIG = {
     DEPENSES_IMPORTATION: '/api/depenses-importations/commandes',
     DEPENSES_IMPORTATION_MODEL: '/api/depenses-importations',
     BON_ENTRE: '/api/bon-entree',
+    UNITS: '/api/units',
   },
   HEADERS: {
     'Content-Type': 'application/json',

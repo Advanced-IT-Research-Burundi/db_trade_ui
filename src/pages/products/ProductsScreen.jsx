@@ -210,6 +210,9 @@ const ProductScreen = () => {
               <a onClick={()=> navigate('/products/create')} className="btn btn-primary">
                 <i className="pi pi-plus-circle me-1"></i>{intl.formatMessage({id: "product.newProduct"})}
               </a>
+              <a onClick={()=> navigate('/products/units')} className="btn btn-secondary">
+                <i className="pi pi-calculator me-1"></i>{intl.formatMessage({id: "product.unit.management"})}
+              </a>
             </div>
           </div>
         </div>

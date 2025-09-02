@@ -27,6 +27,9 @@ import ProductsScreen from '../pages/products/ProductsScreen';
 import AddProductScreen from '../pages/stocks/AddProductScreen.jsx';
 import ProductCreateScreen from '../pages/products/ProductCreateScreen.jsx';
 import ProductEditScreen from '../pages/products/ProductEditScreen.jsx';
+import UnitScreen from '../pages/products/unit/UnitScreen.jsx';
+import UnitCreateScreen from '../pages/products/unit/UnitCreateScreen.jsx';
+import UnitEditScreen from '../pages/products/unit/UnitEditScreen.jsx';
 //category
 import CategoriesScreen from '../pages/categories/CategoriesScreen';
 import CategoryCreateScreen from '../pages/categories/CategoryCreateScreen.jsx';
@@ -147,6 +150,9 @@ const protectedRoutes = [
   { path: '/add/product/:id', component: AddProductScreen },
   { path: '/products/create', component: ProductCreateScreen },
   { path: '/products/:id/edit', component: ProductEditScreen },
+  { path: '/products/units', component: UnitScreen },
+  { path: '/products/units/create', component: UnitCreateScreen },
+  { path: '/products/units/:id/edit', component: UnitEditScreen },
   //category
   { path: '/categories', component: CategoriesScreen },
   { path: '/categories/create', component: CategoryCreateScreen },

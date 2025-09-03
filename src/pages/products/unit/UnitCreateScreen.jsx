@@ -1,4 +1,5 @@
 import React from 'react';
+import { useIntl } from 'react-intl';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from '../../../hooks/useForm';
 import FormField from '../../../components/input/FormField';
@@ -6,18 +7,19 @@ import ApiService from '../../../services/api.js';
 import { Toast } from 'primereact/toast';
 
 const UnitCreateScreen = () => {
+  const intl = useIntl();
   const navigate = useNavigate();
   const toast = React.useRef(null);
-
+  
   const initialValues = {
     name: '',
     abbreviation: '',
     description: ''
   };
-
+  
   const validationRules = {
     name: {
-      required: 'Le nom est requis',
+      required: intl.formatMessage({id: "unitCreate.validations.nameRequired"}),
       minLength: 2,
       maxLength: 255
     },
@@ -28,45 +30,37 @@ const UnitCreateScreen = () => {
       maxLength: 1000
     }
   };
-
+  
   const handleSubmit = async (values) => {
     const response = await ApiService.post('/api/units', values);
-
     if (response.success) {
       toast.current.show({
         severity: 'success',
-        summary: 'Succès',
-        detail: 'Unité créée avec succès',
+        summary: intl.formatMessage({id: "unitCreate.success"}),
+        detail: intl.formatMessage({id: "unitCreate.unitCreated"}),
         life: 3000
       });
       
       setTimeout(() => {
         navigate('/products/units');
       }, 1000);
-
       console.log("response : " +response);
-
-    //   return { success: true, message: 'Unité créée avec succès' };
     } else {
       toast.current.show({
         severity: 'error',
-        summary: 'Erreur',
-        detail: response.error || 'Erreur lors de la création de l\'unité',
+        summary: intl.formatMessage({id: "unitCreate.error"}),
+        detail: response.error || intl.formatMessage({id: "unitCreate.createError"}),
         life: 3000
       });
-      
-    //   if (response.status === 422) {
-    //     throw { status: 422, errors: response.errors };
-    //   }
     }
   };
-
+  
   const form = useForm({
     initialValues,
     validationRules,
     onSubmit: handleSubmit
   });
-
+  
   return (
     <div className="container-fluid py-4">
       <Toast ref={toast} />
@@ -78,19 +72,18 @@ const UnitCreateScreen = () => {
               <div className="d-flex justify-content-between align-items-center">
                 <h4 className="m-0 text-primary">
                   <i className="pi pi-plus me-2"></i>
-                  Nouvelle unité de mesure
+                  {intl.formatMessage({id: "unitCreate.title"})}
                 </h4>
                 <button
                   type="button"
                   className="btn btn-outline-secondary btn-sm"
-                  title="Retour à la liste"
-                  onClick={() => navigate('/units')}
+                  title={intl.formatMessage({id: "unitCreate.backToList"})}
+                  onClick={() => navigate('/products/units')}
                 >
                   <i className="pi pi-arrow-left"></i>
                 </button>
               </div>
             </div>
-
             <div className="card-body">
               <form onSubmit={form.handleSubmit}>
                 <div className="row">
@@ -99,40 +92,37 @@ const UnitCreateScreen = () => {
                       name="name"
                       form={form}
                       type="text"
-                      label="Nom de l'unité"
-                      placeholder="Ex: Kilogramme, Mètre, Litre..."
+                      label={intl.formatMessage({id: "unitCreate.unitName"})}
+                      placeholder={intl.formatMessage({id: "unitCreate.unitNamePlaceholder"})}
                       icon="pi pi-calculator"
                       required
-                      helperText="Le nom doit contenir au moins 2 caractères"
+                      helperText={intl.formatMessage({id: "unitCreate.unitNameHelper"})}
                     />
                   </div>
-
                   <div className="col-12">
                     <FormField
                       name="abbreviation"
                       form={form}
                       type="text"
-                      label="Abréviation"
-                      placeholder="Ex: kg, m, l..."
+                      label={intl.formatMessage({id: "unitCreate.abbreviation"})}
+                      placeholder={intl.formatMessage({id: "unitCreate.abbreviationPlaceholder"})}
                       icon="pi pi-tag"
-                      helperText="Abréviation courte de l'unité (optionnel, max 20 caractères)"
+                      helperText={intl.formatMessage({id: "unitCreate.abbreviationHelper"})}
                     />
                   </div>
-
                   <div className="col-12">
                     <FormField
                       name="description"
                       form={form}
                       type="textarea"
-                      label="Description"
-                      placeholder="Description détaillée de l'unité de mesure (optionnel)"
+                      label={intl.formatMessage({id: "unitCreate.description"})}
+                      placeholder={intl.formatMessage({id: "unitCreate.descriptionPlaceholder"})}
                       icon="pi pi-align-left"
-                      helperText="Description optionnelle (maximum 1000 caractères)"
+                      helperText={intl.formatMessage({id: "unitCreate.descriptionHelper"})}
                       rows={4}
                     />
                   </div>
                 </div>
-
                 <div className="d-flex justify-content-end gap-2 mt-4">
                   <button
                     type="button"
@@ -141,7 +131,7 @@ const UnitCreateScreen = () => {
                     disabled={form.submitting}
                   >
                     <i className="pi pi-times me-2"></i>
-                    Annuler
+                    {intl.formatMessage({id: "unitCreate.cancel"})}
                   </button>
                   <button
                     type="submit"
@@ -149,7 +139,7 @@ const UnitCreateScreen = () => {
                     disabled={!form.canSubmit}
                   >
                     <i className={`${form.submitting ? 'pi pi-spin pi-spinner' : 'pi pi-check'} me-2`}></i>
-                    {form.submitting ? 'Création...' : 'Créer'}
+                    {form.submitting ? intl.formatMessage({id: "unitCreate.creating"}) : intl.formatMessage({id: "unitCreate.create"})}
                   </button>
                 </div>
               </form>

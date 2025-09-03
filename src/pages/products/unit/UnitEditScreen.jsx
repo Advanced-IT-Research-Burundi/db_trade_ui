@@ -1,4 +1,5 @@
 import React from 'react';
+import { useIntl } from 'react-intl';
 import { Toast } from 'primereact/toast';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useForm } from '../../../hooks/useForm';
@@ -6,6 +7,7 @@ import FormField from '../../../components/input/FormField';
 import ApiService from '../../../services/api.js';
 
 const UnitEditScreen = () => {
+  const intl = useIntl();
   const navigate = useNavigate();
   const { id } = useParams();
   const toast = React.useRef(null);
@@ -18,7 +20,7 @@ const UnitEditScreen = () => {
 
   const validationRules = {
     name: {
-      required: 'Le nom est requis',
+      required: intl.formatMessage({id: "unitEdit.validations.nameRequired"}),
       minLength: 2,
       maxLength: 255
     },
@@ -38,11 +40,11 @@ const UnitEditScreen = () => {
     } else {
       toast.current.show({
         severity: 'error',
-        summary: 'Erreur',
-        detail: response.message || 'Erreur lors du chargement',
+        summary: intl.formatMessage({id: "unitEdit.error"}),
+        detail: response.message || intl.formatMessage({id: "unitEdit.loadingError"}),
         life: 3000
       });
-      throw new Error(response.message || 'Erreur lors du chargement');
+      throw new Error(response.message || intl.formatMessage({id: "unitEdit.loadingError"}));
     }
   };
 
@@ -52,8 +54,8 @@ const UnitEditScreen = () => {
     if (response.success) {
       toast.current.show({
         severity: 'success',
-        summary: 'Succès',
-        detail: 'Unité modifiée avec succès',
+        summary: intl.formatMessage({id: "unitEdit.success"}),
+        detail: intl.formatMessage({id: "unitEdit.unitUpdated"}),
         life: 3000
       });
       
@@ -61,12 +63,12 @@ const UnitEditScreen = () => {
         navigate('/products/units');
       }, 1000);
       
-      return { success: true, message: 'Unité modifiée avec succès' };
+      return { success: true, message: intl.formatMessage({id: "unitEdit.unitUpdated"}) };
     } else {
       toast.current.show({
         severity: 'error',
-        summary: 'Erreur',
-        detail: response.message || 'Erreur lors de la modification de l\'unité',
+        summary: intl.formatMessage({id: "unitEdit.error"}),
+        detail: response.message || intl.formatMessage({id: "unitEdit.updateError"}),
         life: 3000
       });
       
@@ -95,7 +97,7 @@ const UnitEditScreen = () => {
               <div className="d-flex justify-content-between align-items-center">
                 <h4 className="m-0 text-primary">
                   <i className="pi pi-pencil me-2"></i>
-                  Modifier l'unité
+                  {intl.formatMessage({id: "unitEdit.title"})}
                   {form.values.name && (
                     <span className="text-muted ms-2">- {form.values.name}</span>
                   )}
@@ -103,8 +105,8 @@ const UnitEditScreen = () => {
                 <button
                   type="button"
                   className="btn btn-outline-secondary btn-sm"
-                  title="Retour à la liste"
-                  onClick={() => navigate('/units')}
+                  title={intl.formatMessage({id: "unitEdit.backToList"})}
+                  onClick={() => navigate('/products/units')}
                 >
                   <i className="pi pi-arrow-left"></i>
                 </button>
@@ -119,11 +121,11 @@ const UnitEditScreen = () => {
                       name="name"
                       form={form}
                       type="text"
-                      label="Nom de l'unité"
-                      placeholder="Ex: Kilogramme, Mètre, Litre..."
+                      label={intl.formatMessage({id: "unitEdit.unitName"})}
+                      placeholder={intl.formatMessage({id: "unitEdit.unitNamePlaceholder"})}
                       icon="pi pi-calculator"
                       required
-                      helperText="Le nom doit contenir au moins 2 caractères"
+                      helperText={intl.formatMessage({id: "unitEdit.unitNameHelper"})}
                       disabled={form.loading}
                     />
                   </div>
@@ -133,10 +135,10 @@ const UnitEditScreen = () => {
                       name="abbreviation"
                       form={form}
                       type="text"
-                      label="Abréviation"
-                      placeholder="Ex: kg, m, l..."
+                      label={intl.formatMessage({id: "unitEdit.abbreviation"})}
+                      placeholder={intl.formatMessage({id: "unitEdit.abbreviationPlaceholder"})}
                       icon="pi pi-tag"
-                      helperText="Abréviation courte de l'unité (optionnel, max 20 caractères)"
+                      helperText={intl.formatMessage({id: "unitEdit.abbreviationHelper"})}
                       disabled={form.loading}
                     />
                   </div>
@@ -146,10 +148,10 @@ const UnitEditScreen = () => {
                       name="description"
                       form={form}
                       type="textarea"
-                      label="Description"
-                      placeholder="Description détaillée de l'unité de mesure (optionnel)"
+                      label={intl.formatMessage({id: "unitEdit.description"})}
+                      placeholder={intl.formatMessage({id: "unitEdit.descriptionPlaceholder"})}
                       icon="pi pi-align-left"
-                      helperText="Description optionnelle (maximum 1000 caractères)"
+                      helperText={intl.formatMessage({id: "unitEdit.descriptionHelper"})}
                       rows={4}
                       disabled={form.loading}
                     />
@@ -165,7 +167,7 @@ const UnitEditScreen = () => {
                       disabled={form.submitting || form.loading}
                     >
                       <i className="pi pi-refresh me-2"></i>
-                      Réinitialiser
+                      {intl.formatMessage({id: "unitEdit.reset"})}
                     </button>
                   </div>
                   
@@ -177,7 +179,7 @@ const UnitEditScreen = () => {
                       disabled={form.submitting || form.loading}
                     >
                       <i className="pi pi-times me-2"></i>
-                      Annuler
+                      {intl.formatMessage({id: "unitEdit.cancel"})}
                     </button>
                     <button
                       type="submit"
@@ -185,7 +187,7 @@ const UnitEditScreen = () => {
                       disabled={!form.canSubmit || form.loading}
                     >
                       <i className={`${form.submitting ? 'pi pi-spin pi-spinner' : 'pi pi-check'} me-2`}></i>
-                      {form.submitting ? 'Modification...' : 'Modifier'}
+                      {form.submitting ? intl.formatMessage({id: "unitEdit.updating"}) : intl.formatMessage({id: "unitEdit.update"})}
                     </button>
                   </div>
                 </div>
